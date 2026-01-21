@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Basic restrictive rules - will be expanded in Sprint 14
+    // For now, only authenticated users can read/write their own data
+    // All access is restricted until proper role-based rules are implemented
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // User Profiles: Users can read/write their own profile
+    match /userProfiles/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // Default deny all access for other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Note: Security rules will be fully implemented in Sprint 14
+    // This is a minimal implementation to allow basic app functionality
+    // Proper role-based access control will be added in Sprint 14
+  }
+}

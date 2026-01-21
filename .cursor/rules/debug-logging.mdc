@@ -1,0 +1,74 @@
+---
+description: Debug logging system usage and best practices for debugging tasks
+alwaysApply: false
+---
+
+# Debug Logging
+
+**CRITICAL**: When the user asks to "debug" or requests debugging assistance, always use the browser debug logging system.
+
+## Reference Documentation
+
+For comprehensive debug logging documentation, see:
+- **Full Guide**: `docs/DEBUG-LOGGING-GUIDE.md` - Complete debug logging system documentation
+- **Quick Start**: `docs/DEBUG-QUICK-START.md` - Quick reference guide
+
+## Quick Reference
+
+### System Components
+- **Core Logger**: `lib/utils/debugLogger.ts`
+- **Visual Panel**: `components/debug/DebugPanel.tsx`
+
+### Enabling Debug Logging
+
+**Method 1: Environment Variables** (Recommended)
+```env
+NEXT_PUBLIC_DEBUG=true
+NEXT_PUBLIC_DEBUG_PANEL=true
+```
+
+**Method 2: Browser Console**
+```javascript
+window.__DEBUG__ = true;
+window.__DEBUG_PANEL__ = true;
+location.reload();
+```
+
+### Usage
+
+```typescript
+import { debugLog } from '@/lib/utils/debugLogger';
+
+// Component lifecycle
+useEffect(() => {
+  debugLog.info('Component mounted', 'MyComponent', { props });
+  return () => debugLog.info('Component unmounted', 'MyComponent');
+}, []);
+
+// API calls
+debugLog.debug('API request started', 'DataService', { endpoint, method });
+try {
+  const response = await fetch(url);
+  debugLog.info('API request completed', 'DataService', { status: response.status });
+} catch (error) {
+  debugLog.error('API request failed', 'DataService', { error });
+}
+```
+
+### Log Levels
+- `debugLog.debug()` - Detailed diagnostic info
+- `debugLog.info()` - General application flow
+- `debugLog.warn()` - Potentially problematic situations
+- `debugLog.error()` - Error events with stack traces
+
+### Viewing Debug Output
+- **Browser Console**: Open DevTools (F12) → Console tab
+- **Visual Panel**: Press `Ctrl+Shift+D` (Windows) or `Cmd+Shift+D` (Mac)
+- **Console Command**: `window.debugLog.togglePanel()`
+
+### Best Practices
+- Always include context (component/service name)
+- Include relevant data for debugging (objects, arrays)
+- PII is automatically masked by the logger
+- Use structured data (objects) for complex information
+- Don't over-log (only meaningful events)

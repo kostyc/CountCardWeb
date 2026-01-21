@@ -1,0 +1,112 @@
+---
+description: Documentation requirements and standards for all project documentation
+globs: ["**/*.md", "**/docs/**"]
+alwaysApply: false
+---
+
+# Documentation Standards
+
+Documentation is a critical part of code quality and must be maintained alongside code. All documentation should follow these standards.
+
+## Documentation Structure & Organization
+
+- **Table of Contents**: All major documentation files should include a table of contents for navigation
+- **Hierarchical Organization**: Use consistent heading hierarchy (## for main sections, ### for subsections, #### for sub-subsections)
+- **Logical Grouping**: Group related information together (e.g., Firebase configuration and deployment together)
+- **Section Naming**: Use clear, descriptive section names that indicate content
+- **Cross-References**: Link related sections using markdown anchor links
+- **Consistent Formatting**: Maintain consistent formatting throughout documentation
+
+## Markdown Best Practices
+
+- **Headings**: Use proper heading hierarchy (H1 for title, H2 for main sections, H3 for subsections)
+- **Lists**: Use bullet points for unordered lists, numbered lists for sequential steps
+- **Code Blocks**: Use fenced code blocks with language identifiers for syntax highlighting
+- **Inline Code**: Use backticks for inline code, file names, and technical terms
+- **Emphasis**: Use **bold** for important terms, *italic* for emphasis
+- **Links**: Use descriptive link text, not raw URLs
+- **Tables**: Use markdown tables for structured data
+- **Horizontal Rules**: Use `---` to separate major sections when appropriate
+
+## Sprint Documentation Standards
+
+- **Sprint Files**: Each sprint has its own folder in `sprints/` directory
+- **File Naming**: `Sprint-<Number>-<Date>.md` (e.g., `Sprint-1-2025-01-15.md`)
+- **Sprint Structure**: Each sprint document should include:
+  - Sprint number and date
+  - Objectives and goals
+  - Tasks and subtasks
+  - Dependencies
+  - Acceptance criteria
+  - Notes and blockers
+- **Archive Management**: Completed sprints moved to `sprints/Archive/`
+- **Overview Document**: Maintain `SPRINT-OVERVIEW.md` with comprehensive project information
+- **Regular Updates**: Update sprint documentation as work progresses
+
+## Code Documentation
+
+- **Code Comments**: Document complex logic, business rules, and non-obvious implementations
+- **Function Documentation**: Use JSDoc comments for functions, classes, and exported utilities
+- **Type Definitions**: Comprehensive TypeScript types for all data structures with inline documentation
+- **Inline Comments**: Explain "why" not "what" - code should be self-documenting for "what"
+- **TODO Comments**: Use `// TODO:` for future improvements, `// FIXME:` for known issues
+- **Complex Algorithms**: Document algorithms, especially encryption/decryption logic
+- **Business Logic**: Document business rules and domain-specific logic
+
+## API Documentation
+
+- **Endpoint Documentation**: Document all API endpoints with:
+  - HTTP method and path
+  - Request parameters (query, body, headers)
+  - Response format and status codes
+  - Authentication requirements
+  - Rate limiting information
+  - Example requests and responses
+- **Error Responses**: Document all possible error responses and status codes
+- **Authentication**: Document authentication methods and token requirements
+- **Rate Limits**: Document rate limiting for each endpoint
+- **Versioning**: Document API versioning strategy
+
+## Project Documentation
+
+- **README.md**: Maintain comprehensive README with:
+  - Project overview and purpose
+  - Technology stack
+  - Setup instructions
+  - Environment variables
+  - Development workflow
+  - Deployment instructions
+  - Contributing guidelines
+- **Architecture Documentation**: Document system architecture, data flow, and component relationships
+- **Configuration Documentation**: Document all configuration options and their purposes
+- **Deployment Documentation**: Document deployment process, requirements, and troubleshooting
+
+## User Documentation
+
+- **User Guides**: Create user documentation for different user roles:
+  - Drill Instructors
+  - Senior Drill Instructors
+  - Administrators
+  - Recruits (if applicable)
+- **Feature Documentation**: Document how to use each major feature
+- **Troubleshooting Guides**: Document common issues and solutions
+- **FAQ**: Maintain frequently asked questions
+
+## Documentation Maintenance
+
+- **Regular Reviews**: Review and update documentation regularly
+- **Version Control**: Keep documentation in version control alongside code
+- **Accuracy**: Ensure documentation matches current implementation
+- **Outdated Content**: Remove or update outdated information
+- **Completeness**: Ensure all features are documented
+- **Accessibility**: Write documentation that is accessible to all team members
+
+## Documentation Style Guide
+
+- **Tone**: Professional, clear, and concise
+- **Audience**: Write for the intended audience (developers, users, administrators)
+- **Examples**: Include practical examples where helpful
+- **Screenshots**: Use screenshots for UI documentation when appropriate
+- **Diagrams**: Use diagrams for complex processes or architectures
+- **Consistency**: Maintain consistent terminology throughout documentation
+- **Clarity**: Avoid jargon when possible, define technical terms when used

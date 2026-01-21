@@ -1,0 +1,56 @@
+---
+description: Code quality standards and conventions for TypeScript and React code
+globs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+alwaysApply: false
+---
+
+# Code Quality Standards
+
+## TypeScript
+- **Strict Mode**: Enabled, no `any` types without justification
+- **Type Definitions**: Comprehensive TypeScript types for all data structures
+- **Type Safety**: Avoid type assertions unless absolutely necessary
+
+## Code Style
+- **ESLint**: Follow Next.js ESLint configuration
+- **Prettier**: Consistent code formatting
+- **Imports**: Use absolute imports with `@/` alias
+- **Naming Conventions**:
+  - Components: PascalCase (e.g., `RecruitCard.tsx`)
+  - Utilities: camelCase (e.g., `formatRank.ts`)
+  - Types: PascalCase (e.g., `RecruitProfile`)
+  - Constants: UPPER_SNAKE_CASE (e.g., `MAX_RECRUITS_PER_PLATOON`)
+
+## Component Standards
+- **Functional Components**: Use functional components with hooks, no class components
+- **State Management**: React Context for global state, local state for component-specific state
+- **Props**: Use TypeScript for all component props with proper typing
+- **Hooks**: Follow React hooks rules and best practices
+
+## Code Documentation
+- **Complex Logic**: Document complex logic, business rules, and non-obvious implementations
+- **JSDoc Comments**: Use JSDoc comments for functions, classes, and exported utilities
+- **Inline Comments**: Explain "why" not "what" - code should be self-documenting for "what"
+- **TODO Comments**: Use `// TODO:` for future improvements, `// FIXME:` for known issues
+
+## Code Organization
+- **File Structure**: Follow Next.js App Router conventions
+  - `app/` - Routes and API endpoints
+  - `components/` - React components
+  - `lib/` - Utilities, services, Firebase config
+  - `types/` - TypeScript type definitions
+  - `hooks/` - Custom React hooks
+  - `context/` - React contexts
+
+## Error Handling
+- **Client-Side**: User-friendly error messages, no technical details exposed
+- **Server-Side**: Sanitize errors before logging (no PII, stack traces in production)
+- **Error Monitoring**: Integrate with Google Cloud Error Reporting
+- **Structured Logging**: Use structured logging with appropriate log levels
+
+## Performance
+- **Code Splitting**: Use Next.js dynamic imports for large components
+- **Image Optimization**: Use Next.js Image component
+- **Caching**: Implement appropriate caching strategies
+- **Database Queries**: Optimize Firestore queries with proper indexing
+- **Bundle Size**: Monitor and minimize bundle size

@@ -1,0 +1,159 @@
+# Cursor Indexing Configuration for CountCardWeb
+# This file excludes files from Cursor's semantic indexing to improve performance
+# Firebase configuration files (firebase.json, firestore.rules, etc.) are INCLUDED for indexing
+
+# ============================================
+# Build Outputs & Generated Files
+# ============================================
+/.next/
+/out/
+/build/
+/dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# ============================================
+# Dependencies
+# ============================================
+/node_modules/
+/.pnp/
+.pnp.js
+.yarn/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# ============================================
+# Testing & Coverage
+# ============================================
+/coverage/
+.nyc_output/
+*.lcov
+
+# ============================================
+# Firebase Build Artifacts (NOT config files)
+# Config files like firebase.json, firestore.rules, firestore.indexes.json are INCLUDED
+# ============================================
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.firebaserc.local
+
+# ============================================
+# Environment & Secrets
+# ============================================
+.env*.local
+.env
+.env.production
+.env.development
+*.pem
+*.key
+*.cert
+
+# ============================================
+# Deployment & Hosting
+# ============================================
+.vercel/
+.netlify/
+.aws-sam/
+
+# ============================================
+# Platform-Specific Exclusions (Android)
+# ============================================
+**/*.kt
+**/*.java
+**/*.gradle
+**/*.gradle.kts
+**/gradle/
+**/gradlew
+**/gradlew.bat
+**/android/
+**/*.apk
+**/*.aab
+**/local.properties
+**/proguard/
+**/app/build/
+**/build.gradle
+**/settings.gradle
+
+# ============================================
+# Platform-Specific Exclusions (iOS/Apple)
+# ============================================
+**/*.swift
+**/*.m
+**/*.h
+**/*.mm
+**/*.xcodeproj/
+**/*.xcworkspace/
+**/ios/
+**/DerivedData/
+**/*.xcuserstate
+**/*.xcuserdatad
+**/*.xcuserdatad/
+**/Pods/
+**/Podfile.lock
+**/*.pbxproj
+**/*.plist
+**/*.storyboard
+**/*.xib
+**/*.swiftmodule
+**/*.pcm
+**/*.dSYM
+**/*.xcarchive
+
+# ============================================
+# Logs
+# ============================================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ============================================
+# OS Files
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ============================================
+# IDE Files (keep .cursor/ for rules)
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# ============================================
+# Temporary & Cache Files
+# ============================================
+*.tmp
+*.temp
+.cache/
+.parcel-cache/
+.turbo/
+.eslintcache
+.stylelintcache
+*.cache
+
+# ============================================
+# Package Manager Lock Files (optional - uncomment if you want to exclude)
+# ============================================
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml

@@ -1,0 +1,65 @@
+---
+description: Test tracking procedures and status updates for sprint testing
+globs: ["sprints/**/*.md", "sprints/TEST-TRACKING.md"]
+alwaysApply: false
+---
+
+# Test Tracking
+
+## Reference Documentation
+
+For comprehensive test tracking procedures, see:
+- **Test Tracking File**: `sprints/TEST-TRACKING.md` - Complete test tracking documentation and procedures
+
+## Quick Reference
+
+### Test Tracking File Structure
+- **Location**: Single consolidated `TEST-TRACKING.md` file in `sprints/` directory
+- **Purpose**: Track all test requirements, status, evidence, and results for all sprints in one centralized location
+- **Format**: Structured markdown with sprint sections, test cases, status indicators, evidence sections, and execution logs
+- **Organization**: Tests are organized by sprint with format `Test S[N].[X]` (e.g., `Test S1.1` for Sprint 1, Test 1; `Test S2.5` for Sprint 2, Test 5)
+
+### Test Status Indicators
+- ✅ **Passed**: Test completed successfully
+- ❌ **Failed**: Test failed or encountered errors
+- ⏳ **Pending**: Test not yet executed
+- 🔄 **In Progress**: Test currently being executed
+- ⏸️ **Blocked**: Test blocked by dependencies or issues
+- ⏭️ **Skipped**: Test skipped (with reason documented)
+
+### Automatic Test Status Updates
+
+**CRITICAL RULE**: Always check and update the consolidated `sprints/TEST-TRACKING.md` file when:
+
+1. **Log files are provided or written**
+   - When any log file is created, written, or provided by the user
+   - When console output, build output, or test results are generated
+   - When error logs, test logs, or execution logs are available
+   - Identify which sprint the test belongs to (check test ID format: `Test S[N].[X]`)
+   - Update the relevant test's "Test Evidence" section with log file references
+   - Update test status based on log content (✅ Passed if successful, ❌ Failed if errors found)
+   - Update both the sprint-specific overview table and the global overview table
+
+2. **Written confirmation of functionality**
+   - When user confirms a feature works (verbally or in writing)
+   - When test execution confirms success or failure
+   - When manual testing results are reported
+   - Identify which sprint the test belongs to
+   - Update the test status immediately (✅ Passed or ❌ Failed)
+   - Add confirmation details to "Actual Result" and "Test Evidence" sections
+   - Update both sprint-specific and global overview tables
+
+3. **Test execution occurs**
+   - After running any test command (npm test, build, dev server, etc.)
+   - After manual testing is performed
+   - After automated tests complete
+   - Identify which sprint the test belongs to
+   - Update test status and add execution timestamp
+   - Update both sprint-specific and global overview tables
+
+### Test Evidence Handling
+- **Log Files**: Reference log files by path (relative to project root or absolute)
+- **Screenshots**: Reference screenshot files by path
+- **Console Output**: Include relevant console output in code blocks
+- **Build Output**: Reference build directories or output files
+- **Notes**: Add any relevant observations or issues

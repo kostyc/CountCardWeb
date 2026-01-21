@@ -1,0 +1,64 @@
+---
+description: API design standards and best practices for API endpoints
+globs: ["app/api/**/*.ts", "**/api/**"]
+alwaysApply: false
+---
+
+# API Design Standards
+
+## RESTful Conventions
+- Use standard HTTP methods (GET, POST, PUT, DELETE)
+- Follow RESTful resource naming conventions
+- Use appropriate HTTP status codes
+
+## Authentication & Authorization
+- **Authentication**: All endpoints require valid Firebase ID token
+- **Server-Side Verification**: All API routes must verify authentication tokens server-side
+- **Role-Based Access**: Implement role-based access control using Firebase custom claims
+- **Permission Checks**: Verify user permissions before processing requests
+
+## Input Validation
+- **Zod Schemas**: All API inputs must be validated with Zod schemas
+- **Type Safety**: Use TypeScript types for all request/response structures
+- **Error Messages**: Return clear, actionable validation error messages
+
+## Error Handling
+- **Consistent Format**: Use consistent error response format across all endpoints
+- **Error Codes**: Use appropriate HTTP status codes
+- **Error Messages**: User-friendly error messages, no technical details exposed
+- **Sanitization**: Sanitize errors before logging (no PII, stack traces in production)
+
+## Rate Limiting
+- **Default Limits**: 20 requests/minute, 100/hour, 500/day
+- **Admin Exemption**: Admins are exempt from rate limiting
+- **Rate Limit Headers**: Include rate limit information in response headers
+- **Error Responses**: Return 429 Too Many Requests when rate limit exceeded
+
+## Response Format
+- **JSON Structure**: Consistent JSON response structure across all endpoints
+- **Success Responses**: Include relevant data and metadata
+- **Error Responses**: Include error code, message, and optional details
+- **Status Codes**: Use appropriate HTTP status codes
+
+## CORS
+- **Restrict Origins**: Restrict to specific origins (no wildcards in production)
+- **Environment Variables**: Use `ALLOWED_ORIGINS` environment variable
+- **Headers**: Include appropriate CORS headers in responses
+
+## API Documentation
+- **Endpoint Documentation**: Document all API endpoints with:
+  - HTTP method and path
+  - Request parameters (query, body, headers)
+  - Response format and status codes
+  - Authentication requirements
+  - Rate limiting information
+  - Example requests and responses
+- **Error Responses**: Document all possible error responses and status codes
+- **Versioning**: Document API versioning strategy
+
+## Security
+- **Input Sanitization**: Sanitize all user inputs
+- **SQL Injection Prevention**: Use parameterized queries (Firestore handles this)
+- **XSS Prevention**: Sanitize output data
+- **CSRF Protection**: Implement CSRF protection where applicable
+- **PII Protection**: Never log or expose PII in error messages or logs

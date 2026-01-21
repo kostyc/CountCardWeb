@@ -1,0 +1,54 @@
+---
+description: UI/UX best practices and design system references for user-facing features
+globs: ["**/*.tsx", "**/*.jsx", "**/components/**"]
+alwaysApply: false
+---
+
+# UI/UX Guidelines
+
+**CRITICAL**: Always consider UI/UX best practices when implementing any user-facing feature. User experience is paramount and directly impacts application adoption and user satisfaction.
+
+## Reference Documentation
+
+For comprehensive UI/UX guidelines, see:
+- **Design System**: `docs/DESIGN-SYSTEM.md` - Complete design tokens, components, and guidelines
+- **Responsive Design**: `docs/RESPONSIVE-DESIGN.md` - Responsive design patterns and breakpoints
+
+## Key Principles
+
+### Visual Design
+- **Marine Corps Theme**: Use MARPAT colors and military styling consistently throughout
+- **Rank Display**: Support E-5 through E-9 (Enlisted) and O-1 through O-6 (Officer) ranks with proper formatting
+- **Visual Hierarchy**: Use size, color, contrast, and spacing to guide user attention
+- **Consistency**: Maintain consistent styling patterns across all pages and components
+- **Color Contrast**: Ensure all text meets WCAG 2.1 AA contrast requirements (4.5:1 for normal text, 3:1 for large text)
+
+### Interactive Elements
+- **Button Visibility**: Buttons must be clearly visible with sufficient contrast (minimum `z-10` for interactive elements)
+- **Button States**: Always implement hover, active, focus, and disabled states
+- **Button Sizing**: Minimum touch target size: 44x44px (mobile) or 40x40px (desktop)
+- **Form Inputs**: Use clear borders (minimum `border-2`), proper labels, and inline validation errors
+- **Focus States**: Implement visible focus rings for keyboard navigation accessibility
+
+### User Feedback
+- **Loading States**: Always show loading indicators during async operations
+- **Error Messages**: Display user-friendly error messages with clear actions
+- **Transitions**: Use smooth transitions (`transition-all duration-200`) for state changes
+
+### Accessibility (WCAG 2.1 AA)
+- **Color Contrast**: Minimum 4.5:1 for normal text, 3:1 for large text
+- **Keyboard Navigation**: All interactive elements must be keyboard accessible
+- **Screen Readers**: Proper ARIA labels and semantic HTML
+- **Form Labels**: All form inputs must have associated labels
+
+### Responsive Design
+- **Mobile-First**: Design for mobile devices first, then enhance for larger screens
+- **Breakpoints**: Use Tailwind breakpoints consistently (sm, md, lg, xl, 2xl)
+- **Touch Targets**: Ensure minimum 44x44px touch targets on mobile
+
+## Common Anti-Patterns to Avoid
+- ❌ Low contrast buttons that blend into backgrounds
+- ❌ Hidden interactive elements without clear indication
+- ❌ Poor z-index management
+- ❌ Missing loading states for async operations
+- ❌ Technical error messages exposed to end users
