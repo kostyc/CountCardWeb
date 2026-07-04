@@ -14,10 +14,10 @@ import { listRecruits, searchRecruits } from '@/lib/services/firestore/recruits'
 import { useRecruitPermissions } from '@/hooks/useRecruitPermissions';
 import { logError } from '@/lib/utils/logger';
 import { Container } from '@/components/ui/Container';
-import { Breadcrumbs } from '@/components/navigation/Breadcrumbs';
+import Breadcrumbs from '@/components/navigation/Breadcrumbs';
 import { RecruitList } from '@/components/recruits/RecruitList';
-import { Spinner } from '@/components/feedback/Spinner';
-import { ErrorState } from '@/components/feedback/ErrorState';
+import Spinner from '@/components/feedback/Spinner';
+import ErrorState from '@/components/feedback/ErrorState';
 import { Button } from '@/components/ui/Button';
 import type { RecruitProfile } from '@/types/models';
 import type { RecruitStatus } from '@/lib/validation/recruitSchemas';

@@ -62,10 +62,10 @@ export default function AdminPage(): JSX.Element {
   const [selectedRole, setSelectedRole] = useState<UserRole | ''>('');
   const [organizationalAssignment, setOrganizationalAssignment] = useState<OrganizationalAssignment>({
     regiment: undefined,
-    battalion: '',
-    company: '',
-    series: '',
-    platoon: '',
+    battalion: undefined,
+    company: undefined,
+    series: undefined,
+    platoon: undefined,
   });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -122,10 +122,10 @@ export default function AdminPage(): JSX.Element {
     setSelectedRole(selected.role || '');
     setOrganizationalAssignment(selected.organizationalAssignment || {
       regiment: undefined,
-      battalion: '',
-      company: '',
-      series: '',
-      platoon: '',
+      battalion: undefined,
+      company: undefined,
+      series: undefined,
+      platoon: undefined,
     });
     setError(null);
     setSuccess(null);
@@ -199,10 +199,10 @@ export default function AdminPage(): JSX.Element {
         setSelectedRole('');
         setOrganizationalAssignment({
           regiment: undefined,
-          battalion: '',
-          company: '',
-          series: '',
-          platoon: '',
+          battalion: undefined,
+          company: undefined,
+          series: undefined,
+          platoon: undefined,
         });
       }, 2000);
     } catch (err) {

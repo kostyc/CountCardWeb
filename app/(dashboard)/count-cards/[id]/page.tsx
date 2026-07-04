@@ -14,9 +14,9 @@ import { getCountCardById } from '@/lib/services/firestore/countCards';
 import { logError } from '@/lib/utils/logger';
 import { useToast } from '@/context/ToastContext';
 import { Container } from '@/components/ui/Container';
-import { Breadcrumbs } from '@/components/navigation/Breadcrumbs';
-import { ErrorState } from '@/components/feedback/ErrorState';
-import { Spinner } from '@/components/feedback/Spinner';
+import Breadcrumbs from '@/components/navigation/Breadcrumbs';
+import ErrorState from '@/components/feedback/ErrorState';
+import Spinner from '@/components/feedback/Spinner';
 import { CountCardDetail } from '@/components/countCards/CountCardDetail';
 import type { CountCard } from '@/types/models';
 

@@ -18,9 +18,9 @@ import { validateOrganizationalAssignment } from '@/lib/services/firestore/organ
 import { logError, logInfo } from '@/lib/utils/logger';
 import { useToast } from '@/context/ToastContext';
 import { Container } from '@/components/ui/Container';
-import { Breadcrumbs } from '@/components/navigation/Breadcrumbs';
-import { Spinner } from '@/components/feedback/Spinner';
-import { ErrorState } from '@/components/feedback/ErrorState';
+import Breadcrumbs from '@/components/navigation/Breadcrumbs';
+import Spinner from '@/components/feedback/Spinner';
+import ErrorState from '@/components/feedback/ErrorState';
 import type { RecruitProfile } from '@/types/models';
 
 /**
@@ -31,7 +31,7 @@ function getBreadcrumbItems(recruitId: string, recruitName?: string) {
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Recruits', href: '/recruits' },
     { label: recruitName || 'Recruit', href: `/recruits/${recruitId}` },
-    { label: 'Edit', href: `/recruits/${recruitId}/edit' },
+    { label: 'Edit', href: `/recruits/${recruitId}/edit` },
   ];
 }
 

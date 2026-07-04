@@ -19,8 +19,8 @@ import { logError, logInfo } from '@/lib/utils/logger';
 import { Toast } from '@/components/feedback/Toast';
 import { useToast } from '@/context/ToastContext';
 import { Container } from '@/components/ui/Container';
-import { Breadcrumbs } from '@/components/navigation/Breadcrumbs';
-import { ErrorState } from '@/components/feedback/ErrorState';
+import Breadcrumbs from '@/components/navigation/Breadcrumbs';
+import ErrorState from '@/components/feedback/ErrorState';
 import type { OrganizationalAssignment } from '@/types/auth';
 
 /**

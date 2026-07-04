@@ -18,9 +18,9 @@ import { deleteRecruitProfile } from '@/lib/services/firestore/recruits';
 import { logError, logInfo } from '@/lib/utils/logger';
 import { useToast } from '@/context/ToastContext';
 import { Container } from '@/components/ui/Container';
-import { Breadcrumbs } from '@/components/navigation/Breadcrumbs';
+import Breadcrumbs from '@/components/navigation/Breadcrumbs';
 import { RecruitDetail } from '@/components/recruits/RecruitDetail';
-import { ErrorState } from '@/components/feedback/ErrorState';
+import ErrorState from '@/components/feedback/ErrorState';
 import type { RecruitProfile } from '@/types/models';
 import type { EmergencyContact } from '@/types/models';
 
