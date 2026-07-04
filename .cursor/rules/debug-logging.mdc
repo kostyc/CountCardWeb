@@ -10,14 +10,14 @@ alwaysApply: false
 ## Reference Documentation
 
 For comprehensive debug logging documentation, see:
-- **Full Guide**: `docs/DEBUG-LOGGING-GUIDE.md` - Complete debug logging system documentation
-- **Quick Start**: `docs/DEBUG-QUICK-START.md` - Quick reference guide
+- @docs/DEBUG-LOGGING-GUIDE.md - Complete debug logging system documentation
+- @docs/DEBUG-QUICK-START.md - Quick reference guide
 
 ## Quick Reference
 
 ### System Components
-- **Core Logger**: `lib/utils/debugLogger.ts`
-- **Visual Panel**: `components/debug/DebugPanel.tsx`
+- @lib/utils/debugLogger.ts - Core logger implementation
+- @components/debug/DebugPanel.tsx - Visual debug panel component
 
 ### Enabling Debug Logging
 

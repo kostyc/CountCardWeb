@@ -17,7 +17,7 @@ export interface DecodedToken {
   uid: string;
   role?: UserRole;
   organizationalAssignment?: OrganizationalAssignment;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**

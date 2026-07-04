@@ -18,10 +18,18 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/forms/Select';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { logError, logInfo } from '@/lib/utils/logger';
-import type { ButtonVariant } from '@/types/components';
+
+export type ExportFormatOption = 'json' | 'csv' | 'pdf';
+
+const FORMAT_OPTIONS: { value: ExportFormatOption; label: string }[] = [
+  { value: 'json', label: 'JSON' },
+  { value: 'csv', label: 'CSV' },
+  { value: 'pdf', label: 'PDF' },
+];
 
 /**
  * Recruit data export component props
@@ -78,17 +86,12 @@ export function RecruitDataExport({
   const { showToast } = useToast();
   const [exporting, setExporting] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [selectedFormat, setSelectedFormat] = useState<ExportFormatOption>('json');
 
-  /**
-   * Handle export button click
-   */
   const handleExportClick = () => {
     setShowConfirmDialog(true);
   };
 
-  /**
-   * Handle export confirmation
-   */
   const handleConfirmExport = async () => {
     if (!user) {
       showToast({
@@ -102,65 +105,55 @@ export function RecruitDataExport({
     setExporting(true);
 
     try {
-      // Get ID token for authentication
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
       const idToken = await user.getIdToken();
       if (!idToken) {
         throw new Error('Failed to get authentication token');
       }
 
-      // Call export API
-      const response = await fetch(`/api/recruits/${recruitId}/export`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-        },
-      });
+      const response = await fetch(
+        `/api/recruits/${recruitId}/export?format=${selectedFormat}`,
+        {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${idToken}` },
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         throw new Error(errorData.error || `Export failed: ${response.statusText}`);
       }
 
-      // Get export data
-      const exportData = await response.json();
-
-      // Create download
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-        type: 'application/json',
-      });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      
-      // Get filename from Content-Disposition header or use default
       const contentDisposition = response.headers.get('Content-Disposition');
-      let filename = `recruit-${recruitId}-export-${new Date().toISOString().split('T')[0]}.json`;
+      let filename = `recruit-${recruitId}-export-${new Date().toISOString().split('T')[0]}.${selectedFormat}`;
       if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-        if (filenameMatch) {
-          filename = filenameMatch[1];
-        }
+        const match = contentDisposition.match(/filename="(.+)"/);
+        if (match) filename = match[1];
       }
-      
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
 
-      logInfo(`Recruit data exported: ${recruitId}`, 'RecruitDataExport');
+      if (selectedFormat === 'json') {
+        const exportData = await response.json();
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+          type: 'application/json',
+        });
+        downloadBlob(blob, filename);
+      } else if (selectedFormat === 'csv') {
+        const text = await response.text();
+        const blob = new Blob([text], { type: 'text/csv; charset=utf-8' });
+        downloadBlob(blob, filename);
+      } else {
+        const buffer = await response.arrayBuffer();
+        const blob = new Blob([buffer], { type: 'application/pdf' });
+        downloadBlob(blob, filename);
+      }
+
+      logInfo(`Recruit data exported: ${recruitId} (${selectedFormat})`, 'RecruitDataExport');
 
       showToast({
         variant: 'success',
-        message: `Recruit data exported successfully.`,
+        message: 'Recruit data exported successfully.',
       });
 
-      if (onExportComplete) {
-        onExportComplete();
-      }
+      onExportComplete?.();
     } catch (error) {
       logError(error as Error, 'RecruitDataExport.export');
       showToast({
@@ -172,9 +165,17 @@ export function RecruitDataExport({
     }
   };
 
-  /**
-   * Handle cancel export
-   */
+  function downloadBlob(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   const handleCancelExport = () => {
     setShowConfirmDialog(false);
   };
@@ -196,6 +197,8 @@ export function RecruitDataExport({
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
+              width="16"
+              height="16"
             >
               <circle
                 className="opacity-25"
@@ -220,6 +223,8 @@ export function RecruitDataExport({
             stroke="currentColor"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
           >
             <path
               strokeLinecap="round"
@@ -236,6 +241,8 @@ export function RecruitDataExport({
               stroke="currentColor"
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
             >
               <path
                 strokeLinecap="round"
@@ -271,20 +278,28 @@ export function RecruitDataExport({
             </h3>
             <p
               id="export-dialog-description"
-              className="text-text-secondary-light dark:text-text-secondary-dark mb-6"
+              className="text-text-secondary-light dark:text-text-secondary-dark mb-4"
             >
               {recruitName ? (
                 <>
-                  Export all data for <strong>{recruitName}</strong> in GDPR-compliant JSON format.
-                  This includes recruit profile, emergency contacts, and related information.
+                  Export all data for <strong>{recruitName}</strong> in GDPR-compliant format.
+                  Includes recruit profile, emergency contacts, and related information.
                 </>
               ) : (
                 <>
-                  Export all recruit data in GDPR-compliant JSON format.
-                  This includes recruit profile, emergency contacts, and related information.
+                  Export all recruit data in GDPR-compliant format.
+                  Includes recruit profile, emergency contacts, and related information.
                 </>
               )}
             </p>
+            <div className="mb-6">
+              <Select
+                label="Format"
+                options={FORMAT_OPTIONS}
+                value={selectedFormat}
+                onChange={(e) => setSelectedFormat(e.target.value as ExportFormatOption)}
+              />
+            </div>
             <div className="flex gap-3 justify-end">
               <Button
                 onClick={handleCancelExport}

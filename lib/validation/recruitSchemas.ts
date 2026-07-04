@@ -88,6 +88,28 @@ export const photoUrlSchema = z
 /**
  * Recruit profile creation schema
  */
+const extendedNotesSchema = z
+  .string()
+  .max(2000, 'Notes must be 2000 characters or less')
+  .optional();
+const medicalNotesSchema = z
+  .string()
+  .max(2000, 'Medical notes must be 2000 characters or less')
+  .optional();
+const dietaryRestrictionsSchema = z
+  .string()
+  .max(500, 'Dietary restrictions must be 500 characters or less')
+  .optional();
+const preferredContactMethodSchema = z.enum(['phone', 'email']).optional();
+
+const recruitPrivacySchema = z
+  .object({
+    fullProfileVisibleTo: z
+      .enum(['same_platoon', 'same_company', 'same_battalion', 'admins_only'])
+      .optional(),
+  })
+  .optional();
+
 export const recruitCreateSchema = z.object({
   recruitId: recruitIdSchema,
   firstName: recruitNameSchema,
@@ -103,6 +125,11 @@ export const recruitCreateSchema = z.object({
   // Encrypted data will be validated separately
   encryptedData: z.record(z.string(), z.unknown()).optional(),
   createdBy: z.string().min(1, 'Created by user ID is required'),
+  medicalNotes: medicalNotesSchema,
+  dietaryRestrictions: dietaryRestrictionsSchema,
+  preferredContactMethod: preferredContactMethodSchema,
+  extendedNotes: extendedNotesSchema,
+  privacy: recruitPrivacySchema,
 });
 
 /**
@@ -123,6 +150,11 @@ export const recruitUpdateSchema = z.object({
   photoUrl: photoUrlSchema,
   encryptedData: z.record(z.string(), z.unknown()).optional(),
   updatedBy: z.string().min(1, 'Updated by user ID is required'),
+  medicalNotes: medicalNotesSchema.optional(),
+  dietaryRestrictions: dietaryRestrictionsSchema.optional(),
+  preferredContactMethod: preferredContactMethodSchema,
+  extendedNotes: extendedNotesSchema,
+  privacy: recruitPrivacySchema,
 });
 
 /**

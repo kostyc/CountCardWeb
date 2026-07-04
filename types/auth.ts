@@ -99,6 +99,16 @@ export interface UserProfile {
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
+  // Privacy
+  privacy?: UserProfilePrivacy;
+}
+
+/**
+ * User profile privacy settings
+ */
+export interface UserProfilePrivacy {
+  showProfilePicture?: boolean;
+  showContactToSameCompany?: boolean;
 }
 
 /**

@@ -119,18 +119,18 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    // Size classes
+    // Size classes (mobile: 44px min touch target; desktop uses size variant)
     const sizeClasses = {
-      sm: 'text-sm px-3 py-1.5 min-h-[32px]',
-      md: 'text-base px-4 py-2 min-h-[40px]',
+      sm: 'text-sm px-3 py-2.5 min-h-[44px] md:min-h-[32px]',
+      md: 'text-base px-4 py-2 min-h-[44px] md:min-h-[40px]',
       lg: 'text-lg px-6 py-3 min-h-[48px]',
       xl: 'text-xl px-8 py-4 min-h-[56px]',
     };
 
-    // Icon-only size classes (square buttons)
+    // Icon-only size classes (mobile: 44px; desktop uses size variant)
     const iconOnlySizeClasses = {
-      sm: 'w-8 h-8 p-0',
-      md: 'w-10 h-10 p-0',
+      sm: 'min-w-[44px] min-h-[44px] md:w-8 md:h-8 md:min-w-0 md:min-h-0',
+      md: 'min-w-[44px] min-h-[44px] md:w-10 md:h-10 md:min-w-0 md:min-h-0',
       lg: 'w-12 h-12 p-0',
       xl: 'w-14 h-14 p-0',
     };

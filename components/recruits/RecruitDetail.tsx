@@ -2,10 +2,10 @@
 
 /**
  * Recruit Detail Component
- * 
+ *
  * Comprehensive detail view component for displaying recruit information,
  * status, organizational assignment, and related data.
- * 
+ *
  * @example
  * ```tsx
  * <RecruitDetail
@@ -18,20 +18,25 @@
  * ```
  */
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Spinner, ErrorState, EmptyState } from '@/components/feedback';
+import { Input } from '@/components/forms/Input';
+import { Select } from '@/components/forms/Select';
 import { getFullRankName } from '@/lib/utils/ranks';
 import { RankDisplay } from './RankDisplay';
 import { RecruitStatus } from './RecruitStatus';
 import { RecruitPhoto } from './RecruitPhoto';
 import { RecruitDataExport } from './RecruitDataExport';
+import { EmergencyContactFormModal, type EmergencyContactFormValues } from './EmergencyContactFormModal';
 import type { RecruitProfile } from '@/types/models';
 import type { EmergencyContact } from '@/types/models';
 import type { RecruitStatus as RecruitStatusType } from '@/lib/validation/recruitSchemas';
 import { formatDate, toDate } from '@/lib/utils/datetime';
+import { getBattalionLogoPath } from '@/lib/constants/organizations';
 import { cn } from '@/lib/components/utils';
 
 /**
@@ -85,6 +90,30 @@ export interface RecruitDetailProps {
    * Recruit ID for navigation
    */
   recruitId: string;
+  /** Whether the user can edit emergency contacts (add/edit/delete) */
+  canEditContacts?: boolean;
+  /** Emergency contact modal: visible */
+  showContactModal?: boolean;
+  /** Emergency contact modal: 'add' | 'edit' */
+  contactModalMode?: 'add' | 'edit';
+  /** Emergency contact being edited (for edit mode) */
+  editingContact?: EmergencyContact | null;
+  /** Close contact modal */
+  onCloseContactModal?: () => void;
+  /** Open add contact modal */
+  onOpenAddContact?: () => void;
+  /** Open edit contact modal */
+  onOpenEditContact?: (contact: EmergencyContact) => void;
+  /** Submit add contact (form values) */
+  onAddContact?: (data: EmergencyContactFormValues) => void | Promise<void>;
+  /** Submit edit contact (contact id, form values) */
+  onEditContact?: (contactId: string, data: EmergencyContactFormValues) => void | Promise<void>;
+  /** Delete contact (contact id) */
+  onDeleteContact?: (contactId: string) => void | Promise<void>;
+  /** Contact form submitting */
+  contactFormLoading?: boolean;
+  /** Whether the viewer can see full profile (including extended info) per recruit privacy */
+  canSeeFullProfile?: boolean;
 }
 
 /**
@@ -104,7 +133,48 @@ export function RecruitDetail({
   showEditButton = true,
   showDeleteButton = true,
   recruitId,
+  canEditContacts = false,
+  showContactModal = false,
+  contactModalMode = 'add',
+  editingContact = null,
+  onCloseContactModal,
+  onOpenAddContact,
+  onOpenEditContact,
+  onAddContact,
+  onEditContact,
+  onDeleteContact,
+  contactFormLoading = false,
+  canSeeFullProfile = true,
 }: RecruitDetailProps): JSX.Element {
+  const [contactSearch, setContactSearch] = useState('');
+  const [contactRelationshipFilter, setContactRelationshipFilter] = useState<string>('');
+  const [contactToDelete, setContactToDelete] = useState<EmergencyContact | null>(null);
+
+  const filteredContacts = useMemo(() => {
+    let list = emergencyContacts;
+    if (contactSearch.trim()) {
+      const q = contactSearch.toLowerCase().trim();
+      list = list.filter(
+        (c) =>
+          c.firstName?.toLowerCase().includes(q) ||
+          c.lastName?.toLowerCase().includes(q) ||
+          `${c.firstName} ${c.lastName}`.toLowerCase().includes(q) ||
+          `${c.lastName} ${c.firstName}`.toLowerCase().includes(q)
+      );
+    }
+    if (contactRelationshipFilter) {
+      list = list.filter((c) => c.relationship === contactRelationshipFilter);
+    }
+    return list;
+  }, [emergencyContacts, contactSearch, contactRelationshipFilter]);
+
+  const relationshipOptions = useMemo(() => {
+    const set = new Set(emergencyContacts.map((c) => c.relationship).filter(Boolean));
+    return [
+      { value: '', label: 'All relationships' },
+      ...Array.from(set).map((r) => ({ value: r, label: r.replace(/_/g, ' ') })),
+    ];
+  }, [emergencyContacts]);
   // Loading state
   if (loading) {
     return (
@@ -265,9 +335,21 @@ export function RecruitDetail({
                   <label className="text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
                     Battalion
                   </label>
-                  <p className="text-base text-text-primary-light dark:text-text-primary-dark mt-1">
-                    {recruit.battalion}
-                  </p>
+                  <div className="flex items-center gap-3 mt-1">
+                    {getBattalionLogoPath(recruit.battalion) && (
+                      <Image
+                        src={getBattalionLogoPath(recruit.battalion)!}
+                        alt=""
+                        width={48}
+                        height={48}
+                        className="rounded object-contain flex-shrink-0"
+                        unoptimized
+                      />
+                    )}
+                    <p className="text-base text-text-primary-light dark:text-text-primary-dark">
+                      {recruit.battalion}
+                    </p>
+                  </div>
                 </div>
               )}
               {recruit.company && (
@@ -321,45 +403,146 @@ export function RecruitDetail({
             error={error}
           />
 
+          {/* Extended Information */}
+          {canSeeFullProfile &&
+            (recruit.medicalNotes ||
+              recruit.dietaryRestrictions ||
+              recruit.preferredContactMethod ||
+              recruit.extendedNotes ||
+              (recruit.encryptedData &&
+                typeof (recruit.encryptedData as Record<string, unknown>).ciphertext === 'string')) && (
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold text-text-heading-light dark:text-text-heading-dark mb-4 flex items-center gap-2">
+                Extended Information
+                {recruit.encryptedData &&
+                  typeof (recruit.encryptedData as Record<string, unknown>).ciphertext === 'string' && (
+                    <span
+                      className="text-xs font-normal text-text-secondary-light dark:text-text-secondary-dark inline-flex items-center gap-1"
+                      title="Sensitive fields are encrypted at rest"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                        />
+                      </svg>
+                      Encrypted
+                    </span>
+                  )}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {recruit.medicalNotes && (
+                  <div>
+                    <label className="text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                      Medical notes
+                    </label>
+                    <p className="text-base text-text-primary-light dark:text-text-primary-dark mt-1 whitespace-pre-wrap">
+                      {recruit.medicalNotes}
+                    </p>
+                  </div>
+                )}
+                {recruit.dietaryRestrictions && (
+                  <div>
+                    <label className="text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                      Dietary restrictions
+                    </label>
+                    <p className="text-base text-text-primary-light dark:text-text-primary-dark mt-1">
+                      {recruit.dietaryRestrictions}
+                    </p>
+                  </div>
+                )}
+                {recruit.preferredContactMethod && (
+                  <div>
+                    <label className="text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                      Preferred contact method
+                    </label>
+                    <p className="text-base text-text-primary-light dark:text-text-primary-dark mt-1">
+                      {recruit.preferredContactMethod === 'phone' ? 'Phone' : 'Email'}
+                    </p>
+                  </div>
+                )}
+                {recruit.extendedNotes && (
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                      Notes
+                    </label>
+                    <p className="text-base text-text-primary-light dark:text-text-primary-dark mt-1 whitespace-pre-wrap">
+                      {recruit.extendedNotes}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
           {/* Emergency Contacts */}
           <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
               <h2 className="text-xl font-semibold text-text-heading-light dark:text-text-heading-dark">
                 Emergency Contacts
               </h2>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  // TODO: Navigate to add emergency contact page
-                  console.log('Add emergency contact');
-                }}
-              >
-                Add Contact
-              </Button>
+              {canEditContacts && (onOpenAddContact || onOpenEditContact) && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="min-h-[44px]"
+                  onClick={onOpenAddContact}
+                >
+                  Add Contact
+                </Button>
+              )}
             </div>
-            {emergencyContacts.length === 0 ? (
+            {emergencyContacts.length > 0 && (
+              <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                <div className="flex-1 min-w-0">
+                  <Input
+                    type="search"
+                    placeholder="Search by name"
+                    value={contactSearch}
+                    onChange={(e) => setContactSearch(e.target.value)}
+                    fullWidth
+                  />
+                </div>
+                <div className="min-w-[180px]">
+                  <Select
+                    options={relationshipOptions}
+                    value={contactRelationshipFilter}
+                    onChange={(e) => setContactRelationshipFilter(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+            {filteredContacts.length === 0 ? (
               <div className="py-8">
                 <EmptyState
-                  title="No Emergency Contacts"
-                  description="No emergency contacts have been added for this recruit."
-                  actionLabel="Add Contact"
-                  onAction={() => {
-                    // TODO: Navigate to add emergency contact page
-                    console.log('Add emergency contact');
-                  }}
+                  title={emergencyContacts.length === 0 ? 'No Emergency Contacts' : 'No matches'}
+                  description={
+                    emergencyContacts.length === 0
+                      ? 'No emergency contacts have been added for this recruit.'
+                      : 'Try a different search or filter.'
+                  }
+                  actionLabel={canEditContacts ? 'Add Contact' : undefined}
+                  onAction={canEditContacts ? onOpenAddContact : undefined}
                   size="sm"
                 />
               </div>
             ) : (
               <div className="space-y-4">
-                {emergencyContacts.map((contact) => (
+                {filteredContacts.map((contact) => (
                   <div
                     key={contact.id}
                     className="p-4 border border-border-primary-light dark:border-border-primary-dark rounded-lg"
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark">
                           {contact.lastName}, {contact.firstName}
                         </h3>
@@ -389,22 +572,102 @@ export function RecruitDetail({
                           )}
                         </div>
                       </div>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => {
-                          // TODO: Navigate to edit emergency contact page
-                          console.log('Edit emergency contact', contact.id);
-                        }}
-                      >
-                        Edit
-                      </Button>
+                      {canEditContacts && (onOpenEditContact || onDeleteContact) && (
+                        <div className="flex gap-2 flex-shrink-0">
+                          {onOpenEditContact && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className="min-h-[44px] min-w-[44px]"
+                              onClick={() => onOpenEditContact(contact)}
+                              aria-label={`Edit ${contact.firstName} ${contact.lastName}`}
+                            >
+                              Edit
+                            </Button>
+                          )}
+                          {onDeleteContact && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="min-h-[44px] min-w-[44px]"
+                              onClick={() => setContactToDelete(contact)}
+                              aria-label={`Delete ${contact.firstName} ${contact.lastName}`}
+                            >
+                              Delete
+                            </Button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
             )}
           </Card>
+
+          {/* Emergency contact form modal */}
+          {showContactModal && onCloseContactModal && onAddContact && onEditContact && (
+            <EmergencyContactFormModal
+              open={showContactModal}
+              mode={contactModalMode}
+              recruitId={recruitId}
+              initialContact={contactModalMode === 'edit' ? editingContact ?? undefined : undefined}
+              onClose={onCloseContactModal}
+              onSubmit={
+                contactModalMode === 'add'
+                  ? onAddContact
+                  : async (data) => {
+                      if (editingContact) {
+                        await onEditContact(editingContact.id, data);
+                      }
+                    }
+              }
+              loading={contactFormLoading}
+            />
+          )}
+
+          {/* Delete contact confirmation */}
+          {contactToDelete && onDeleteContact && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-contact-title"
+            >
+              <div className="bg-background-primary-light dark:bg-background-primary-dark rounded-xl shadow-xl p-6 max-w-md w-full">
+                <h3
+                  id="delete-contact-title"
+                  className="text-lg font-semibold text-text-heading-light dark:text-text-heading-dark mb-2"
+                >
+                  Delete emergency contact?
+                </h3>
+                <p className="text-text-secondary-light dark:text-text-secondary-dark mb-6">
+                  This will remove{' '}
+                  <strong>
+                    {contactToDelete.firstName} {contactToDelete.lastName}
+                  </strong>{' '}
+                  as an emergency contact. This action cannot be undone.
+                </p>
+                <div className="flex gap-3 justify-end">
+                  <Button
+                    variant="secondary"
+                    onClick={() => setContactToDelete(null)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={async () => {
+                      await onDeleteContact(contactToDelete.id);
+                      setContactToDelete(null);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Count Card History */}
           <Card className="p-6">

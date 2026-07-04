@@ -179,6 +179,88 @@
       ]
     },
     {
+      "collectionGroup": "platoons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "seriesId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "platoon",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "platoons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "regiment",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "battalion",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "company",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "series",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "platoon",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "battalions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "regimentId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "companies",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "battalionId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "series",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "companyId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "userProfiles",
       "queryScope": "COLLECTION",
       "fields": [
@@ -287,6 +369,188 @@
         {
           "fieldPath": "timestamp",
           "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "countCards",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "recruitId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "countCards",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "timestamp",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "userProfiles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "role",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastName",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "firstName",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "emergencyContacts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "recruitId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastName",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "firstName",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "emergencyContacts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "recruitId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "relationship",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastName",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "firstName",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "companyLogos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "company",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "battalionLogos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "battalion",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "companyLogos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "regiment",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "battalion",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "company",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "battalionLogos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "regiment",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "battalion",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "reportSchedules",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "reportSchedules",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "nextRunAt",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "disabled",
+          "order": "ASCENDING"
         }
       ]
     }

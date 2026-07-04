@@ -316,7 +316,7 @@ export function OrganizationalAssignment({
           className={`
             w-full
             border-2 rounded-lg
-            px-4 py-2 min-h-[40px]
+            px-4 py-2 min-h-[44px]
             text-base
             transition-all duration-200
             outline-none

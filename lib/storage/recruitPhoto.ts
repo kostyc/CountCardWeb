@@ -8,6 +8,7 @@
 import { ref, uploadBytes, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '@/lib/firebase/config';
 import { logError, logInfo } from '@/lib/utils/logger';
+import { validateImageFile as validateImageFileFull } from '@/lib/storage/imageValidation';
 
 /**
  * Allowed image MIME types
@@ -20,22 +21,16 @@ const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 /**
- * Validate image file
- * 
- * @param file - File to validate
- * @returns Error message if invalid, null if valid
+ * Synchronous validation for UI (MIME + size). Use before upload.
+ * Full validation including magic-byte check runs inside uploadRecruitPhoto.
  */
 export function validateImageFile(file: File): string | null {
-  // Validate file type
   if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
     return 'Image must be in JPG, PNG, or WebP format';
   }
-
-  // Validate file size
   if (file.size > MAX_FILE_SIZE) {
     return 'Image size must be less than 5MB';
   }
-
   return null;
 }
 
@@ -80,8 +75,7 @@ export async function uploadRecruitPhoto(
   }
 ): Promise<string | null> {
   try {
-    // Validate file
-    const validationError = validateImageFile(file);
+    const validationError = await validateImageFileFull(file, { maxSizeBytes: MAX_FILE_SIZE });
     if (validationError) {
       throw new Error(validationError);
     }

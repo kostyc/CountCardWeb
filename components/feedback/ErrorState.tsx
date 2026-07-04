@@ -101,6 +101,8 @@ export default function ErrorState({
       viewBox="0 0 24 24"
       stroke="currentColor"
       aria-hidden="true"
+      width={size === 'sm' ? 48 : size === 'lg' ? 80 : 64}
+      height={size === 'sm' ? 48 : size === 'lg' ? 80 : 64}
     >
       <path
         strokeLinecap="round"

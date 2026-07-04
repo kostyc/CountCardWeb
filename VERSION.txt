@@ -1,0 +1,11 @@
+CountCard Version Tracking
+==================================
+Full Version: 2026.0.2.0
+Store Version: 2026.0.2
+Build Number: 0
+Last Updated: 2026-06-08
+Release Type: Development
+
+Version History:
+---------------
+2026.0.2.0 (2026-06-08) - Adopted Year.Major.Minor.Build scheme

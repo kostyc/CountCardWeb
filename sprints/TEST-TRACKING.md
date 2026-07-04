@@ -3,6 +3,16 @@
 **Last Updated**: 2026-01-18  
 **Status**: 🔄 In Progress
 
+## Testing Sprint
+
+**Sprint 25: Testing & Quality Assurance** is the dedicated testing sprint for all completed sprints.
+
+- **Sprint 25 Location**: `sprints/Sprint-25-2026-01-18/Sprint-25-2026-01-18.md`
+- **Testing Organization**: Tests are organized by sprint (Sprints 1-7)
+- **Test Checklists**: See Sprint 25 for comprehensive test checklists for each sprint
+
+This document tracks test results and status. For detailed test requirements and checklists, refer to Sprint 25.
+
 ## Global Test Status Overview
 
 | Sprint | Total Tests | Passed | Failed | Pending | Status |

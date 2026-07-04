@@ -2,21 +2,52 @@
 
 /**
  * Dashboard Page
- * Authenticated user dashboard - shows "You're logged in" message
+ * Authenticated user dashboard - hub with navigation to main sections
  * Accessible at /dashboard
  */
 
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import Link from 'next/link';
 import { debugLog } from '@/lib/utils/debugLogger';
-import Header from '@/components/layout/Header';
-import UserMenu from '@/components/layout/UserMenu';
+
+const QUICK_LINKS = [
+  {
+    title: 'Recruits',
+    href: '/recruits',
+    description: 'View and manage recruit profiles, status, and assignments.',
+    icon: (
+      <svg className="w-8 h-8 shrink-0" width={32} height={32} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Count Cards',
+    href: '/count-cards',
+    description: 'Create and manage accountability count cards.',
+    icon: (
+      <svg className="w-8 h-8 shrink-0" width={32} height={32} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Settings',
+    href: '/settings',
+    description: 'Profile, security, and application preferences.',
+    icon: (
+      <svg className="w-8 h-8 shrink-0" width={32} height={32} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 2.31.826 1.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 2.31-2.37 1.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-2.31-.826-1.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-2.31 2.37-1.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+  },
+];
 
 export default function DashboardPage(): JSX.Element {
-  const { user, loading, initialized, signOut } = useAuth();
+  const { user, loading, initialized } = useAuth();
   const router = useRouter();
-  const [isSigningOut, setIsSigningOut] = useState(false);
 
   useEffect(() => {
     debugLog.info('Dashboard page mounted', 'DashboardPage', {
@@ -34,24 +65,6 @@ export default function DashboardPage(): JSX.Element {
       router.push('/login');
     }
   }, [user, loading, initialized, router]);
-
-  /**
-   * Handle sign out
-   */
-  const handleSignOut = async (): Promise<void> => {
-    try {
-      setIsSigningOut(true);
-      debugLog.info('User signing out', 'DashboardPage');
-      await signOut();
-      debugLog.info('User signed out successfully, redirecting to login', 'DashboardPage');
-      router.push('/login');
-    } catch (error) {
-      debugLog.error('Error signing out', 'DashboardPage', { error });
-      setIsSigningOut(false);
-      // Still redirect to login even if signOut fails
-      router.push('/login');
-    }
-  };
 
   // Show loading state while checking authentication
   if (loading || !initialized) {
@@ -78,64 +91,38 @@ export default function DashboardPage(): JSX.Element {
   }
 
   return (
-    <div className="min-h-screen bg-background-primary-light dark:bg-background-primary-dark">
-      <Header
-        title="CountCard"
-        titleHref="/dashboard"
-        userMenu={<UserMenu />}
-      />
-      <div className="flex min-h-screen items-center justify-center p-8">
-        <div className="text-center max-w-2xl mx-auto space-y-6">
-          <div className="mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-marine-red mb-4">
-              <svg
-                className="w-10 h-10 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-bold text-text-heading-light dark:text-text-heading-dark">
-            You're Logged In
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="mb-8 sm:mb-10">
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-heading-light dark:text-text-heading-dark">
+            Welcome, {user.displayName || user.email || 'User'}
           </h1>
-          <p className="text-lg sm:text-xl text-text-secondary-light dark:text-text-secondary-dark">
-            Welcome to CountCard, {user.displayName || user.email || 'User'}
+          <p className="mt-1 text-base text-text-secondary-light dark:text-text-secondary-dark">
+            Choose a section to get started.
           </p>
-          <p className="text-base text-text-secondary-light dark:text-text-secondary-dark">
-            Your authentication was successful. Dashboard features coming soon.
-          </p>
-          <div className="mt-8">
-            <button
-              onClick={handleSignOut}
-              disabled={isSigningOut}
-              className="px-6 py-3 bg-marine-red hover:bg-marine-red-dark text-white font-semibold rounded-lg shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md focus:outline-none focus:ring-2 focus:ring-marine-red focus:ring-offset-2 min-h-[44px]"
-              aria-label={isSigningOut ? 'Signing out...' : 'Sign out'}
-            >
-              {isSigningOut ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div 
-                    className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"
-                    aria-label="Loading"
-                    role="status"
-                  ></div>
-                  <span>Signing out...</span>
-                </div>
-              ) : (
-                'Sign Out'
-              )}
-            </button>
-          </div>
         </div>
-      </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {QUICK_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="group flex flex-col p-6 rounded-xl bg-background-card-light dark:bg-background-card-dark border-2 border-border-secondary-light dark:border-border-secondary-dark shadow-sm hover:shadow-lg hover:border-marine-red/30 dark:hover:border-marine-red/40 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-marine-red focus:ring-offset-2 min-h-[44px]"
+            >
+              <span className="flex shrink-0 items-center justify-center w-14 h-14 max-w-14 max-h-14 rounded-xl bg-marine-red/10 dark:bg-marine-red/20 text-marine-red mb-4 group-hover:bg-marine-red/20 dark:group-hover:bg-marine-red/30 transition-colors">
+                {link.icon}
+              </span>
+              <h2 className="text-lg font-semibold text-text-heading-light dark:text-text-heading-dark">
+                {link.title}
+              </h2>
+              <p className="mt-2 text-sm text-text-secondary-light dark:text-text-secondary-dark flex-1">
+                {link.description}
+              </p>
+              <span className="mt-4 text-sm font-medium text-marine-red group-hover:underline">
+                Go to {link.title} →
+              </span>
+            </Link>
+          ))}
+        </div>
     </div>
   );
 }

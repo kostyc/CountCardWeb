@@ -87,16 +87,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
       const profileRef = doc(db, 'userProfiles', firebaseUser.uid);
       const profileSnap = await getDoc(profileRef);
 
-      // Get custom claims (roles and organizational assignments)
-      const idTokenResult = await firebaseUser.getIdTokenResult();
-      const customClaims = idTokenResult.claims;
-
       // Create extended user object
       // Type assertion for profile data (Firestore returns DocumentData)
-      const profileData = profileSnap.exists() ? profileSnap.data() : undefined;
+      let profileData = profileSnap.exists() ? profileSnap.data() : undefined;
+
+      // Backfill provider photoURL when profile exists but has no photo URL (so API can serve it)
+      if (
+        profileSnap.exists() &&
+        profileData &&
+        firebaseUser.photoURL &&
+        !profileData.profilePictureUrl &&
+        !profileData.photoURL
+      ) {
+        try {
+          await setDoc(
+            profileRef,
+            { photoURL: firebaseUser.photoURL, updatedAt: serverTimestamp() },
+            { merge: true }
+          );
+          profileData = { ...profileData, photoURL: firebaseUser.photoURL };
+        } catch (backfillErr) {
+          logError(backfillErr as Error, 'AuthContext.loadUserProfile.backfill');
+        }
+      }
+
       const profile: UserProfile | undefined = profileData
         ? (profileData as unknown as UserProfile)
         : undefined;
+
+      // Get custom claims (roles and organizational assignments)
+      const idTokenResult = await firebaseUser.getIdTokenResult();
+      const customClaims = idTokenResult.claims;
 
       // Type assertion for custom claims (Firebase returns untyped claims)
       const role = customClaims.role as UserRole | undefined;

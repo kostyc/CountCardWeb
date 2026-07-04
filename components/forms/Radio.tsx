@@ -333,7 +333,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
     );
 
     return (
-      <div className="flex items-start gap-3">
+      <div className="flex items-center min-h-[44px] md:min-h-0 md:items-start gap-3">
         {/* Radio input (hidden, using custom styling) */}
         <div className="relative flex-shrink-0 mt-0.5">
           <input

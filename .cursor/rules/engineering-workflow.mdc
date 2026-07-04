@@ -20,6 +20,7 @@ Every task you execute must follow this procedure without exception:
 - Confirm your interpretation of the objective.
 - Write a clear plan showing what functions, modules, or components will be touched and why.
 - Do not begin implementation until this is done and reasoned through.
+- **Multi-step or feature work**: Create or use a plan in `.cursor/plans/` (`.plan.md`); reference it from rules or use `.cursor/plans/NEXT_STEPS_PROMPT.md` to continue. When complete, move the plan to `.cursor/plans/completed/` and set `status: completed`, `completedAt` in frontmatter.
 
 ### 2. Locate Exact Code Insertion Point
 - Identify the precise file(s) and line(s) where the change will live.
@@ -38,7 +39,14 @@ Every task you execute must follow this procedure without exception:
 - Ensure your code is aligned with the existing codebase patterns and avoids regressions.
 - Explicitly verify whether anything downstream will be impacted.
 
-### 5. Deliver Clearly
+### 5. After Plan or Feature Implementation — Verify Firebase & Firestore
+- Once a plan has been implemented (or a feature/change touches data or APIs), **always check** whether Firebase/Firestore need updates:
+  - **Firestore indexes**: New or changed composite queries (e.g. `where` + `orderBy`, multiple `orderBy`) require matching entries in `firestore.indexes.json`. Deploy with `firebase deploy --only firestore:indexes`.
+  - **Firestore rules**: If new collections, fields, or access patterns were introduced, update `firestore.rules` and deploy with `firebase deploy --only firestore:rules`.
+  - **Firebase**: Storage rules, project config, or other Firebase services if the change affects them.
+- Perform this check when moving a plan to `.cursor/plans/completed/` or when the change set includes Firestore/API/data-layer work.
+
+### 6. Deliver Clearly
 - Summarize what was changed and why.
 - List every file modified and what was done in each.
 - If there are any assumptions or risks, flag them for review.

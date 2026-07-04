@@ -9,7 +9,7 @@ alwaysApply: false
 ## Reference Documentation
 
 For comprehensive test tracking procedures, see:
-- **Test Tracking File**: `sprints/TEST-TRACKING.md` - Complete test tracking documentation and procedures
+- @sprints/TEST-TRACKING.md - Complete test tracking documentation and procedures
 
 ## Quick Reference
 

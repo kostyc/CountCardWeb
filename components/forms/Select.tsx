@@ -161,10 +161,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     // Determine actual state (error takes precedence)
     const actualState: InputState = errorText ? 'error' : state;
 
-    // Size classes
+    // Size classes (mobile: 44px min touch target)
     const sizeClasses = {
-      sm: 'text-sm px-3 py-1.5 min-h-[32px]',
-      md: 'text-base px-4 py-2 min-h-[40px]',
+      sm: 'text-sm px-3 py-2.5 min-h-[44px]',
+      md: 'text-base px-4 py-2 min-h-[44px] md:min-h-[40px]',
       lg: 'text-lg px-5 py-2.5 min-h-[48px]',
       xl: 'text-xl px-6 py-3 min-h-[56px]',
     };

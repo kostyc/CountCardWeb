@@ -346,3 +346,42 @@ export function getRecruitOrganizationalScope(
 
   return scope;
 }
+
+/**
+ * Check if the current user can see the recruit's full profile (including extended info)
+ * based on recruit privacy settings.
+ */
+export function canSeeFullRecruitProfile(
+  user: AppUser | null,
+  recruit: RecruitProfile
+): boolean {
+  if (!user || !recruit) return false;
+  const visibility = recruit.privacy?.fullProfileVisibleTo;
+  if (!visibility) return true;
+
+  const role = user.customClaims?.role || user.profile?.role;
+  if (isAdminRole(role)) return true;
+  if (visibility === 'admins_only') return false;
+
+  const userOrg = user.customClaims?.organizationalAssignment || user.profile?.organizationalAssignment;
+  if (!userOrg) return false;
+
+  const recruitOrg = recruitToOrganizationalAssignment(recruit);
+  if (visibility === 'same_platoon') {
+    return (
+      userOrg.platoon === recruitOrg.platoon &&
+      userOrg.company === recruitOrg.company &&
+      userOrg.battalion === recruitOrg.battalion
+    );
+  }
+  if (visibility === 'same_company') {
+    return (
+      userOrg.company === recruitOrg.company &&
+      userOrg.battalion === recruitOrg.battalion
+    );
+  }
+  if (visibility === 'same_battalion') {
+    return userOrg.battalion === recruitOrg.battalion;
+  }
+  return false;
+}

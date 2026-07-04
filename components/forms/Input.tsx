@@ -137,6 +137,8 @@ const ClearIcon: React.FC<{ className?: string }> = ({ className }) => (
     viewBox="0 0 24 24"
     stroke="currentColor"
     aria-hidden="true"
+    width="24"
+    height="24"
   >
     <path
       strokeLinecap="round"
@@ -218,10 +220,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       onChange?.(syntheticEvent);
     };
 
-    // Size classes
+    // Size classes (mobile: 44px min touch target)
     const sizeClasses = {
-      sm: 'text-sm px-3 py-1.5 min-h-[32px]',
-      md: 'text-base px-4 py-2 min-h-[40px]',
+      sm: 'text-sm px-3 py-2.5 min-h-[44px]',
+      md: 'text-base px-4 py-2 min-h-[44px] md:min-h-[40px]',
       lg: 'text-lg px-5 py-2.5 min-h-[48px]',
       xl: 'text-xl px-6 py-3 min-h-[56px]',
     };
@@ -298,11 +300,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       disabled && 'text-text-disabled-light dark:text-text-disabled-dark'
     );
 
-    // Clear button classes
+    // Clear button classes (44px tap target on mobile)
     const clearButtonClasses = cn(
       'absolute top-1/2 -translate-y-1/2 right-3',
       'flex items-center justify-center',
-      'w-5 h-5',
+      'min-w-[44px] min-h-[44px] w-10 h-10',
       'rounded-full',
       'bg-background-secondary-light dark:bg-background-secondary-dark',
       'text-text-secondary-light dark:text-text-secondary-dark',

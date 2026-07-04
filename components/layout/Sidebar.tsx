@@ -29,7 +29,7 @@
 import React, { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/components/utils';
-import NavMenu, { type NavMenuItem } from '@/components/navigation/NavMenu';
+import { NavMenu, type NavMenuItem } from '@/components/navigation';
 import type { BaseComponentProps } from '@/types/components';
 
 /**
@@ -167,7 +167,7 @@ export default function Sidebar({
             <button
               type="button"
               onClick={onClose}
-              className="lg:hidden p-2 rounded-md hover:bg-background-secondary-light dark:hover:bg-background-secondary-dark focus:outline-none focus:ring-2 focus:ring-marine-red focus:ring-offset-2 transition-colors"
+              className="lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-md hover:bg-background-secondary-light dark:hover:bg-background-secondary-dark focus:outline-none focus:ring-2 focus:ring-marine-red focus:ring-offset-2 transition-colors"
               aria-label="Close sidebar"
             >
               <svg
@@ -176,6 +176,8 @@ export default function Sidebar({
                 stroke="currentColor"
                 viewBox="0 0 24 24"
                 aria-hidden="true"
+                width="24"
+                height="24"
               >
                 <path
                   strokeLinecap="round"

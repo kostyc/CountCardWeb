@@ -31,7 +31,7 @@ function getProviderInfo(providerId: string, email?: string): ProviderInfo {
         providerId: 'password',
         displayName: 'Email/Password',
         icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -84,7 +84,7 @@ function getProviderInfo(providerId: string, email?: string): ProviderInfo {
         providerId: 'phone',
         displayName: 'Phone Number',
         icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -100,7 +100,7 @@ function getProviderInfo(providerId: string, email?: string): ProviderInfo {
         providerId,
         displayName: providerId,
         icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"

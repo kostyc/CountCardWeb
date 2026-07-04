@@ -15,7 +15,7 @@ import { useAuthState } from './useAuthState';
  * @param redirectTo - Optional redirect path after login (default: current path)
  */
 export function useRequireAuth(redirectTo?: string): {
-  user: NonNullable<ReturnType<typeof useAuthState>['user']>;
+  user: ReturnType<typeof useAuthState>['user'];
   loading: boolean;
 } {
   const { user, loading, initialized } = useAuthState();
@@ -32,7 +32,7 @@ export function useRequireAuth(redirectTo?: string): {
 
   if (!user) {
     // Return loading state while redirecting
-    return { user: null as any, loading: true };
+    return { user: null, loading: true };
   }
 
   return { user, loading };

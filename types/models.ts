@@ -89,6 +89,24 @@ export interface RecruitProfile extends BaseEntity {
     changedBy: string;
     reason?: string;
   }>;
+  /** Extended profile: medical notes (sensitive – consider storing in encryptedData) */
+  medicalNotes?: string;
+  /** Extended profile: dietary restrictions */
+  dietaryRestrictions?: string;
+  /** Extended profile: preferred contact method */
+  preferredContactMethod?: 'phone' | 'email';
+  /** Extended profile: general notes */
+  extendedNotes?: string;
+  /** Privacy: who can see full profile (default: same org as per existing permissions) */
+  privacy?: RecruitProfilePrivacy;
+}
+
+/**
+ * Recruit profile privacy settings
+ */
+export interface RecruitProfilePrivacy {
+  /** Who can see full profile including extended info */
+  fullProfileVisibleTo?: 'same_platoon' | 'same_company' | 'same_battalion' | 'admins_only';
 }
 
 /**
@@ -202,6 +220,44 @@ export type CountCardUpdate = Partial<Omit<CountCard, 'id' | 'countCardId' | 'cr
  */
 
 /**
+ * Regiment document (Firestore)
+ */
+export interface RegimentDocument extends BaseEntity {
+  /** Regiment name (West | East) */
+  name: Regiment;
+}
+
+/**
+ * Battalion document (Firestore)
+ */
+export interface BattalionDocument extends BaseEntity {
+  /** Battalion name (1st | 2nd | 3rd | Support) */
+  name: Battalion;
+  /** Parent regiment document ID */
+  regimentId: string;
+}
+
+/**
+ * Company document (Firestore)
+ */
+export interface CompanyDocument extends BaseEntity {
+  /** Company name (Alpha, Bravo, etc.) */
+  name: Company;
+  /** Parent battalion document ID */
+  battalionId: string;
+}
+
+/**
+ * Series document (Firestore)
+ */
+export interface SeriesDocument extends BaseEntity {
+  /** Series name (Lead | Follow) */
+  name: Series;
+  /** Parent company document ID */
+  companyId: string;
+}
+
+/**
  * Organizational Assignment
  * Represents a user's or recruit's organizational assignment
  */
@@ -225,16 +281,26 @@ export interface OrganizationalAssignment {
 export interface Platoon extends BaseEntity {
   /** Platoon identifier (4-digit string) */
   platoonId: string;
-  /** Recruit Training Regiment */
+  /** Parent series document ID */
+  seriesId: string;
+  /** Recruit Training Regiment (denormalized for queries) */
   regiment: Regiment;
-  /** Battalion */
+  /** Battalion (denormalized) */
   battalion: Battalion;
-  /** Company */
+  /** Company (denormalized) */
   company: Company;
-  /** Series */
+  /** Series (denormalized) */
   series?: Series;
   /** Platoon number (4-digit string) */
   platoon: string;
+  /** Optional parent IDs for hierarchy queries */
+  regimentId?: string;
+  battalionId?: string;
+  companyId?: string;
+  /** Drill instructor user IDs */
+  drillInstructors?: string[];
+  /** Current recruit count (cached) */
+  recruitCount?: number;
   /** Additional metadata */
   metadata?: Record<string, unknown>;
 }
@@ -332,6 +398,11 @@ export interface UserProfileDocument extends BaseEntity {
   idmeUuid?: string;
   /** Encrypted sensitive data */
   encryptedData?: EncryptedData;
+  /** Privacy settings */
+  privacy?: {
+    showProfilePicture?: boolean;
+    showContactToSameCompany?: boolean;
+  };
 }
 
 /**
@@ -506,6 +577,13 @@ export interface Message {
   senderId: string;
   /** Message content */
   content: string;
+  /**
+   * E2E ciphertext for the message body (JSON). When set with `keyWraps`,
+   * `content` may be a placeholder for previews/back-compat.
+   */
+  encryptedPayload?: { ciphertext: string; nonce: string };
+  /** Per-user wraps of the message DEK (base64), each encrypted with that user's key */
+  keyWraps?: Record<string, { ciphertext: string; nonce: string }>;
   /** Message status */
   status: MessageStatus;
   /** Timestamp when message was sent */

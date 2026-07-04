@@ -24,7 +24,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/components/utils';
-import NavMenu, { type NavMenuItem } from '@/components/navigation/NavMenu';
+import { NavMenu, type NavMenuItem } from '@/components/navigation';
 import type { BaseComponentProps } from '@/types/components';
 
 /**
@@ -125,11 +125,16 @@ export default function Header({
       ref={headerRef}
       className={cn(
         'w-full',
-        'bg-background-card-light dark:bg-background-card-dark',
+        'bg-background-header-light dark:bg-background-header-dark',
         'border-b border-border-primary-light dark:border-border-primary-dark',
+        'text-white',
+        '[&_a]:text-white [&_a:hover]:text-tan-light [&_a:focus]:text-tan-light',
+        '[&_a[aria-current=page]]:text-tan-light [&_a[aria-current=page]]:font-semibold',
+        '[&_button]:text-white [&_button:hover]:bg-white/10 [&_button:hover]:text-white',
+        '[&_button]:focus-visible:ring-white/50',
         heightClasses[height],
         sticky && 'sticky top-0 z-40',
-        isScrolled && 'shadow-md',
+        isScrolled && 'shadow-lg',
         'transition-all duration-200',
         'overflow-visible',
         className
@@ -145,17 +150,19 @@ export default function Header({
               <button
                 type="button"
                 onClick={onMobileMenuToggle}
-                className="lg:hidden p-2 rounded-md hover:bg-background-secondary-light dark:hover:bg-background-secondary-dark focus:outline-none focus:ring-2 focus:ring-marine-red focus:ring-offset-2 transition-colors"
+                className="lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-md hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-background-header-light dark:focus:ring-offset-background-header-dark transition-colors"
                 aria-label="Toggle mobile menu"
                 aria-expanded={isMobileMenuOpen}
               >
                 {isMobileMenuOpen ? (
                   <svg
-                    className="w-6 h-6 text-text-primary-light dark:text-text-primary-dark"
+                    className="w-6 h-6 text-white"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                     aria-hidden="true"
+                    width="24"
+                    height="24"
                   >
                     <path
                       strokeLinecap="round"
@@ -166,11 +173,13 @@ export default function Header({
                   </svg>
                 ) : (
                   <svg
-                    className="w-6 h-6 text-text-primary-light dark:text-text-primary-dark"
+                    className="w-6 h-6 text-white"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                     aria-hidden="true"
+                    width="24"
+                    height="24"
                   >
                     <path
                       strokeLinecap="round"
@@ -196,10 +205,9 @@ export default function Header({
                 href={titleHref}
                 className={cn(
                   'text-xl font-bold',
-                  'text-text-heading-light dark:text-text-heading-dark',
-                  'hover:text-marine-red',
+                  'text-white hover:text-tan-light',
                   'transition-colors duration-200',
-                  'focus:outline-none focus:ring-2 focus:ring-marine-red focus:ring-offset-2 focus:rounded'
+                  'focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-background-header-light dark:focus:ring-offset-background-header-dark focus:rounded'
                 )}
               >
                 {title}

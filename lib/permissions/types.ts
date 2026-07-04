@@ -34,7 +34,8 @@ export type Permission =
   | 'forward_count_cards'
   | 'assign_roles'
   | 'view_audit_logs'
-  | 'manage_users';
+  | 'manage_users'
+  | 'manage_organizations';
 
 /**
  * Permission check result

@@ -27,6 +27,7 @@ import { OrganizationalAssignment, type OrganizationalAssignmentValue } from './
 import { RecruitPhotoUpload } from './RecruitPhotoUpload';
 import { getRankOptions } from '@/lib/utils/ranks';
 import type { USMCRank } from '@/types/auth';
+import { debugLog } from '@/lib/utils/debugLogger';
 import type { RecruitStatus } from '@/lib/validation/recruitSchemas';
 import type { RecruitProfile } from '@/types/models';
 
@@ -45,6 +46,12 @@ export interface RecruitFormData {
   series?: string;
   platoon: string;
   photoUrl?: string;
+  medicalNotes?: string;
+  dietaryRestrictions?: string;
+  preferredContactMethod?: 'phone' | 'email' | '';
+  extendedNotes?: string;
+  /** Privacy: who can see full profile */
+  fullProfileVisibleTo?: '' | 'same_platoon' | 'same_company' | 'same_battalion' | 'admins_only';
 }
 
 /**
@@ -58,6 +65,11 @@ export interface RecruitFormErrors {
   status?: string;
   platoon?: string;
   photoUrl?: string;
+  medicalNotes?: string;
+  dietaryRestrictions?: string;
+  preferredContactMethod?: string;
+  extendedNotes?: string;
+  fullProfileVisibleTo?: string;
   organizational?: {
     regiment?: string;
     battalion?: string;
@@ -142,6 +154,11 @@ export function RecruitForm({
     series: initialData?.series,
     platoon: initialData?.platoon || '',
     photoUrl: initialData?.photoUrl,
+    medicalNotes: initialData?.medicalNotes,
+    dietaryRestrictions: initialData?.dietaryRestrictions,
+    preferredContactMethod: initialData?.preferredContactMethod || '',
+    extendedNotes: initialData?.extendedNotes,
+    fullProfileVisibleTo: initialData?.privacy?.fullProfileVisibleTo ?? '',
   });
 
   // Organizational assignment state
@@ -291,8 +308,7 @@ export function RecruitForm({
               handleFieldChange('photoUrl', photoUrl);
             }}
             onError={(error) => {
-              // Errors are managed by parent component
-              console.error('Photo upload error:', error);
+              debugLog.error('Photo upload error', 'RecruitForm', { error: error instanceof Error ? error.message : String(error) });
             }}
             disabled={disabled || loading}
           />
@@ -318,6 +334,73 @@ export function RecruitForm({
             />
           </div>
         )}
+      </Card>
+
+      {/* Extended Information Section */}
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark mb-4">
+          Extended Information (Optional)
+        </h3>
+        <div className="space-y-4">
+          <Input
+            type="text"
+            label="Medical notes"
+            value={formData.medicalNotes || ''}
+            onChange={(e) => handleFieldChange('medicalNotes', e.target.value)}
+            placeholder="Medical notes"
+            errorText={errors.medicalNotes}
+            helperText="Sensitive – stored securely"
+            disabled={disabled || loading}
+            fullWidth
+          />
+          <Input
+            type="text"
+            label="Dietary restrictions"
+            value={formData.dietaryRestrictions || ''}
+            onChange={(e) => handleFieldChange('dietaryRestrictions', e.target.value)}
+            placeholder="Dietary restrictions"
+            errorText={errors.dietaryRestrictions}
+            disabled={disabled || loading}
+            fullWidth
+          />
+          <Select
+            label="Preferred contact method"
+            options={[
+              { value: '', label: '—' },
+              { value: 'phone', label: 'Phone' },
+              { value: 'email', label: 'Email' },
+            ]}
+            value={formData.preferredContactMethod || ''}
+            onChange={(e) => handleFieldChange('preferredContactMethod', e.target.value)}
+            errorText={errors.preferredContactMethod}
+            disabled={disabled || loading}
+            fullWidth
+          />
+          <Input
+            type="text"
+            label="Notes"
+            value={formData.extendedNotes || ''}
+            onChange={(e) => handleFieldChange('extendedNotes', e.target.value)}
+            placeholder="General notes"
+            errorText={errors.extendedNotes}
+            disabled={disabled || loading}
+            fullWidth
+          />
+          <Select
+            label="Who can see full profile (including extended info)"
+            options={[
+              { value: '', label: 'Same as view access (default)' },
+              { value: 'same_platoon', label: 'Same platoon only' },
+              { value: 'same_company', label: 'Same company' },
+              { value: 'same_battalion', label: 'Same battalion' },
+              { value: 'admins_only', label: 'Admins only' },
+            ]}
+            value={formData.fullProfileVisibleTo ?? ''}
+            onChange={(e) => handleFieldChange('fullProfileVisibleTo', e.target.value)}
+            disabled={disabled || loading}
+            fullWidth
+          />
+        </div>
       </Card>
 
       {/* Form Actions */}

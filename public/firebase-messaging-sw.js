@@ -15,6 +15,9 @@
 (function() {
   'use strict';
 
+  // Set to true only for local debugging; never log in production (no PII/tokens).
+  var DEBUG_MESSAGING = false;
+
   /**
    * Safely initialize Firebase messaging
    * Only initializes if Firebase is properly loaded and initialized
@@ -50,8 +53,10 @@
       // Set up background message handler
       messaging.onBackgroundMessage((payload) => {
         try {
-          console.log('[firebase-messaging-sw.js] Received background message ', payload);
-          
+          if (DEBUG_MESSAGING) {
+            console.log('[firebase-messaging-sw.js] Received background message');
+          }
+
           const notificationTitle = payload.notification?.title || 'New Message';
           const notificationOptions = {
             body: payload.notification?.body || '',
@@ -64,17 +69,19 @@
 
           return self.registration.showNotification(notificationTitle, notificationOptions);
         } catch (notificationError) {
-          console.error('[firebase-messaging-sw.js] Error showing notification:', notificationError);
+          if (DEBUG_MESSAGING) {
+            console.error('[firebase-messaging-sw.js] Error showing notification');
+          }
         }
       });
 
-      console.log('[firebase-messaging-sw.js] Firebase Messaging initialized successfully');
+      if (DEBUG_MESSAGING) {
+        console.log('[firebase-messaging-sw.js] Firebase Messaging initialized successfully');
+      }
     } catch (error) {
       // Silently handle all errors - don't break the service worker
-      // This prevents the "No Firebase App" error from breaking the app
-      // Only log in development to avoid console spam
-      if (process.env.NODE_ENV === 'development') {
-        console.warn('[firebase-messaging-sw.js] Messaging initialization skipped:', error.message);
+      if (DEBUG_MESSAGING) {
+        console.warn('[firebase-messaging-sw.js] Messaging initialization skipped');
       }
     }
   }

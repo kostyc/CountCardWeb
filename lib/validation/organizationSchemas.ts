@@ -129,3 +129,65 @@ export type OrganizationalQueryInput = z.infer<typeof organizationalQuerySchema>
 export type Battalion = z.infer<typeof battalionSchema>;
 export type Company = z.infer<typeof companySchema>;
 export type Series = z.infer<typeof seriesSchema>;
+
+/**
+ * Create/update schemas for Firestore org entities
+ */
+export const createRegimentSchema = z.object({
+  name: regimentSchema,
+});
+
+export const updateRegimentSchema = z.object({
+  name: regimentSchema.optional(),
+});
+
+export const createBattalionSchema = z.object({
+  name: battalionSchema,
+  regimentId: z.string().min(1),
+});
+
+export const updateBattalionSchema = z.object({
+  name: battalionSchema.optional(),
+  regimentId: z.string().min(1).optional(),
+});
+
+export const createCompanySchema = z.object({
+  name: companySchema,
+  battalionId: z.string().min(1),
+});
+
+export const updateCompanySchema = z.object({
+  name: companySchema.optional(),
+  battalionId: z.string().min(1).optional(),
+});
+
+export const createSeriesSchema = z.object({
+  name: seriesSchema,
+  companyId: z.string().min(1),
+});
+
+export const updateSeriesSchema = z.object({
+  name: seriesSchema.optional(),
+  companyId: z.string().min(1).optional(),
+});
+
+export const createPlatoonSchema = z.object({
+  platoonId: platoonSchema,
+  seriesId: z.string().min(1),
+  regiment: regimentSchema,
+  battalion: battalionSchema,
+  company: companySchema,
+  series: seriesSchema.optional(),
+  drillInstructors: z.array(z.string()).optional(),
+  recruitCount: z.number().int().min(0).optional(),
+});
+
+export const updatePlatoonSchema = z.object({
+  seriesId: z.string().min(1).optional(),
+  regiment: regimentSchema.optional(),
+  battalion: battalionSchema.optional(),
+  company: companySchema.optional(),
+  series: seriesSchema.optional(),
+  drillInstructors: z.array(z.string()).optional(),
+  recruitCount: z.number().int().min(0).optional(),
+});

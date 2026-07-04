@@ -20,6 +20,42 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
     
+    // Conversations: only participants can read/write
+    match /conversations/{conversationId} {
+      allow read, update, delete: if isAuthenticated()
+        && request.auth.uid in resource.data.participants;
+      allow create: if isAuthenticated()
+        && request.auth.uid in request.resource.data.participants;
+    }
+    // Conversation messages: only participants of the parent conversation
+    match /conversations/{conversationId}/messages/{messageId} {
+      allow read, write: if isAuthenticated()
+        && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+    }
+
+    // Organizational structure: authenticated users (manage_organizations enforced in API; full role-scope in Sprint 14)
+    match /regiments/{regimentId} {
+      allow read, write: if isAuthenticated();
+    }
+    match /battalions/{battalionId} {
+      allow read, write: if isAuthenticated();
+    }
+    match /companies/{companyId} {
+      allow read, write: if isAuthenticated();
+    }
+    match /series/{seriesId} {
+      allow read, write: if isAuthenticated();
+    }
+    match /platoons/{platoonId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Report schedules: users can only read/write their own schedules
+    match /reportSchedules/{scheduleId} {
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+    
     // Default deny all access for other collections
     match /{document=**} {
       allow read, write: if false;

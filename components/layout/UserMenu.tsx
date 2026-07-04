@@ -9,6 +9,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { UserRole } from '@/types/auth';
+import { debugLog } from '@/lib/utils/debugLogger';
 
 /**
  * UserMenu Component
@@ -148,7 +149,7 @@ export default function UserMenu(): JSX.Element | null {
       await signOut();
       router.push('/login');
     } catch (error) {
-      console.error('Error signing out:', error);
+      debugLog.error('Error signing out', 'UserMenu', { error: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -226,7 +227,7 @@ export default function UserMenu(): JSX.Element | null {
         aria-expanded={isOpen}
         aria-haspopup="true"
         aria-label="User menu"
-        className="flex items-center gap-2 p-2 rounded-full hover:bg-background-secondary-light dark:hover:bg-background-secondary-dark focus:outline-none focus:ring-2 focus:ring-marine-red focus:ring-offset-2 transition-colors"
+        className="flex items-center justify-center min-w-[44px] min-h-[44px] gap-2 p-2 rounded-full hover:bg-background-secondary-light dark:hover:bg-background-secondary-dark focus:outline-none focus:ring-2 focus:ring-marine-red focus:ring-offset-2 transition-colors"
       >
         {/* Avatar */}
         {getPhotoUrl() ? (
@@ -249,6 +250,8 @@ export default function UserMenu(): JSX.Element | null {
           stroke="currentColor"
           viewBox="0 0 24 24"
           aria-hidden="true"
+          width="16"
+          height="16"
         >
           <path
             strokeLinecap="round"
@@ -299,7 +302,7 @@ export default function UserMenu(): JSX.Element | null {
             <button
               type="button"
               onClick={() => handleMenuItemClick('/profile')}
-              className="w-full text-left px-4 py-2 text-sm text-text-primary-light dark:text-text-primary-dark hover:bg-background-secondary-light dark:hover:bg-background-secondary-dark focus:outline-none focus:bg-background-secondary-light dark:focus:bg-background-secondary-dark transition-colors"
+              className="w-full text-left px-4 py-3 min-h-[44px] text-sm text-text-primary-light dark:text-text-primary-dark hover:bg-background-secondary-light dark:hover:bg-background-secondary-dark focus:outline-none focus:bg-background-secondary-light dark:focus:bg-background-secondary-dark transition-colors flex items-center"
               role="menuitem"
             >
               Profile
@@ -309,7 +312,7 @@ export default function UserMenu(): JSX.Element | null {
             <button
               type="button"
               onClick={() => handleMenuItemClick('/settings')}
-              className="w-full text-left px-4 py-2 text-sm text-text-primary-light dark:text-text-primary-dark hover:bg-background-secondary-light dark:hover:bg-background-secondary-dark focus:outline-none focus:bg-background-secondary-light dark:focus:bg-background-secondary-dark transition-colors"
+              className="w-full text-left px-4 py-3 min-h-[44px] text-sm text-text-primary-light dark:text-text-primary-dark hover:bg-background-secondary-light dark:hover:bg-background-secondary-dark focus:outline-none focus:bg-background-secondary-light dark:focus:bg-background-secondary-dark transition-colors flex items-center"
               role="menuitem"
             >
               Settings
@@ -319,7 +322,7 @@ export default function UserMenu(): JSX.Element | null {
             <button
               type="button"
               onClick={() => handleMenuItemClick('/share')}
-              className="w-full text-left px-4 py-2 text-sm text-text-primary-light dark:text-text-primary-dark hover:bg-background-secondary-light dark:hover:bg-background-secondary-dark focus:outline-none focus:bg-background-secondary-light dark:focus:bg-background-secondary-dark transition-colors"
+              className="w-full text-left px-4 py-3 min-h-[44px] text-sm text-text-primary-light dark:text-text-primary-dark hover:bg-background-secondary-light dark:hover:bg-background-secondary-dark focus:outline-none focus:bg-background-secondary-light dark:focus:bg-background-secondary-dark transition-colors flex items-center"
               role="menuitem"
             >
               Share App
@@ -331,8 +334,8 @@ export default function UserMenu(): JSX.Element | null {
                 <div className="border-t border-border-primary-light dark:border-border-primary-dark my-1" />
                 <button
                   type="button"
-                  onClick={() => handleMenuItemClick('/admin')}
-                  className="w-full text-left px-4 py-2 text-sm text-text-primary-light dark:text-text-primary-dark hover:bg-background-secondary-light dark:hover:bg-background-secondary-dark focus:outline-none focus:bg-background-secondary-light dark:focus:bg-background-secondary-dark transition-colors"
+                  onClick={() => handleMenuItemClick('/dashboard/admin')}
+                  className="w-full text-left px-4 py-3 min-h-[44px] text-sm text-text-primary-light dark:text-text-primary-dark hover:bg-background-secondary-light dark:hover:bg-background-secondary-dark focus:outline-none focus:bg-background-secondary-light dark:focus:bg-background-secondary-dark transition-colors flex items-center"
                   role="menuitem"
                 >
                   Admin Panel
@@ -345,7 +348,7 @@ export default function UserMenu(): JSX.Element | null {
             <button
               type="button"
               onClick={handleSignOut}
-              className="w-full text-left px-4 py-2 text-sm text-marine-red hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:bg-red-50 dark:focus:bg-red-900/20 transition-colors"
+              className="w-full text-left px-4 py-3 min-h-[44px] text-sm text-marine-red hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:bg-red-50 dark:focus:bg-red-900/20 transition-colors flex items-center"
               role="menuitem"
             >
               Sign Out

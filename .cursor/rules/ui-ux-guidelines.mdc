@@ -8,11 +8,13 @@ alwaysApply: false
 
 **CRITICAL**: Always consider UI/UX best practices when implementing any user-facing feature. User experience is paramount and directly impacts application adoption and user satisfaction.
 
+**Plan with mobile in mind**: Always plan and design with mobile devices in mind. Many users will use phones—treat mobile as a primary context. When scoping work, consider: narrow viewports (e.g. 320px–390px), 44px minimum touch targets, thumb-friendly zones, and one-handed use. Design mobile-first; enhance for larger screens. Do not treat mobile as an afterthought.
+
 ## Reference Documentation
 
 For comprehensive UI/UX guidelines, see:
-- **Design System**: `docs/DESIGN-SYSTEM.md` - Complete design tokens, components, and guidelines
-- **Responsive Design**: `docs/RESPONSIVE-DESIGN.md` - Responsive design patterns and breakpoints
+- @docs/DESIGN-SYSTEM.md - Complete design tokens, components, and guidelines
+- @docs/RESPONSIVE-DESIGN.md - Responsive design patterns and breakpoints
 
 ## Key Principles
 
@@ -42,9 +44,15 @@ For comprehensive UI/UX guidelines, see:
 - **Form Labels**: All form inputs must have associated labels
 
 ### Responsive Design
+- **Mobile in mind**: Plan and implement with mobile as the default context. Consider phones (and 44px touch targets) from the start for every new feature or component.
 - **Mobile-First**: Design for mobile devices first, then enhance for larger screens
 - **Breakpoints**: Use Tailwind breakpoints consistently (sm, md, lg, xl, 2xl)
 - **Touch Targets**: Ensure minimum 44x44px touch targets on mobile
+
+### Icons and Decorative Graphics
+- **Icon SVGs**: Always set explicit `width` and `height` (e.g. `width="24" height="24"`) in addition to Tailwind `w-*` / `h-*`, so icons never grow if CSS is missing or overridden.
+- **Icon wrappers**: Use fixed size (`w-*` `h-*`) and `flex-shrink-0` (and `max-w-*` / `max-h-*` when the wrapper is inside a flex child that can grow) so the container never expands and blows up the icon.
+- **Decorative or background graphics**: Use fixed `background-size` (or equivalent) and avoid letting any SVG or image fill 100% of a flex/grid area without a max size.
 
 ## Common Anti-Patterns to Avoid
 - ❌ Low contrast buttons that blend into backgrounds
@@ -52,3 +60,4 @@ For comprehensive UI/UX guidelines, see:
 - ❌ Poor z-index management
 - ❌ Missing loading states for async operations
 - ❌ Technical error messages exposed to end users
+- ❌ Icons or decorative graphics without explicit dimensions, allowing them to expand and dominate the screen

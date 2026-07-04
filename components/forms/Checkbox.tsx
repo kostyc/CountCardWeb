@@ -198,6 +198,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         stroke="currentColor"
         strokeWidth={3}
         aria-hidden="true"
+        width="24"
+        height="24"
       >
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
       </svg>
@@ -212,6 +214,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         stroke="currentColor"
         strokeWidth={3}
         aria-hidden="true"
+        width="24"
+        height="24"
       >
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
       </svg>
@@ -219,7 +223,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 
     return (
       <div className="relative">
-        <div className="flex items-start gap-3">
+        <div className="flex items-center min-h-[44px] md:min-h-0 md:items-start gap-3">
           {/* Checkbox input (hidden, using custom styling) */}
           <div className="relative flex-shrink-0 mt-0.5">
             <input

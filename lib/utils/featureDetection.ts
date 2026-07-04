@@ -189,11 +189,11 @@ export function getBrowserInfo(): {
 
 /**
  * Check if browser meets minimum requirements
- * Safari 14+, Chrome 90+, Edge 90+
+ * Safari 14+, Chrome 90+, Firefox 90+, Edge 90+
  */
 export function meetsMinimumBrowserRequirements(): boolean {
   const browserInfo = getBrowserInfo();
-  
+
   if (browserInfo.name === 'Unknown') {
     // If we can't detect the browser, assume it meets requirements
     // (server-side rendering)
@@ -201,22 +201,26 @@ export function meetsMinimumBrowserRequirements(): boolean {
   }
 
   const version = parseInt(browserInfo.version, 10);
-  
+
   if (browserInfo.isSafari) {
     return version >= 14;
   }
-  
+
   if (browserInfo.isChrome) {
     return version >= 90;
   }
-  
+
+  if (browserInfo.isFirefox) {
+    return version >= 90;
+  }
+
   if (browserInfo.isEdge) {
     return version >= 90;
   }
-  
+
   // For other browsers, check if they support required features
-  return isWebCryptoAvailable() && 
-         isFetchAvailable() && 
+  return isWebCryptoAvailable() &&
+         isFetchAvailable() &&
          isPromiseAvailable() &&
          isAsyncAwaitSupported();
 }

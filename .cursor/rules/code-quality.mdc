@@ -12,9 +12,8 @@ alwaysApply: false
 - **Type Safety**: Avoid type assertions unless absolutely necessary
 
 ## Code Style
-- **ESLint**: Follow Next.js ESLint configuration
-- **Prettier**: Consistent code formatting
 - **Imports**: Use absolute imports with `@/` alias
+- **Barrel imports for navigation**: Import navigation components (Breadcrumbs, NavMenu, SkipLink) from the barrel only: `import { Breadcrumbs } from '@/components/navigation'`. Do not import from the component file path (e.g. `@/components/navigation/Breadcrumbs`); the barrel re-exports default exports as named exports, so using the barrel avoids default vs named import mistakes.
 - **Naming Conventions**:
   - Components: PascalCase (e.g., `RecruitCard.tsx`)
   - Utilities: camelCase (e.g., `formatRank.ts`)

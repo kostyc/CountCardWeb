@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["http://localhost:3000", "http://localhost:3001", "https://countcard.warriorwaypoint.com"],
+    "method": ["GET", "PUT", "POST", "DELETE", "HEAD", "OPTIONS"],
+    "responseHeader": ["Content-Type", "Authorization", "Content-Length", "User-Agent", "X-Requested-With", "x-goog-resumable", "x-firebase-storage-version"],
+    "maxAgeSeconds": 3600
+  }
+]

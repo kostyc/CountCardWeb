@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
   },
   // Configure browser compatibility
   // Next.js 16 uses SWC/Turbopack which automatically handles transpilation based on browserslist
-  // Target browsers: Safari 14+, Chrome 90+, Edge 90+
+  // Target browsers (top 3 + Edge): Safari 14+, Chrome 90+, Firefox 90+, Edge 90+
   // Browserslist is configured in package.json
   // Turbopack is enabled by default in Next.js 16
   // Note: sodium-native exclusion is handled in code by only importing sodium-plus in browser context

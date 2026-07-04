@@ -118,11 +118,13 @@ This document provides comprehensive documentation of all Firestore collections 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `platoonId` | string | ✅ | 4-digit format platoon identifier |
+| `seriesId` | string | ✅ | Parent series document ID |
+| `platoon` | string | ✅ | Platoon number (4-digit, same as document ID) |
+| `regiment` | string | ✅ | Regiment name (denormalized) |
+| `battalion` | string | ✅ | Battalion name (denormalized) |
+| `company` | string | ✅ | Company name (denormalized) |
+| `series` | string | ❌ | Series name (denormalized) |
 | `platoonName` | string | ❌ | Display name for platoon |
-| `series` | string | ✅ | Series assignment |
-| `company` | string | ✅ | Company assignment |
-| `battalion` | string | ✅ | Battalion assignment |
-| `regiment` | string | ✅ | Regiment assignment |
 | `drillInstructors` | array[string] | ❌ | Array of user IDs (Drill Instructors assigned to platoon) |
 | `recruitCount` | number | ❌ | Current recruit count |
 | `createdAt` | timestamp | ✅ | Timestamp when document was created |
@@ -133,10 +135,107 @@ This document provides comprehensive documentation of all Firestore collections 
 **Subcollections**: None
 
 **Indexes Required**:
-- Single-field: `series`, `company`, `battalion`, `regiment`
-- Composite: `(battalion, company, series)`, `(regiment, battalion, company)`
+- Single-field: `series`, `company`, `battalion`, `regiment`, `seriesId`
+- Composite: `(battalion, company, series)`, `(regiment, battalion, company)`, `(seriesId, platoon)`, `(regiment, battalion, company, series, platoon)`
 
 **Type Alignment**: `Platoon` in `types/models.ts`
+
+---
+
+### 3a. `regiments` - Regiment (West/East)
+
+**Purpose**: Top-level org entity for Recruit Training Regiments.
+
+**Document ID Format**: `{name}` (e.g. "West", "East")
+
+**Field Structure**:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | ✅ | Regiment name (West \| East) |
+| `createdAt` | timestamp | ✅ | Timestamp when document was created |
+| `updatedAt` | timestamp | ✅ | Timestamp when document was last updated |
+| `createdBy` | string | ✅ | User ID of the user who created the document |
+| `updatedBy` | string | ❌ | User ID of the user who last updated the document |
+
+**Subcollections**: None
+
+**Type Alignment**: `RegimentDocument` in `types/models.ts`
+
+---
+
+### 3b. `battalions` - Battalion (1st, 2nd, 3rd, Support)
+
+**Purpose**: Battalion org entity; parent is regiment.
+
+**Document ID Format**: `{regimentId}_{name}` (e.g. "West_1st")
+
+**Field Structure**:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | ✅ | Battalion name (1st \| 2nd \| 3rd \| Support) |
+| `regimentId` | string | ✅ | Parent regiment document ID |
+| `createdAt` | timestamp | ✅ | Timestamp when document was created |
+| `updatedAt` | timestamp | ✅ | Timestamp when document was last updated |
+| `createdBy` | string | ✅ | User ID of the user who created the document |
+| `updatedBy` | string | ❌ | User ID of the user who last updated the document |
+
+**Subcollections**: None
+
+**Indexes Required**: Composite: `(regimentId, name)`
+
+**Type Alignment**: `BattalionDocument` in `types/models.ts`
+
+---
+
+### 3c. `companies` - Company (by Battalion)
+
+**Purpose**: Company org entity; parent is battalion. Company names are constrained by battalion (see `lib/constants/organizations.ts`).
+
+**Document ID Format**: `{battalionId}_{name}` (e.g. "West_1st_Alpha")
+
+**Field Structure**:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | ✅ | Company name (Alpha, Bravo, … per battalion) |
+| `battalionId` | string | ✅ | Parent battalion document ID |
+| `createdAt` | timestamp | ✅ | Timestamp when document was created |
+| `updatedAt` | timestamp | ✅ | Timestamp when document was last updated |
+| `createdBy` | string | ✅ | User ID of the user who created the document |
+| `updatedBy` | string | ❌ | User ID of the user who last updated the document |
+
+**Subcollections**: None
+
+**Indexes Required**: Composite: `(battalionId, name)`
+
+**Type Alignment**: `CompanyDocument` in `types/models.ts`
+
+---
+
+### 3d. `series` - Series (Lead, Follow)
+
+**Purpose**: Series org entity; parent is company.
+
+**Document ID Format**: `{companyId}_{name}` (e.g. "West_1st_Alpha_Lead")
+
+**Field Structure**:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | ✅ | Series name (Lead \| Follow) |
+| `companyId` | string | ✅ | Parent company document ID |
+| `createdAt` | timestamp | ✅ | Timestamp when document was created |
+| `updatedAt` | timestamp | ✅ | Timestamp when document was last updated |
+| `createdBy` | string | ✅ | User ID of the user who created the document |
+| `updatedBy` | string | ❌ | User ID of the user who last updated the document |
+
+**Subcollections**: None
+
+**Indexes Required**: Composite: `(companyId, name)`
+
+**Type Alignment**: `SeriesDocument` in `types/models.ts`
 
 ---
 

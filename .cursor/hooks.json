@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      { "command": ".cursor/hooks/session-init.sh", "timeout": 5 }
+    ],
+    "beforeShellExecution": [
+      { "command": ".cursor/hooks/gate-shell.sh", "timeout": 10 }
+    ]
+  }
+}

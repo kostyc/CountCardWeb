@@ -45,7 +45,7 @@ export async function checkEncryptionCompatibility(): Promise<EncryptionCompatib
   if (!meetsMinimumVersion) {
     errors.push(
       `Browser version does not meet minimum requirements. ` +
-      `Required: Safari 14+, Chrome 90+, or Edge 90+. ` +
+      `Required: Safari 14+, Chrome 90+, Firefox 90+, or Edge 90+. ` +
       `Detected: ${browserInfo.name} ${browserInfo.version}`
     );
   }
@@ -76,6 +76,13 @@ export async function checkEncryptionCompatibility(): Promise<EncryptionCompatib
     const version = parseInt(browserInfo.version, 10);
     if (version < 90) {
       errors.push('Edge version 90 or higher is required for encryption support');
+    }
+  }
+
+  if (browserInfo.isFirefox) {
+    const version = parseInt(browserInfo.version, 10);
+    if (version < 90) {
+      errors.push('Firefox version 90 or higher is required for encryption support');
     }
   }
   
@@ -126,10 +133,10 @@ export async function verifyEncryptionSupport(): Promise<void> {
   const compatibility = await checkEncryptionCompatibility();
   
   if (!compatibility.isCompatible) {
-    const errorMessage = 
+    const errorMessage =
       `Encryption is not supported in this browser. ` +
       `Errors: ${compatibility.errors.join('; ')}. ` +
-      `Please use Safari 14+, Chrome 90+, or Edge 90+.`;
+      `Please use Safari 14+, Chrome 90+, Firefox 90+, or Edge 90+.`;
     
     throw new Error(errorMessage);
   }

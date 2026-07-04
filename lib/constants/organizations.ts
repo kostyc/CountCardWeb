@@ -100,3 +100,29 @@ export function getAllCompanies(): Company[] {
     ...BATTALION_COMPANIES['Support'],
   ];
 }
+
+/**
+ * East Coast battalion logo paths (public assets).
+ * Keys match Battalion type; paths are under /BattalionLogos/EastCoast/.
+ */
+export const BATTALION_LOGO_PATHS: Record<Battalion, string> = {
+  '1st': '/BattalionLogos/EastCoast/1stRtbn.jpg',
+  '2nd': '/BattalionLogos/EastCoast/2ndRtbn.jpg',
+  '3rd': '/BattalionLogos/EastCoast/3rdRtBn.jpg',
+  Support: '/BattalionLogos/EastCoast/SptBn.PNG',
+};
+
+/**
+ * Get battalion logo path for a given battalion.
+ * @param battalion - Battalion identifier
+ * @returns Public URL path for the logo, or undefined if not found
+ */
+export function getBattalionLogoPath(battalion: Battalion | string | undefined): string | undefined {
+  if (!battalion || !isBattalion(battalion)) return undefined;
+  return BATTALION_LOGO_PATHS[battalion as Battalion];
+}
+
+/** Type guard for Battalion */
+function isBattalion(s: string): s is Battalion {
+  return BATTALIONS.includes(s as Battalion);
+}

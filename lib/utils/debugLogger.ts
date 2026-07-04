@@ -29,11 +29,12 @@ const defaultConfig: DebugConfig = {
   enabled: typeof window !== 'undefined' && (
     process.env.NEXT_PUBLIC_DEBUG === 'true' ||
     process.env.NODE_ENV === 'development' ||
-    (typeof window !== 'undefined' && (window as any).__DEBUG__ === true)
+    // Intentional: debug flag on window for runtime toggling (no built-in type)
+    (typeof window !== 'undefined' && (window as unknown as { __DEBUG__?: boolean }).__DEBUG__ === true)
   ),
   showPanel: typeof window !== 'undefined' && (
     process.env.NEXT_PUBLIC_DEBUG_PANEL === 'true' ||
-    (typeof window !== 'undefined' && (window as any).__DEBUG_PANEL__ === true)
+    (typeof window !== 'undefined' && (window as unknown as { __DEBUG_PANEL__?: boolean }).__DEBUG_PANEL__ === true)
   ),
   logLevel: 'debug',
   maxLogEntries: 100,
@@ -485,6 +486,7 @@ export const debugLog = {
 
 // Expose to window for console access
 if (typeof window !== 'undefined') {
-  (window as any).debugLog = debugLog;
-  (window as any).__DEBUG_LOGGER__ = getDebugLogger();
+  // Expose on window for console access (window has no type for these debug globals)
+  (window as unknown as { debugLog?: typeof debugLog }).debugLog = debugLog;
+  (window as unknown as { __DEBUG_LOGGER__?: ReturnType<typeof getDebugLogger> }).__DEBUG_LOGGER__ = getDebugLogger();
 }

@@ -1,0 +1,33 @@
+---
+description: Consider Cursor hooks, MCP, plugins, and settings to improve agent and dev processes
+alwaysApply: true
+---
+
+# Cursor Capabilities
+
+**Always consider** hooks, MCP servers, plugins, and Cursor settings when planning work or improving how we operate. Use them to enforce policy, inject context, gate risky actions, and automate quality.
+
+## Hooks (`.cursor/hooks.json`)
+
+- **Existing**: `sessionStart` → inject PII/logging/compliance context; `beforeShellExecution` → gate `firebase deploy`, unsafe `rm -rf`, writes to `.env`.
+- **Consider adding**: `afterFileEdit` → run `npm run lint` or formatter; `beforeReadFile` / `afterFileEdit` → optional PII/secret scan; `beforeSubmitPrompt` → lightweight prompt checks.
+- **Docs**: [Cursor Hooks](https://cursor.com/docs/agent/hooks). Scripts in `.cursor/hooks/`; project hooks run from repo root.
+
+## MCP (`.cursor/mcp.json`)
+
+- **Existing**: Firebase (firebase-tools MCP), Git (mcp-server-git), **Next.js DevTools** (next-devtools-mcp).
+- **Next.js DevTools**: Use to see dev-server errors and logs. **Always check for errors** when debugging, after making code changes that could affect the app, or when the user reports an issue: call `get_errors` for current build/runtime/type errors and `get_logs` for dev server output. Check tool schemas in `mcps/<server>/tools/*.json` before calling.
+- **Consider**: Browser (cursor-ide-browser) for UI/E2E checks; Chrome DevTools for performance; other MCPs for APIs, DB, or security scans.
+
+## Plugins & Cursor Settings
+
+- **Features**: Ensure Hooks and (if used) Third-party skills are enabled in **Cursor Settings → Features**.
+- **Rules**: Prefer project rules in `.cursor/rules/` over ad-hoc instructions.
+- **Plans**: Use `.cursor/plans/` for multi-step work; reference NEXT_STEPS_PROMPT.md to continue.
+
+## When to Revisit
+
+- Starting a new plan or sprint: Can a hook or MCP step reduce risk or add consistency?
+- Adding tooling (lint, format, tests): Can a hook run it automatically?
+- Security/compliance tasks: Can hooks enforce (e.g. no PII in logs, gate deploys)?
+- Repetitive or error-prone flows: Can MCP or a hook automate or guard them?

@@ -256,6 +256,8 @@ export default function NavMenu({
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                   aria-hidden="true"
+                  width="16"
+                  height="16"
                 >
                   <path
                     strokeLinecap="round"
@@ -301,6 +303,8 @@ export default function NavMenu({
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                     aria-hidden="true"
+                    width="16"
+                    height="16"
                   >
                     <path
                       strokeLinecap="round"

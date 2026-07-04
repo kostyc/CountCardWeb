@@ -98,7 +98,7 @@ export function CountCardWorkflowActions({
       }
 
       const endpoint = `/api/count-cards/${countCard.countCardId}/${action}`;
-      const body: any = { notes: notes.trim() || undefined };
+      const body: { notes?: string; submittedTo?: string[] } = { notes: notes.trim() || undefined };
       
       if (action === 'approve' || action === 'consolidate') {
         // For approve/consolidate, submittedTo is optional (comma-separated user IDs)

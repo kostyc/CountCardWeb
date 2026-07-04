@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "firebase": {
+      "command": "npx",
+      "args": ["-y", "firebase-tools@latest", "mcp"],
+      "disabled": false
+    },
+    "git": {
+      "command": "/opt/homebrew/bin/uvx",
+      "args": [
+        "mcp-server-git",
+        "--repository",
+        "/Users/daddymac/Documents/App Development/CountCard/CountCardWeb"
+      ],
+      "disabled": false
+    },
+    "next-devtools": {
+      "command": "npx",
+      "args": ["-y", "next-devtools-mcp@latest"],
+      "disabled": false
+    }
+  }
+}

@@ -2309,6 +2309,99 @@ The application uses the official Marine Corps color palette from the Marines.mi
 
 ---
 
+## Sprint Status Tracking
+
+**Last Updated**: January 18, 2026
+
+### Current Sprint Status Summary
+
+| Sprint | Phase | Status | Progress | Notes |
+|--------|-------|--------|----------|-------|
+| Sprint 1 | Phase 1 | ✅ Code Complete | 100% | Manual steps & testing pending |
+| Sprint 2 | Phase 1 | ✅ Code Complete | 100% | Testing pending, 3 deferred items |
+| Sprint 3 | Phase 1 | ✅ Code Complete | 100% | Testing pending |
+| Sprint 4 | Phase 1 | ✅ Core Complete | 100% | Advanced features (Tasks 11-15) pending |
+| Sprint 5 | Phase 2 | ✅ Complete | 100% | Security rules deferred to Sprint 13 |
+| Sprint 6 | Phase 2 | ✅ Complete | 100% | Task 10 is future build placeholder |
+| Sprint 7 | Phase 2 | ✅ Complete | 78% | Tasks 8 & 9 deferred to Sprint 12 |
+| Sprint 8 | Phase 2 | ⏳ Pending | 0% | Waiting for Sprint 6 completion |
+| Sprint 9-23 | Various | ⏳ Pending | 0% | Blocked by dependencies |
+| Sprint 24 | Phase 2 | ✅ Code Complete | 100% | Manual testing pending |
+| Sprint 25 | Phase 2 | 🔄 In Progress | Testing | Testing & QA sprint |
+
+### Status Definitions
+
+- ✅ **Code Complete** - All code-related tasks completed, may have manual steps or testing pending
+- ✅ **Complete** - Fully complete including testing
+- 🔄 **In Progress** - Currently being worked on
+- ⏳ **Pending** - Not yet started, waiting for dependencies
+
+### Deferred Items Tracking
+
+All deferred items are tracked in `sprints/DEFERRED-ITEMS-BACKLOG.md`.
+
+**Critical Deferred Items**:
+- Profile Picture Upload (Sprint 2) - Immediate action recommended
+- Phone Auth UI (Sprint 2) - If phone auth is required
+
+**High Priority Deferred Items**:
+- Account Linking (Sprint 2) → Sprint 8 or later
+- Count Card Export (Sprint 7) → Sprint 12
+- Workflow Notifications (Sprint 7) → Sprint 19
+- Sprint 7 Tasks 8 & 9 (Audit Trail & Reporting) → Sprint 12
+
+**Properly Tracked Deferred Items**:
+- Firestore Security Rules → Sprint 13 ✅
+- Incident Alert Schemas → Sprint 18 ✅
+
+### Testing Status
+
+**Testing Sprint**: Sprint 25 (Testing & QA)
+
+**Testing Coverage**:
+- Sprint 1: Manual steps verification & browser testing pending
+- Sprint 2: Functional, security, and integration testing pending
+- Sprint 3: Unit tests, browser compatibility, and security testing pending
+- Sprint 4: Component, accessibility, and responsive design testing pending
+- Sprint 5: Type definition, validation, and service layer testing pending
+- Sprint 6: Functional, security, and performance testing pending
+- Sprint 7: Functional, security, and performance testing pending
+
+See `sprints/Sprint-25-2026-01-18/Sprint-25-2026-01-18.md` for detailed test checklists.
+
+### Sprint Dependencies
+
+**Completed Sprints** (Ready for testing):
+- Sprint 1: Foundation ✅
+- Sprint 2: Authentication ✅
+- Sprint 3: Security Infrastructure ✅
+- Sprint 4: UI/UX Foundation ✅
+- Sprint 5: Data Models ✅
+- Sprint 6: Recruit Management ✅
+- Sprint 7: Count Card System ✅
+
+**Blocked Sprints** (Waiting for dependencies):
+- Sprint 8: Waiting for Sprint 6 ✅ (now unblocked)
+- Sprint 9: Waiting for Sprint 8
+- Sprint 10-23: Waiting for previous sprints
+
+### Next Steps
+
+1. **Complete Testing** (Sprint 25):
+   - Test all completed sprints (1-7)
+   - Document test results
+   - Address any issues found
+
+2. **Address Critical Deferred Items**:
+   - Profile Picture Upload (Sprint 2)
+   - Phone Auth UI (if required)
+
+3. **Begin Sprint 8**:
+   - Emergency Contacts & Profile Management
+   - Now unblocked (Sprint 6 complete)
+
+---
+
 ## Security & Vulnerability Checks
 
 ### Overview

@@ -37,27 +37,25 @@ export const logoFileNameSchema = z
 
 /**
  * Logo MIME type validation
- * Allowed types: image/png, image/jpeg, image/jpg, image/gif, image/svg+xml, image/webp
+ * Allowed types: image/png, image/jpeg, image/jpg, image/webp (no SVG/GIF for security)
  */
 export const logoMimeTypeSchema = z.enum([
   'image/png',
   'image/jpeg',
   'image/jpg',
-  'image/gif',
-  'image/svg+xml',
   'image/webp',
 ], {
-  message: 'Logo must be a valid image file (PNG, JPEG, GIF, SVG, or WebP)',
+  message: 'Logo must be a valid image file (PNG, JPEG, or WebP)',
 });
 
 /**
- * Logo file size validation (max 5MB)
+ * Logo file size validation (max 2MB to match storage rules)
  */
 export const logoFileSizeSchema = z
   .number()
   .int()
   .min(1, 'File size must be at least 1 byte')
-  .max(5 * 1024 * 1024, 'File size must be 5MB or less');
+  .max(2 * 1024 * 1024, 'File size must be 2MB or less');
 
 /**
  * Logo dimensions validation

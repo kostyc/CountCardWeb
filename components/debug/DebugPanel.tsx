@@ -50,7 +50,8 @@ export function DebugPanel({ enabled = true }: DebugPanelProps): null {
  */
 export function useDebugInfo(componentName: string, props?: Record<string, unknown>) {
   useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).__DEBUG__) {
+    const win = typeof window !== 'undefined' ? (window as unknown as { __DEBUG__?: boolean }) : null;
+    if (win?.__DEBUG__) {
       debugLog.debug(`${componentName} mounted`, componentName, props);
       
       return () => {

@@ -13,8 +13,8 @@ const os = require('os');
 const sitegroundUrl = 'https://www.siteground.com/web-hosting/control-panel';
 const dnsZoneEditorPath = '/dns-zone-editor';
 
-console.log('Opening SiteGround Control Panel...');
-console.log('Please authenticate using Google Sign-In with 2FA\n');
+process.stdout.write('Opening SiteGround Control Panel...\n');
+process.stdout.write('Please authenticate using Google Sign-In with 2FA\n\n');
 
 const platform = os.platform();
 let command;
@@ -33,23 +33,21 @@ switch (platform) {
     command = `start "${sitegroundUrl}"`;
     break;
   default:
-    console.log(`Please open: ${sitegroundUrl}`);
+    process.stdout.write(`Please open: ${sitegroundUrl}\n`);
     process.exit(0);
 }
 
 exec(command, (error) => {
   if (error) {
-    console.error(`Error opening browser: ${error.message}`);
-    console.log(`Please manually open: ${sitegroundUrl}`);
+    process.stderr.write(`Error opening browser: ${error.message}\n`);
+    process.stdout.write(`Please manually open: ${sitegroundUrl}\n`);
     return;
   }
-  
-  console.log('Browser opened successfully!\n');
-  console.log('After authentication, navigate to:');
-  console.log('  - DNS Zone Editor');
-  console.log('  - Domain: warriorwaypoint.com');
-  console.log('  - Manage DNS records for countcard.warriorwaypoint.com\n');
-  
-  // Check for SiteGround CLI/API (future enhancement)
-  console.log('Note: If SiteGround provides CLI/API access, we can automate DNS management.');
+
+  process.stdout.write('Browser opened successfully!\n\n');
+  process.stdout.write('After authentication, navigate to:\n');
+  process.stdout.write('  - DNS Zone Editor\n');
+  process.stdout.write('  - Domain: warriorwaypoint.com\n');
+  process.stdout.write('  - Manage DNS records for countcard.warriorwaypoint.com\n\n');
+  process.stdout.write('Note: If SiteGround provides CLI/API access, we can automate DNS management.\n');
 });

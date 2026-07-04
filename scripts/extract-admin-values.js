@@ -16,18 +16,18 @@ const path = require('path');
 const jsonFilePath = process.argv[2];
 
 if (!jsonFilePath) {
-  console.error('❌ Error: Please provide the path to the service account JSON file');
-  console.error('');
-  console.error('Usage: node scripts/extract-admin-values.js <path-to-json-file>');
-  console.error('');
-  console.error('Example:');
-  console.error('  node scripts/extract-admin-values.js ~/Downloads/countcard-94c5b-firebase-adminsdk-xxxxx.json');
+  process.stderr.write('❌ Error: Please provide the path to the service account JSON file\n');
+  process.stderr.write('\n');
+  process.stderr.write('Usage: node scripts/extract-admin-values.js <path-to-json-file>\n');
+  process.stderr.write('\n');
+  process.stderr.write('Example:\n');
+  process.stderr.write('  node scripts/extract-admin-values.js ~/Downloads/countcard-94c5b-firebase-adminsdk-xxxxx.json\n');
   process.exit(1);
 }
 
 // Check if file exists
 if (!fs.existsSync(jsonFilePath)) {
-  console.error(`❌ Error: File not found: ${jsonFilePath}`);
+  process.stderr.write(`❌ Error: File not found: ${jsonFilePath}\n`);
   process.exit(1);
 }
 
@@ -43,8 +43,8 @@ try {
 
   // Validate required fields
   if (!projectId || !clientEmail || !privateKey) {
-    console.error('❌ Error: Missing required fields in JSON file');
-    console.error('   Required: project_id, client_email, private_key');
+    process.stderr.write('❌ Error: Missing required fields in JSON file\n');
+    process.stderr.write('   Required: project_id, client_email, private_key\n');
     process.exit(1);
   }
 
@@ -52,25 +52,25 @@ try {
   // The private key already has \n as literal characters in JSON
   const formattedPrivateKey = privateKey.replace(/\n/g, '\\n');
 
-  console.log('');
-  console.log('==========================================');
-  console.log('Firebase Admin SDK Configuration Values');
-  console.log('==========================================');
-  console.log('');
-  console.log('Copy these values into your .env.local file:');
-  console.log('');
-  console.log('FIREBASE_ADMIN_PROJECT_ID=' + projectId);
-  console.log('FIREBASE_ADMIN_CLIENT_EMAIL=' + clientEmail);
-  console.log('FIREBASE_ADMIN_PRIVATE_KEY="' + formattedPrivateKey + '"');
-  console.log('');
-  console.log('==========================================');
-  console.log('');
-  console.log('Or use the update script to automatically update .env.local:');
-  console.log(`  ./scripts/update-admin-sdk.sh "${jsonFilePath}"`);
-  console.log('');
+  process.stdout.write('\n');
+  process.stdout.write('==========================================\n');
+  process.stdout.write('Firebase Admin SDK Configuration Values\n');
+  process.stdout.write('==========================================\n');
+  process.stdout.write('\n');
+  process.stdout.write('Copy these values into your .env.local file:\n');
+  process.stdout.write('\n');
+  process.stdout.write('FIREBASE_ADMIN_PROJECT_ID=' + projectId + '\n');
+  process.stdout.write('FIREBASE_ADMIN_CLIENT_EMAIL=' + clientEmail + '\n');
+  process.stdout.write('FIREBASE_ADMIN_PRIVATE_KEY="' + formattedPrivateKey + '"\n');
+  process.stdout.write('\n');
+  process.stdout.write('==========================================\n');
+  process.stdout.write('\n');
+  process.stdout.write('Or use the update script to automatically update .env.local:\n');
+  process.stdout.write(`  ./scripts/update-admin-sdk.sh "${jsonFilePath}"\n`);
+  process.stdout.write('\n');
 
 } catch (error) {
-  console.error('❌ Error reading JSON file:');
-  console.error('   ' + error.message);
+  process.stderr.write('❌ Error reading JSON file:\n');
+  process.stderr.write('   ' + (error && error.message ? error.message : String(error)) + '\n');
   process.exit(1);
 }

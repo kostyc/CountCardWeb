@@ -15,3 +15,8 @@ export { RankBadge, type RankBadgeProps } from './RankBadge';
 export { RankDisplay, type RankDisplayProps } from './RankDisplay';
 export { RankSelect, type RankSelectProps } from './RankSelect';
 export { RecruitDataExport, type RecruitDataExportProps } from './RecruitDataExport';
+export {
+  EmergencyContactFormModal,
+  type EmergencyContactFormValues,
+  type EmergencyContactFormModalProps,
+} from './EmergencyContactFormModal';

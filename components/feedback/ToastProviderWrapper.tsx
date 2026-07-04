@@ -30,6 +30,10 @@ export interface ToastProviderWrapperProps {
    * @default 5
    */
   maxToasts?: number;
+  /**
+   * App content to wrap with toast context
+   */
+  children?: React.ReactNode;
 }
 
 /**
@@ -63,9 +67,11 @@ function ToastContainerWrapper({
 export default function ToastProviderWrapper(
   props: ToastProviderWrapperProps
 ): JSX.Element {
+  const { children, ...containerProps } = props;
   return (
     <ToastProvider>
-      <ToastContainerWrapper {...props} />
+      {children}
+      <ToastContainerWrapper {...containerProps} />
     </ToastProvider>
   );
 }
