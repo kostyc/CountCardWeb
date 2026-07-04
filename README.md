@@ -2,7 +2,7 @@
 
 Marine Corps Drill Instructor accountability application for tracking and managing recruits. Built with Next.js, Firebase (Firestore), and end-to-end encryption with GDPR compliance.
 
-**Version**: 0.2.0 · **Last updated**: 2026-02-28
+**Version**: 2026.0.2 (Build 1)
 
 ## Technology Stack
 

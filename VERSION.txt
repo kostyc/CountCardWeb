@@ -1,11 +1,13 @@
 CountCard Version Tracking
 ==================================
-Full Version: 2026.0.2.0
+Full Version: 2026.0.2.1
 Store Version: 2026.0.2
-Build Number: 0
-Last Updated: 2026-06-08
+Build Number: 1
+Last Updated: 2026-07-04
 Release Type: Development
 
 Version History:
 ---------------
+2026.0.2.1 (2026-07-04) - Fix TypeScript build errors
+
 2026.0.2.0 (2026-06-08) - Adopted Year.Major.Minor.Build scheme

@@ -360,7 +360,7 @@ export function canSeeFullRecruitProfile(
   if (!visibility) return true;
 
   const role = user.customClaims?.role || user.profile?.role;
-  if (isAdminRole(role)) return true;
+  if (role && isAdminRole(role)) return true;
   if (visibility === 'admins_only') return false;
 
   const userOrg = user.customClaims?.organizationalAssignment || user.profile?.organizationalAssignment;

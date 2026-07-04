@@ -23,6 +23,12 @@ import type { RecruitProfile } from '@/types/models';
 import type { RecruitStatus } from '@/lib/validation/recruitSchemas';
 import type { USMCRank, Regiment } from '@/types/auth';
 import type { PaginationResult } from '@/lib/services/firestore/base';
+import { Timestamp } from 'firebase/firestore';
+
+function toMillis(value: Date | Timestamp | undefined): number {
+  if (!value) return 0;
+  return value instanceof Date ? value.getTime() : value.toMillis();
+}
 
 /**
  * Recruit filters type
@@ -98,7 +104,7 @@ export default function RecruitsPage(): JSX.Element {
       } else {
         // Merge user's organizational scope with filters
         const mergedFilters: RecruitFilters = {
-          ...organizationalScope,
+          ...(organizationalScope as RecruitFilters),
           ...filters,
         };
 
@@ -118,7 +124,7 @@ export default function RecruitsPage(): JSX.Element {
       setLastDoc(result.lastDoc);
       setHasMore(result.hasMore || false);
     } catch (err) {
-      logError('Failed to load recruits', err as Error);
+      logError(err instanceof Error ? err : new Error(String(err)), 'Failed to load recruits');
       setError(err as Error);
     } finally {
       setLoading(false);
@@ -212,12 +218,12 @@ export default function RecruitsPage(): JSX.Element {
         bValue = b.platoon || '';
         break;
       case 'createdAt':
-        aValue = a.createdAt?.getTime() || 0;
-        bValue = b.createdAt?.getTime() || 0;
+        aValue = toMillis(a.createdAt);
+        bValue = toMillis(b.createdAt);
         break;
       case 'updatedAt':
-        aValue = a.updatedAt?.getTime() || 0;
-        bValue = b.updatedAt?.getTime() || 0;
+        aValue = toMillis(a.updatedAt);
+        bValue = toMillis(b.updatedAt);
         break;
       default:
         return 0;
@@ -246,8 +252,8 @@ export default function RecruitsPage(): JSX.Element {
         <ErrorState
           title="Failed to Load Recruits"
           message={error.message}
-          actionLabel="Retry"
-          onAction={() => {
+          retryLabel="Retry"
+          onRetry={() => {
             setError(null);
             setLastDoc(null);
             loadRecruits(true);

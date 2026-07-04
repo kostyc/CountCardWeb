@@ -22,6 +22,7 @@ import Breadcrumbs from '@/components/navigation/Breadcrumbs';
 import Spinner from '@/components/feedback/Spinner';
 import ErrorState from '@/components/feedback/ErrorState';
 import type { RecruitProfile } from '@/types/models';
+import type { OrganizationalAssignment } from '@/types/auth';
 
 /**
  * Get breadcrumb items
@@ -87,7 +88,7 @@ export default function EditRecruitPage(): JSX.Element {
         setRecruit(recruitData);
         setLoading(false);
       } catch (err) {
-        logError('Failed to load recruit profile', err as Error);
+        logError(err instanceof Error ? err : new Error(String(err)), 'Failed to load recruit profile');
         setError(err as Error);
         setLoading(false);
       }
@@ -102,7 +103,7 @@ export default function EditRecruitPage(): JSX.Element {
   const handleSubmit = async (formData: RecruitFormData) => {
     if (!user || !recruit) {
       showToast({
-        type: 'error',
+        variant: 'error',
         message: 'You must be logged in to edit a recruit profile.',
       });
       return;
@@ -131,15 +132,15 @@ export default function EditRecruitPage(): JSX.Element {
       if (!validationResult.success) {
         // Map validation errors to form errors
         const formErrors: RecruitFormErrors = {};
-        validationResult.error.errors.forEach((error) => {
-          const field = error.path[0] as keyof RecruitFormErrors;
+        validationResult.error.issues.forEach((error) => {
+          const field = String(error.path[0]);
           if (field === 'regiment' || field === 'battalion' || field === 'company' || field === 'series' || field === 'platoon') {
             if (!formErrors.organizational) {
               formErrors.organizational = {};
             }
-            formErrors.organizational[field] = error.message;
+            formErrors.organizational[field as keyof NonNullable<RecruitFormErrors['organizational']>] = error.message;
           } else {
-            formErrors[field] = error.message;
+            (formErrors as Record<string, string>)[field] = error.message;
           }
         });
         setErrors(formErrors);
@@ -151,9 +152,9 @@ export default function EditRecruitPage(): JSX.Element {
       if (formData.battalion && formData.company) {
         const orgValidation = validateOrganizationalAssignment({
           regiment: formData.regiment as 'West' | 'East' | undefined,
-          battalion: formData.battalion,
-          company: formData.company,
-          series: formData.series,
+          battalion: formData.battalion as OrganizationalAssignment['battalion'],
+          company: formData.company as OrganizationalAssignment['company'],
+          series: formData.series as OrganizationalAssignment['series'],
           platoon: formData.platoon,
         });
 
@@ -188,20 +189,20 @@ export default function EditRecruitPage(): JSX.Element {
         user.uid
       );
 
-      logInfo('Recruit profile updated successfully', { recruitId });
+      logInfo('Recruit profile updated successfully', 'EditRecruitPage', { recruitId });
 
       // Show success message
       showToast({
-        type: 'success',
+        variant: 'success',
         message: 'Recruit profile "' + formData.firstName + ' ' + formData.lastName + '" updated successfully.',
       });
 
       // Redirect to recruit detail page
       router.push(`/recruits/${recruitId}`);
     } catch (err) {
-      logError('Failed to update recruit profile', err as Error);
+      logError(err instanceof Error ? err : new Error(String(err)), 'Failed to update recruit profile');
       showToast({
-        type: 'error',
+        variant: 'error',
         message: err instanceof Error ? err.message : 'Failed to update recruit profile. Please try again.',
       });
       setSubmitting(false);
@@ -233,8 +234,8 @@ export default function EditRecruitPage(): JSX.Element {
         <ErrorState
           title={canEditRecruit.allowed ? "Failed to Load Recruit" : "Access Denied"}
           message={canEditRecruit.allowed ? (error?.message || 'Recruit not found') : (canEditRecruit.reason || 'You do not have permission to edit this recruit')}
-          actionLabel="Back to Recruits"
-          onAction={() => router.push('/recruits')}
+          retryLabel="Back to Recruits"
+          onRetry={() => router.push('/recruits')}
         />
       </Container>
     );

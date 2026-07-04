@@ -5,9 +5,19 @@ All notable changes to CountCard Web are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v0.2.0...HEAD)
+## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.2.1...HEAD)
 
 - (Nothing yet.)
+
+## [2026.0.2.1] - 2026-07-04
+
+### Fixed
+
+- Resolved 79 TypeScript errors across dashboard pages (`tsc --noEmit` and `npm run build` now pass).
+- Toast API: `type` → `variant`; `logError`/`logInfo` call signatures corrected.
+- Organizational assignment casts in admin, profile, and recruit flows.
+- Added missing `conversationRealtime.ts` for messaging hooks.
+- Updated `SETUP.md` canonical path to `/Users/daddymac/Projects/Countcard`.
 
 ## [0.2.0](https://github.com/your-org/CountCardWeb/compare/v0.1.0...v0.2.0) - 2026-02-28
 

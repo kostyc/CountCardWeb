@@ -70,7 +70,7 @@ export default function CountCardDetailPage(): JSX.Element {
 
         setLoading(false);
       } catch (err) {
-        logError('Failed to load count card', err as Error);
+        logError(err instanceof Error ? err : new Error(String(err)), 'Failed to load count card');
         setError(err as Error);
         setLoading(false);
       }
@@ -94,7 +94,7 @@ export default function CountCardDetailPage(): JSX.Element {
           }
         })
         .catch((err) => {
-          logError('Failed to reload count card', err as Error);
+          logError(err instanceof Error ? err : new Error(String(err)), 'Failed to reload count card');
         });
     }
   };
@@ -117,8 +117,8 @@ export default function CountCardDetailPage(): JSX.Element {
         <ErrorState
           title="Failed to Load Count Card"
           message={error?.message || 'Count card not found'}
-          actionLabel="Back to Count Cards"
-          onAction={() => router.push('/count-cards')}
+          retryLabel="Back to Count Cards"
+          onRetry={() => router.push('/count-cards')}
         />
       </Container>
     );

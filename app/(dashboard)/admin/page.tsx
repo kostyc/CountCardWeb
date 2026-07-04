@@ -394,7 +394,7 @@ export default function AdminPage(): JSX.Element {
                       value={organizationalAssignment.battalion || ''}
                       onChange={(e) => setOrganizationalAssignment({
                         ...organizationalAssignment,
-                        battalion: e.target.value,
+                        battalion: e.target.value as OrganizationalAssignment['battalion'],
                       })}
                       className="w-full px-4 py-2 bg-background-input-light dark:bg-background-input-dark border border-border-primary-light dark:border-border-primary-dark rounded-md text-text-primary-light dark:text-text-primary-dark focus:outline-none focus:ring-2 focus:ring-marine-red focus:border-transparent"
                       placeholder="1st, 2nd, 3rd, Support"
@@ -411,7 +411,7 @@ export default function AdminPage(): JSX.Element {
                       value={organizationalAssignment.company || ''}
                       onChange={(e) => setOrganizationalAssignment({
                         ...organizationalAssignment,
-                        company: e.target.value,
+                        company: e.target.value as OrganizationalAssignment['company'],
                       })}
                       className="w-full px-4 py-2 bg-background-input-light dark:bg-background-input-dark border border-border-primary-light dark:border-border-primary-dark rounded-md text-text-primary-light dark:text-text-primary-dark focus:outline-none focus:ring-2 focus:ring-marine-red focus:border-transparent"
                       placeholder="Alpha, Bravo, etc."
@@ -430,7 +430,7 @@ export default function AdminPage(): JSX.Element {
                       value={organizationalAssignment.series || ''}
                       onChange={(e) => setOrganizationalAssignment({
                         ...organizationalAssignment,
-                        series: e.target.value,
+                        series: e.target.value as OrganizationalAssignment['series'],
                       })}
                       className="w-full px-4 py-2 bg-background-input-light dark:bg-background-input-dark border border-border-primary-light dark:border-border-primary-dark rounded-md text-text-primary-light dark:text-text-primary-dark focus:outline-none focus:ring-2 focus:ring-marine-red focus:border-transparent"
                       placeholder="Lead Series, Follow Series"

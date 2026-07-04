@@ -56,7 +56,7 @@ export default function CreateCountCardPage(): JSX.Element {
   useEffect(() => {
     if (user && !canCreateCountCard.allowed) {
       showToast({
-        type: 'error',
+        variant: 'error',
         message: 'You do not have permission to create count cards.',
       });
       router.push('/dashboard');
@@ -69,7 +69,7 @@ export default function CreateCountCardPage(): JSX.Element {
   const handleSubmit = async (formData: CountCardFormData) => {
     if (!user) {
       showToast({
-        type: 'error',
+        variant: 'error',
         message: 'You must be logged in to create a count card.',
       });
       return;
@@ -131,7 +131,7 @@ export default function CreateCountCardPage(): JSX.Element {
       if (!validationResult.success) {
         // Map validation errors to form errors
         const formErrors: CountCardFormErrors = {};
-        validationResult.error.errors.forEach((error) => {
+        validationResult.error.issues.forEach((error) => {
           const field = error.path[0] as string;
           if (field === 'location') {
             formErrors.location = error.message;
@@ -167,20 +167,20 @@ export default function CreateCountCardPage(): JSX.Element {
         user.uid
       );
 
-      logInfo('Count card created and submitted successfully', { countCardId });
+      logInfo('Count card created and submitted successfully', 'CreateCountCardPage', { countCardId });
 
       // Show success message
       showToast({
-        type: 'success',
+        variant: 'success',
         message: 'Count card submitted successfully to Duty Senior Drill Instructor.',
       });
 
       // Redirect to count cards list
       router.push('/count-cards');
     } catch (error) {
-      logError('Failed to create count card', error as Error);
+      logError(error instanceof Error ? error : new Error(String(error)), 'Failed to create count card');
       showToast({
-        type: 'error',
+        variant: 'error',
         message: error instanceof Error ? error.message : 'Failed to create count card. Please try again.',
       });
       setLoading(false);
@@ -193,7 +193,7 @@ export default function CreateCountCardPage(): JSX.Element {
   const handleSaveDraft = async (formData: CountCardFormData) => {
     if (!user) {
       showToast({
-        type: 'error',
+        variant: 'error',
         message: 'You must be logged in to save a count card draft.',
       });
       return;
@@ -254,7 +254,7 @@ export default function CreateCountCardPage(): JSX.Element {
 
       if (!validationResult.success) {
         const formErrors: CountCardFormErrors = {};
-        validationResult.error.errors.forEach((error) => {
+        validationResult.error.issues.forEach((error) => {
           const field = error.path[0] as string;
           if (field === 'location') {
             formErrors.location = error.message;
@@ -290,20 +290,20 @@ export default function CreateCountCardPage(): JSX.Element {
         user.uid
       );
 
-      logInfo('Count card saved as draft', { countCardId });
+      logInfo('Count card saved as draft', 'CreateCountCardPage', { countCardId });
 
       // Show success message
       showToast({
-        type: 'success',
+        variant: 'success',
         message: 'Count card saved as draft successfully.',
       });
 
       // Redirect to count cards list
       router.push('/count-cards');
     } catch (error) {
-      logError('Failed to save count card draft', error as Error);
+      logError(error instanceof Error ? error : new Error(String(error)), 'Failed to save count card draft');
       showToast({
-        type: 'error',
+        variant: 'error',
         message: error instanceof Error ? error.message : 'Failed to save count card draft. Please try again.',
       });
       setLoading(false);
@@ -324,8 +324,8 @@ export default function CreateCountCardPage(): JSX.Element {
         <ErrorState
           title="Access Denied"
           message="You do not have permission to create count cards."
-          actionLabel="Go Back"
-          onAction={() => router.push('/dashboard')}
+          retryLabel="Go Back"
+          onRetry={() => router.push('/dashboard')}
         />
       </Container>
     );

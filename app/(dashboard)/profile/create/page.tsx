@@ -14,6 +14,26 @@ import { USMCRank, UserRole, OrganizationalAssignment, Regiment } from '@/types/
 import { uploadProfilePicture } from '@/lib/storage/profilePicture';
 import { calculateProfileCompletion } from '@/lib/utils/profileCompletion';
 
+function buildOrganizationalAssignment(
+  regiment: string,
+  battalion: string,
+  company: string,
+  series: string,
+  platoon: string
+): OrganizationalAssignment | undefined {
+  if (!regiment && !battalion && !company && !series && !platoon) {
+    return undefined;
+  }
+
+  return {
+    regiment: (regiment || undefined) as Regiment | undefined,
+    battalion: (battalion || undefined) as OrganizationalAssignment['battalion'],
+    company: (company || undefined) as OrganizationalAssignment['company'],
+    series: (series || undefined) as OrganizationalAssignment['series'],
+    platoon: platoon || undefined,
+  };
+}
+
 /**
  * USMC Rank options
  */
@@ -157,13 +177,7 @@ export default function CreateProfilePage(): JSX.Element {
       email: email || undefined,
       phoneNumber: phoneNumber || undefined,
       role: role || undefined,
-      organizationalAssignment: (regiment || battalion || company || series || platoon) ? {
-        regiment: regiment || undefined,
-        battalion: battalion || undefined,
-        company: company || undefined,
-        series: series || undefined,
-        platoon: platoon || undefined,
-      } : undefined,
+      organizationalAssignment: buildOrganizationalAssignment(regiment, battalion, company, series, platoon),
       profilePictureUrl: profilePicturePreview || undefined,
     };
 
@@ -326,14 +340,7 @@ export default function CreateProfilePage(): JSX.Element {
       }
 
       // Build organizational assignment
-      const organizationalAssignment: OrganizationalAssignment | undefined = 
-        (regiment || battalion || company || series || platoon) ? {
-          regiment: regiment || undefined,
-          battalion: battalion || undefined,
-          company: company || undefined,
-          series: series || undefined,
-          platoon: platoon || undefined,
-        } : undefined;
+      const organizationalAssignment = buildOrganizationalAssignment(regiment, battalion, company, series, platoon);
 
       // Create profile
       const profileResponse = await fetch('/api/user/profile', {

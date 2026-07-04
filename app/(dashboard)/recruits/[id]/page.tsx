@@ -105,12 +105,12 @@ export default function RecruitDetailPage(): JSX.Element {
           setEmergencyContacts(contactsResult.items);
         } catch (contactError) {
           // Log but don't fail the page if emergency contacts fail to load
-          logError('Failed to load emergency contacts', contactError as Error);
+          logError(contactError instanceof Error ? contactError : new Error(String(contactError)), 'Failed to load emergency contacts');
         }
 
         setLoading(false);
       } catch (err) {
-        logError('Failed to load recruit profile', err as Error);
+        logError(err instanceof Error ? err : new Error(String(err)), 'Failed to load recruit profile');
         setError(err as Error);
         setLoading(false);
       }
@@ -144,20 +144,20 @@ export default function RecruitDetailPage(): JSX.Element {
 
       await deleteRecruitProfile(recruitId);
 
-      logInfo('Recruit profile deleted successfully', { recruitId });
+      logInfo('Recruit profile deleted successfully', 'RecruitDetailPage', { recruitId });
 
       // Show success message
       showToast({
-        type: 'success',
+        variant: 'success',
         message: `Recruit "${recruit.firstName} ${recruit.lastName}" deleted successfully.`,
       });
 
       // Redirect to recruit list
       router.push('/recruits');
     } catch (err) {
-      logError('Failed to delete recruit profile', err as Error);
+      logError(err instanceof Error ? err : new Error(String(err)), 'Failed to delete recruit profile');
       showToast({
-        type: 'error',
+        variant: 'error',
         message: 'Failed to delete recruit. Please try again.',
       });
       setDeleting(false);
@@ -191,8 +191,8 @@ export default function RecruitDetailPage(): JSX.Element {
           <ErrorState
             title="Access Denied"
             message={permissions.canView.reason || 'You do not have permission to view this recruit'}
-            actionLabel="Go Back"
-            onAction={() => router.push('/recruits')}
+            retryLabel="Go Back"
+            onRetry={() => router.push('/recruits')}
           />
         )}
       </div>

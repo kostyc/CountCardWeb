@@ -16,7 +16,6 @@ import { createRecruitProfile } from '@/lib/services/firestore/recruits';
 import { recruitCreateSchema } from '@/lib/validation/recruitSchemas';
 import { validateOrganizationalAssignment } from '@/lib/services/firestore/organizations';
 import { logError, logInfo } from '@/lib/utils/logger';
-import { Toast } from '@/components/feedback/Toast';
 import { useToast } from '@/context/ToastContext';
 import { Container } from '@/components/ui/Container';
 import Breadcrumbs from '@/components/navigation/Breadcrumbs';
@@ -46,7 +45,7 @@ export default function CreateRecruitPage(): JSX.Element {
   useEffect(() => {
     if (user && !canCreateAny) {
       showToast({
-        type: 'error',
+        variant: 'error',
         message: 'You do not have permission to create recruits.',
       });
       router.push('/recruits');
@@ -59,7 +58,7 @@ export default function CreateRecruitPage(): JSX.Element {
   const handleSubmit = async (formData: RecruitFormData) => {
     if (!user) {
       showToast({
-        type: 'error',
+        variant: 'error',
         message: 'You must be logged in to create a recruit profile.',
       });
       return;
@@ -88,15 +87,15 @@ export default function CreateRecruitPage(): JSX.Element {
       if (!validationResult.success) {
         // Map validation errors to form errors
         const formErrors: RecruitFormErrors = {};
-        validationResult.error.errors.forEach((error) => {
-          const field = error.path[0] as keyof RecruitFormErrors;
+        validationResult.error.issues.forEach((error) => {
+          const field = String(error.path[0]);
           if (field === 'regiment' || field === 'battalion' || field === 'company' || field === 'series' || field === 'platoon') {
             if (!formErrors.organizational) {
               formErrors.organizational = {};
             }
-            formErrors.organizational[field] = error.message;
+            formErrors.organizational[field as keyof NonNullable<RecruitFormErrors['organizational']>] = error.message;
           } else {
-            formErrors[field] = error.message;
+            (formErrors as Record<string, string>)[field] = error.message;
           }
         });
         setErrors(formErrors);
@@ -108,9 +107,9 @@ export default function CreateRecruitPage(): JSX.Element {
       if (formData.battalion && formData.company) {
         const orgValidation = validateOrganizationalAssignment({
           regiment: formData.regiment as 'West' | 'East' | undefined,
-          battalion: formData.battalion,
-          company: formData.company,
-          series: formData.series,
+          battalion: formData.battalion as OrganizationalAssignment['battalion'],
+          company: formData.company as OrganizationalAssignment['company'],
+          series: formData.series as OrganizationalAssignment['series'],
           platoon: formData.platoon,
         });
 
@@ -127,9 +126,9 @@ export default function CreateRecruitPage(): JSX.Element {
         // Check if user can create recruit in this organizational assignment
         const targetOrg: OrganizationalAssignment = {
           regiment: formData.regiment as 'West' | 'East' | undefined,
-          battalion: formData.battalion,
-          company: formData.company,
-          series: formData.series,
+          battalion: formData.battalion as OrganizationalAssignment['battalion'],
+          company: formData.company as OrganizationalAssignment['company'],
+          series: formData.series as OrganizationalAssignment['series'],
           platoon: formData.platoon,
         };
 
@@ -165,20 +164,20 @@ export default function CreateRecruitPage(): JSX.Element {
         user.uid
       );
 
-      logInfo('Recruit profile created successfully', { recruitId: formData.recruitId });
+      logInfo('Recruit profile created successfully', 'CreateRecruitPage', { recruitId: formData.recruitId });
 
       // Show success message
       showToast({
-        type: 'success',
+        variant: 'success',
         message: `Recruit profile "${formData.firstName} ${formData.lastName}" created successfully.`,
       });
 
       // Redirect to recruit detail page
       router.push(`/recruits/${formData.recruitId}`);
     } catch (error) {
-      logError('Failed to create recruit profile', error as Error);
+      logError(error instanceof Error ? error : new Error(String(error)), 'Failed to create recruit profile');
       showToast({
-        type: 'error',
+        variant: 'error',
         message: error instanceof Error ? error.message : 'Failed to create recruit profile. Please try again.',
       });
       setLoading(false);
@@ -199,8 +198,8 @@ export default function CreateRecruitPage(): JSX.Element {
         <ErrorState
           title="Access Denied"
           message="You do not have permission to create recruits."
-          actionLabel="Go Back"
-          onAction={() => router.push('/recruits')}
+          retryLabel="Go Back"
+          onRetry={() => router.push('/recruits')}
         />
       </Container>
     );
