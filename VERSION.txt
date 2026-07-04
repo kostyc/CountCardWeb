@@ -1,13 +1,47 @@
 CountCard Version Tracking
 ==================================
-Full Version: 2026.0.2.1
+Full Version: 2026.0.2.18
 Store Version: 2026.0.2
-Build Number: 1
+Build Number: 18
 Last Updated: 2026-07-04
 Release Type: Development
 
 Version History:
 ---------------
+2026.0.2.18 (2026-07-04) - Expo profile edit flow with prefilled form
+
+2026.0.2.17 (2026-07-04) - Expo iOS device dev build and Google Sign-In
+
+2026.0.2.16 (2026-07-04) - Use libsodium-wrappers directly on Expo client
+
+2026.0.2.15 (2026-07-04) - Remove stale encryption JS; force libsodium in Expo
+
+2026.0.2.14 (2026-07-04) - Fix Expo profile encryption initialization
+
+2026.0.2.13 (2026-07-04) - Expo Firestore workaround bypasses Cloud Run 403
+
+2026.0.2.12 (2026-07-04) - Fix Expo profile create without Cloud Run API
+
+2026.0.2.11 (2026-07-04) - Expo photo upload limits and camera/library picker
+
+2026.0.2.10 (2026-07-04) - Sprint 26 Expo create screens and API hosting proxy
+
+2026.0.2.9 (2026-07-04) - Expo web Google Sign-In via Firebase popup
+
+2026.0.2.8 (2026-07-04) - Fix Expo web Slot style-array on auth links
+
+2026.0.2.7 (2026-07-04) - Fix Expo web SSR Firebase init
+
+2026.0.2.6 (2026-07-04) - Fix Expo Firebase API key env fallback
+
+2026.0.2.5 (2026-07-04) - Sprint 26: functions esbuild deploy, Expo routes, Google Sign-In env
+
+2026.0.2.4 (2026-07-04) - Expo migration: screens, Google auth, EAS init
+
+2026.0.2.3 (2026-07-04) - Modern Expo UI layout
+
+2026.0.2.2 (2026-07-04) - Expo monorepo migration scaffold
+
 2026.0.2.1 (2026-07-04) - Fix TypeScript build errors
 
 2026.0.2.0 (2026-06-08) - Adopted Year.Major.Minor.Build scheme

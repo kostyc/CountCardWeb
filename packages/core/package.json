@@ -1,0 +1,25 @@
+{
+  "name": "@countcard/core",
+  "version": "2026.0.2",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./types/*": "./src/types/*",
+    "./validation": "./src/validation/index.ts",
+    "./validation/*": "./src/validation/*",
+    "./permissions": "./src/permissions/index.ts",
+    "./permissions/*": "./src/permissions/*",
+    "./constants/*": "./src/constants/*",
+    "./logger": "./src/logger.ts",
+    "./featureDetection": "./src/featureDetection.ts",
+    "./profileCompletion": "./src/profileCompletion.ts"
+  },
+  "dependencies": {
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

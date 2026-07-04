@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitReturns": true,
+    "noUnusedLocals": false,
+    "outDir": "lib",
+    "sourceMap": true,
+    "strict": true,
+    "target": "ES2022",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@countcard/core": ["../packages/core/src/index.ts"],
+      "@countcard/core/*": ["../packages/core/src/*"],
+      "@countcard/encryption": ["../packages/encryption/src/index.ts"],
+      "@countcard/encryption/*": ["../packages/encryption/src/*"],
+      "@countcard/firebase": ["../packages/firebase/src/index.ts"],
+      "@countcard/firebase/*": ["../packages/firebase/src/*"]
+    }
+  },
+  "compileOnSave": true,
+  "include": ["src"]
+}

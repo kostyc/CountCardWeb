@@ -10,7 +10,7 @@
       "args": [
         "mcp-server-git",
         "--repository",
-        "/Users/daddymac/Documents/App Development/CountCard/CountCardWeb"
+        "/Users/daddymac/Projects/Countcard"
       ],
       "disabled": false
     },

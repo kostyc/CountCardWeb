@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "36792557920",
+    "project_id": "countcard-94c5b",
+    "storage_bucket": "countcard-94c5b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:36792557920:android:96374c98081665b85bbe05",
+        "android_client_info": {
+          "package_name": "com.countcard.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "36792557920-can8v6ie8fpubvjb7497vbgib4qadinq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPxUGiptRmcOMp86Rr-Fk7TVgsTcE0Kwc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "36792557920-can8v6ie8fpubvjb7497vbgib4qadinq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "36792557920-b4s5rco5ov2b4o7c1vs1s00bdof3g2pg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.countcard.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

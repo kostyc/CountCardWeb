@@ -1,46 +1,21 @@
 {
-  "name": "countcard-web",
+  "name": "countcard",
   "version": "2026.0.2",
   "private": true,
-  "scripts": {
-    "dev": "next dev --hostname 0.0.0.0",
-    "dev:3002": "next dev -p 3002 --hostname 0.0.0.0",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "browserslist": [
-    "Safari >= 14",
-    "Chrome >= 90",
-    "Firefox >= 90",
-    "Edge >= 90",
-    "iOS >= 14"
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "functions"
   ],
-  "dependencies": {
-    "@tailwindcss/postcss": "^4.1.18",
-    "clsx": "^2.1.1",
-    "firebase": "^12.8.0",
-    "firebase-admin": "^13.6.0",
-    "next": "^16.1.3",
-    "pdf-lib": "^1.17.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "recharts": "^3.7.0",
-    "sodium-plus": "^0.9.0",
-    "tailwind-merge": "^3.4.0",
-    "xlsx": "^0.18.5",
-    "zod": "^4.3.5"
+  "scripts": {
+    "dev:web": "npm run dev -w countcard-web",
+    "dev:expo": "npm run start -w countcard-expo",
+    "build:web": "npm run build -w countcard-web",
+    "build:expo": "npm run build -w countcard-expo",
+    "lint": "npm run lint -w countcard-web",
+    "build": "npm run build:web"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.3",
-    "@types/node": "^22.10.2",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "autoprefixer": "^10.4.20",
-    "eslint": "^9.17.0",
-    "eslint-config-next": "^16.1.3",
-    "postcss": "^8.4.49",
-    "tailwindcss": "^4.0.0",
-    "typescript": "^5.6.3"
+    "turbo": "^2.5.4"
   }
 }

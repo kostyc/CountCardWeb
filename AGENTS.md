@@ -6,13 +6,13 @@ CountCard is a web-based Marine Corps Drill Instructor accountability applicatio
 
 ## Technology Stack
 
-- **Framework**: Next.js 16+ (App Router)
+- **Monorepo**: npm workspaces — `apps/web` (Next.js 16), `apps/expo` (Expo SDK 57 + Expo Router), `packages/*`, `functions/`
 - **Language**: TypeScript
 - **Database**: Firebase Firestore (project: `countcard-94c5b`)
 - **Authentication**: Firebase Authentication (multi-provider)
-- **Encryption**: sodium-plus (XChaCha20-Poly1305) for end-to-end encryption
-- **Styling**: Tailwind CSS 4+
-- **Validation**: Zod
+- **Encryption**: `@countcard/encryption` — sodium-plus (web), native adapter (iOS/Android)
+- **Styling**: Tailwind CSS 4+ (web), React Native StyleSheet / NativeWind (Expo)
+- **Validation**: Zod (`@countcard/core`)
 
 ## Core Principles
 

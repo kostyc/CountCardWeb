@@ -1,0 +1,82 @@
+import { Platform } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import { makeRedirectUri } from 'expo-auth-session';
+import Constants from 'expo-constants';
+import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
+import { requireAuth } from '@/lib/firebase';
+
+WebBrowser.maybeCompleteAuthSession();
+
+function getGoogleClientIds() {
+  const extra = Constants.expoConfig?.extra ?? {};
+  const fromEnv = (key: string) => {
+    const value = process.env[key];
+    return value && value.length > 0 ? value : undefined;
+  };
+  return {
+    webClientId:
+      (extra.googleWebClientId as string) || fromEnv('EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID'),
+    iosClientId:
+      (extra.googleIosClientId as string) || fromEnv('EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID'),
+    androidClientId:
+      (extra.googleAndroidClientId as string) || fromEnv('EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID'),
+  };
+}
+
+/** Web redirect URI — register http://localhost:8081 in Google Cloud Console for Expo web. */
+export function getGoogleRedirectUri(): string {
+  return makeRedirectUri({
+    scheme: 'countcard',
+    path: 'oauth',
+  });
+}
+
+export function useGoogleAuthRequest() {
+  const { webClientId, iosClientId, androidClientId } = getGoogleClientIds();
+
+  // Native: use platform OAuth client + bundle-id redirect (com.countcard.app:/oauthredirect).
+  // Passing a custom scheme (countcard://oauth) with the web client triggers Google's OAuth policy error.
+  if (Platform.OS !== 'web') {
+    return Google.useIdTokenAuthRequest({
+      clientId: webClientId,
+      iosClientId,
+      androidClientId,
+    });
+  }
+
+  return Google.useIdTokenAuthRequest({
+    clientId: webClientId,
+    iosClientId,
+    androidClientId,
+    redirectUri: getGoogleRedirectUri(),
+  });
+}
+
+export async function signInWithGoogleIdToken(idToken: string): Promise<void> {
+  const credential = GoogleAuthProvider.credential(idToken);
+  await signInWithCredential(requireAuth(), credential);
+}
+
+/** Web: Firebase popup (no redirect_uri). Native: use promptGoogleSignIn from useGoogleAuthRequest. */
+export async function signInWithGoogle(): Promise<void> {
+  if (Platform.OS === 'web') {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(requireAuth(), provider);
+    return;
+  }
+
+  throw new Error('Use signInWithGoogleNativePrompt on native platforms');
+}
+
+export function isGoogleSignInConfigured(): boolean {
+  const { webClientId, iosClientId, androidClientId } = getGoogleClientIds();
+  if (!webClientId) return false;
+  if (Platform.OS === 'ios') return Boolean(iosClientId);
+  if (Platform.OS === 'android') return Boolean(androidClientId);
+  return true;
+}
+
+export function isGoogleNativeAuthFlow(): boolean {
+  return Platform.OS !== 'web';
+}

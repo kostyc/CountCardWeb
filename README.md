@@ -1,85 +1,60 @@
-# CountCard Web
+# CountCard
 
-Marine Corps Drill Instructor accountability application for tracking and managing recruits. Built with Next.js, Firebase (Firestore), and end-to-end encryption with GDPR compliance.
+Marine Corps Drill Instructor accountability application for tracking and managing recruits. Cross-platform monorepo: **Next.js web**, **Expo (iOS/Android/Web)**, shared packages, Firebase Cloud Functions API.
 
-**Version**: 2026.0.2 (Build 1)
+**Version**: 2026.0.2 (Build 18)
 
 ## Technology Stack
 
-- **Framework**: Next.js 16+ (App Router)
-- **Language**: TypeScript
-- **Database**: Firebase Firestore (project: `countcard-94c5b`)
-- **Authentication**: Firebase Authentication (multi-provider)
-- **Encryption**: sodium-plus (XChaCha20-Poly1305) for end-to-end encryption
-- **Styling**: Tailwind CSS 4+
-- **Validation**: Zod
+| Layer | Stack |
+|-------|--------|
+| Web | Next.js 16 (App Router) in `apps/web` |
+| Mobile + Expo Web | Expo SDK 57 + Expo Router in `apps/expo` |
+| Shared | `@countcard/core`, `@countcard/firebase`, `@countcard/encryption`, `@countcard/api-client`, `@countcard/ui` |
+| API | Firebase Cloud Functions (`functions/`) + Next.js API routes (transition) |
+| Backend | Firebase Firestore, Auth, Storage (`countcard-94c5b`) |
 
 ## Getting Started
 
-### Prerequisites
+```bash
+git clone <repo-url>
+cd Countcard
+npm install
+cp .env.local.template .env.local   # fill Firebase + API keys
+ln -sf ../../.env.local apps/web/.env.local   # if env at repo root
+```
 
-- Node.js 18+
-- npm or yarn
+| Command | Description |
+|---------|-------------|
+| `npm run dev:web` | Next.js at http://localhost:3000 |
+| `npm run dev:expo` | Expo dev server (iOS / Android / web) |
+| `npm run build:web` | Production Next.js build |
+| `npm run build:expo` | Static Expo web export |
 
-### Setup
-
-1. **Clone and install**
-   ```bash
-   git clone <repo-url>
-   cd CountCardWeb
-   npm install
-   ```
-
-2. **Environment variables**  
-   Copy the template and fill in values. See [ENV-SETUP-GUIDE.md](ENV-SETUP-GUIDE.md) for step-by-step instructions.
-   ```bash
-   cp .env.local.template .env.local
-   ```
-   Required: Firebase Client and Admin SDK config, `ALLOWED_ORIGINS`, `ENCRYPTION_MASTER_KEY`. Optional: App Check (reCAPTCHA) keys.
-
-3. **Run development server**
-   ```bash
-   npm run dev
-   ```
-   Open [http://localhost:3000](http://localhost:3000).
+Expo env vars use `EXPO_PUBLIC_*` prefix (see `.env.local.template`). Set `EXPO_PUBLIC_API_BASE_URL` to your Cloud Functions URL for mobile API calls.
 
 ## Project Structure
 
-- `app/` – Routes and API endpoints (Next.js App Router)
-- `components/` – React components
-- `lib/` – Utilities, services, Firebase config, validation
-- `types/` – TypeScript type definitions
-- `hooks/` – Custom React hooks
-- `context/` – React contexts
-- `sprints/` – Sprint docs and test tracking
-
-## Development Workflow
-
-- **Plans**: Active plans in `.cursor/plans/`; completed in `.cursor/plans/completed/`.
-- **Sprints**: Each sprint has its own folder under `sprints/`; naming: `Sprint-<Number>-<Date>.md`.
-- **Tests**: Manual testing required; see [sprints/TEST-TRACKING.md](sprints/TEST-TRACKING.md).
-- **Lint**: `npm run lint`
+```
+apps/web/          Next.js web app
+apps/expo/         Expo Router (iOS, Android, Web)
+packages/          Shared TypeScript packages
+functions/         Firebase Cloud Functions API
+firestore.rules    Firebase config (repo root)
+sprints/           Sprint documentation
+```
 
 ## Deployment
 
-- Build: `npm run build`
-- Deploy to Firebase Hosting (or your target): use Firebase CLI and project config in `.firebaserc`.
-- Ensure production env has correct `ALLOWED_ORIGINS`, Firebase config, and no debug/development keys.
-
-## Security & Compliance
-
-- **PII**: Never log PII, user IDs, or secrets; use `debugLog` (client) or `logError`/`logWarning` from `@/lib/utils/logger` (server).
-- **Encryption**: Sensitive recruit data is encrypted client-side before storage.
-- **API**: All API routes use Zod validation, auth verification, rate limiting, and CORS (see `lib/middleware`).
+- **Web (Next.js)**: `npm run build:web` → Firebase Hosting or Vercel
+- **API**: `cd functions && npm run deploy`
+- **Mobile**: `eas build --profile preview` (see `eas.json`)
 
 ## Documentation
 
-- [AGENTS.md](AGENTS.md) – Project rules and conventions for contributors
-- [CHANGELOG.md](CHANGELOG.md) – Release history and notable changes
-- [ENV-SETUP-GUIDE.md](ENV-SETUP-GUIDE.md) – Environment variable setup
-- [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md) – UI/UX and design tokens
-- [docs/DEBUG-LOGGING-GUIDE.md](docs/DEBUG-LOGGING-GUIDE.md) – Debug logging
-- [sprints/TEST-TRACKING.md](sprints/TEST-TRACKING.md) – Test tracking
+- [AGENTS.md](AGENTS.md) – Contributor rules
+- [ENV-SETUP-GUIDE.md](ENV-SETUP-GUIDE.md) – Environment setup
+- [sprints/Sprint-26-2026-07-04/](sprints/Sprint-26-2026-07-04/) – Monorepo migration sprint
 
 ## License
 
