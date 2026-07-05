@@ -53,6 +53,11 @@ export interface ErrorStateProps extends BaseComponentProps {
    */
   retryLabel?: string;
   /**
+   * Optional secondary action (e.g. Import roster while list failed to load)
+   */
+  secondaryActionLabel?: string;
+  onSecondaryAction?: () => void;
+  /**
    * Whether to show retry button
    * @default true
    */
@@ -82,6 +87,8 @@ export default function ErrorState({
   customMessage,
   onRetry,
   retryLabel = 'Try Again',
+  secondaryActionLabel,
+  onSecondaryAction,
   showRetry = true,
   icon,
   size = 'md',
@@ -188,18 +195,29 @@ export default function ErrorState({
         </p>
       )}
 
-      {/* Retry Button */}
-      {showRetry && onRetry && (
-        <div className="mt-6">
-          <Button
-            variant="primary"
-            size={size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : 'md'}
-            onClick={onRetry}
-          >
-            {retryLabel}
-          </Button>
+      {/* Actions */}
+      {(showRetry && onRetry) || (onSecondaryAction && secondaryActionLabel) ? (
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+          {onSecondaryAction && secondaryActionLabel && (
+            <Button
+              variant="secondary"
+              size={size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : 'md'}
+              onClick={onSecondaryAction}
+            >
+              {secondaryActionLabel}
+            </Button>
+          )}
+          {showRetry && onRetry && (
+            <Button
+              variant="primary"
+              size={size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : 'md'}
+              onClick={onRetry}
+            >
+              {retryLabel}
+            </Button>
+          )}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

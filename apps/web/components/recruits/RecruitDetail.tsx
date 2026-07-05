@@ -11,7 +11,8 @@
  * <RecruitDetail
  *   recruit={recruit}
  *   emergencyContacts={emergencyContacts}
- *   onEdit={handleEdit}
+ *   onModify={handleModify}
+ *   onTransfer={handleTransfer}
  *   onDelete={handleDelete}
  *   loading={loading}
  * />
@@ -36,6 +37,7 @@ import type { RecruitProfile } from '@/types/models';
 import type { EmergencyContact } from '@/types/models';
 import type { RecruitStatus as RecruitStatusType } from '@/lib/validation/recruitSchemas';
 import { formatDate, toDate } from '@/lib/utils/datetime';
+import { formatEdipiForDisplay } from '@countcard/core/utils/recruitEdipi';
 import { getBattalionLogoPath } from '@/lib/constants/organizations';
 import { cn } from '@/lib/components/utils';
 
@@ -60,9 +62,13 @@ export interface RecruitDetailProps {
    */
   error?: Error | null;
   /**
-   * Edit handler
+   * Modify handler
    */
-  onEdit?: () => void;
+  onModify?: () => void;
+  /**
+   * Transfer handler
+   */
+  onTransfer?: () => void;
   /**
    * Delete handler
    */
@@ -77,10 +83,15 @@ export interface RecruitDetailProps {
    */
   canEditStatus?: boolean;
   /**
-   * Whether to show edit button
+   * Whether to show modify button
    * @default true
    */
-  showEditButton?: boolean;
+  showModifyButton?: boolean;
+  /**
+   * Whether to show transfer button
+   * @default true
+   */
+  showTransferButton?: boolean;
   /**
    * Whether to show delete button
    * @default true
@@ -126,11 +137,13 @@ export function RecruitDetail({
   emergencyContacts = [],
   loading = false,
   error = null,
-  onEdit,
+  onModify,
+  onTransfer,
   onDelete,
   onStatusChange,
   canEditStatus = false,
-  showEditButton = true,
+  showModifyButton = true,
+  showTransferButton = true,
   showDeleteButton = true,
   recruitId,
   canEditContacts = false,
@@ -251,7 +264,7 @@ export function RecruitDetail({
             {recruit.lastName}, {recruit.firstName}
           </h1>
           <p className="text-lg text-text-secondary-light dark:text-text-secondary-dark mt-1">
-            {recruit.recruitId}
+            EDIPI: {formatEdipiForDisplay(recruit)}
           </p>
         </div>
         <div className="flex gap-3">
@@ -261,9 +274,14 @@ export function RecruitDetail({
             variant="secondary"
             size="md"
           />
-          {showEditButton && onEdit && (
-            <Button variant="primary" onClick={onEdit}>
-              Edit
+          {showModifyButton && onModify && (
+            <Button variant="primary" onClick={onModify}>
+              Modify Recruit
+            </Button>
+          )}
+          {showTransferButton && onTransfer && (
+            <Button variant="secondary" onClick={onTransfer}>
+              Transfer Recruit
             </Button>
           )}
           {showDeleteButton && onDelete && (
@@ -301,6 +319,14 @@ export function RecruitDetail({
               </div>
               <div>
                 <label className="text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                  EDIPI
+                </label>
+                <p className="text-base text-text-primary-light dark:text-text-primary-dark mt-1 font-mono">
+                  {formatEdipiForDisplay(recruit) || '—'}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
                   Rank
                 </label>
                 <div className="mt-1">
@@ -310,6 +336,30 @@ export function RecruitDetail({
                     <p className="text-base text-text-primary-light dark:text-text-primary-dark">—</p>
                   )}
                 </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold text-text-heading-light dark:text-text-heading-dark mb-4">
+              Equipment
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                  Weapons serial number
+                </label>
+                <p className="text-base text-text-primary-light dark:text-text-primary-dark mt-1">
+                  {recruit.weaponsSerialNumber || '—'}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                  RCO serial number
+                </label>
+                <p className="text-base text-text-primary-light dark:text-text-primary-dark mt-1">
+                  {recruit.rcoSerialNumber || '—'}
+                </p>
               </div>
             </div>
           </Card>

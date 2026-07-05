@@ -1,13 +1,25 @@
 CountCard Version Tracking
 ==================================
-Full Version: 2026.0.2.18
+Full Version: 2026.0.2.24
 Store Version: 2026.0.2
-Build Number: 18
-Last Updated: 2026-07-04
+Build Number: 24
+Last Updated: 2026-07-05
 Release Type: Development
 
 Version History:
 ---------------
+2026.0.2.24 (2026-07-05) - Roster import layout, transfer API, and navigation fixes
+
+2026.0.2.23 (2026-07-05) - Import spreadsheet grid mass edits
+
+2026.0.2.22 (2026-07-05) - Import missing fields editable review
+
+2026.0.2.21 (2026-07-05) - Expo import without HTTP API
+
+2026.0.2.20 (2026-07-05) - Unified roster import sources
+
+2026.0.2.19 (2026-07-05) - Fix recruit roster Excel import
+
 2026.0.2.18 (2026-07-04) - Expo profile edit flow with prefilled form
 
 2026.0.2.17 (2026-07-04) - Expo iOS device dev build and Google Sign-In

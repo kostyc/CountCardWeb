@@ -20,7 +20,8 @@ import { useToast } from '@/context/ToastContext';
 import { Container } from '@/components/ui/Container';
 import Breadcrumbs from '@/components/navigation/Breadcrumbs';
 import ErrorState from '@/components/feedback/ErrorState';
-import type { OrganizationalAssignment } from '@/types/auth';
+import { RecruitQuickActions } from '@/components/recruits/RecruitQuickActions';
+import { deriveRecruitDocumentId, normalizeEdipiDigits } from '@countcard/core/utils/recruitEdipi';
 
 /**
  * Breadcrumb items
@@ -28,7 +29,7 @@ import type { OrganizationalAssignment } from '@/types/auth';
 const breadcrumbItems = [
   { label: 'Dashboard', href: '/dashboard' },
   { label: 'Recruits', href: '/recruits' },
-  { label: 'Create Recruit', href: '/recruits/create' },
+  { label: 'Add Recruit', href: '/recruits/create' },
 ];
 
 export default function CreateRecruitPage(): JSX.Element {
@@ -68,9 +69,15 @@ export default function CreateRecruitPage(): JSX.Element {
     setErrors({});
 
     try {
+      const recruitDocId = deriveRecruitDocumentId(formData.edipi);
+      const edipiDigits = normalizeEdipiDigits(formData.edipi);
+
       // Validate form data
       const validationResult = recruitCreateSchema.safeParse({
-        recruitId: formData.recruitId,
+        recruitId: recruitDocId,
+        edipi: edipiDigits || undefined,
+        weaponsSerialNumber: formData.weaponsSerialNumber,
+        rcoSerialNumber: formData.rcoSerialNumber,
         firstName: formData.firstName,
         lastName: formData.lastName,
         rank: formData.rank,
@@ -81,6 +88,13 @@ export default function CreateRecruitPage(): JSX.Element {
         series: formData.series,
         platoon: formData.platoon,
         photoUrl: formData.photoUrl,
+        medicalNotes: formData.medicalNotes,
+        dietaryRestrictions: formData.dietaryRestrictions,
+        preferredContactMethod: formData.preferredContactMethod || undefined,
+        extendedNotes: formData.extendedNotes,
+        privacy: formData.fullProfileVisibleTo
+          ? { fullProfileVisibleTo: formData.fullProfileVisibleTo }
+          : undefined,
         createdBy: user.uid,
       });
 
@@ -146,9 +160,12 @@ export default function CreateRecruitPage(): JSX.Element {
 
       // Create recruit profile
       await createRecruitProfile(
-        formData.recruitId,
+        recruitDocId,
         {
-          recruitId: formData.recruitId,
+          recruitId: recruitDocId,
+          edipi: edipiDigits || undefined,
+          weaponsSerialNumber: formData.weaponsSerialNumber,
+          rcoSerialNumber: formData.rcoSerialNumber,
           firstName: formData.firstName,
           lastName: formData.lastName,
           rank: formData.rank as any,
@@ -159,12 +176,19 @@ export default function CreateRecruitPage(): JSX.Element {
           series: formData.series,
           platoon: formData.platoon,
           photoUrl: formData.photoUrl,
+          medicalNotes: formData.medicalNotes,
+          dietaryRestrictions: formData.dietaryRestrictions,
+          preferredContactMethod: formData.preferredContactMethod || undefined,
+          extendedNotes: formData.extendedNotes,
+          privacy: formData.fullProfileVisibleTo
+            ? { fullProfileVisibleTo: formData.fullProfileVisibleTo }
+            : undefined,
           createdBy: user.uid,
         },
         user.uid
       );
 
-      logInfo('Recruit profile created successfully', 'CreateRecruitPage', { recruitId: formData.recruitId });
+      logInfo('Recruit profile created successfully', 'CreateRecruitPage', { recruitId: recruitDocId });
 
       // Show success message
       showToast({
@@ -173,7 +197,7 @@ export default function CreateRecruitPage(): JSX.Element {
       });
 
       // Redirect to recruit detail page
-      router.push(`/recruits/${formData.recruitId}`);
+      router.push(`/recruits/${recruitDocId}`);
     } catch (error) {
       logError(error instanceof Error ? error : new Error(String(error)), 'Failed to create recruit profile');
       showToast({
@@ -208,7 +232,21 @@ export default function CreateRecruitPage(): JSX.Element {
   return (
     <Container>
       <div className="space-y-6">
-        <Breadcrumbs items={breadcrumbItems} />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <Breadcrumbs items={breadcrumbItems} />
+          <RecruitQuickActions hideCreate />
+        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Adding one recruit? Use the form below. Have a spreadsheet or roster photos?{' '}
+          <button
+            type="button"
+            className="font-medium text-[#001e2e] dark:text-sky-300 underline"
+            onClick={() => router.push('/recruits/import')}
+          >
+            Import roster
+          </button>{' '}
+          instead.
+        </p>
         <RecruitForm
           onSubmit={handleSubmit}
           onCancel={handleCancel}

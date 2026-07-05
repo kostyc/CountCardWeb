@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { usmcRankSchema } from './userProfileSchemas';
+import { recruitRankSchema } from '../constants/recruitRanks';
 import { regimentSchema } from './userProfileSchemas';
 
 /**
@@ -69,12 +69,29 @@ export const seriesSchema = z
   .optional();
 
 /**
- * Recruit ID validation
+ * Recruit ID validation (internal document id)
  */
 export const recruitIdSchema = z
   .string()
   .min(1, 'Recruit ID is required')
   .max(100, 'Recruit ID must be 100 characters or less');
+
+/**
+ * EDIPI validation
+ */
+export const edipiSchema = z
+  .string()
+  .min(1, 'EDIPI is required')
+  .max(20, 'EDIPI must be 20 characters or less')
+  .regex(/^\d+$/, 'EDIPI must contain digits only');
+
+/**
+ * Equipment serial number (weapons, RCO, etc.)
+ */
+export const equipmentSerialNumberSchema = z
+  .string()
+  .max(100, 'Serial number must be 100 characters or less')
+  .optional();
 
 /**
  * URL schema for recruit photos
@@ -112,9 +129,12 @@ const recruitPrivacySchema = z
 
 export const recruitCreateSchema = z.object({
   recruitId: recruitIdSchema,
+  edipi: edipiSchema.optional(),
+  weaponsSerialNumber: equipmentSerialNumberSchema,
+  rcoSerialNumber: equipmentSerialNumberSchema,
   firstName: recruitNameSchema,
   lastName: recruitNameSchema,
-  rank: usmcRankSchema,
+  rank: recruitRankSchema,
   status: recruitStatusSchema,
   regiment: regimentSchema.optional(),
   battalion: battalionSchema,
@@ -138,9 +158,12 @@ export const recruitCreateSchema = z.object({
  */
 export const recruitUpdateSchema = z.object({
   recruitId: recruitIdSchema,
+  edipi: edipiSchema.optional(),
+  weaponsSerialNumber: equipmentSerialNumberSchema,
+  rcoSerialNumber: equipmentSerialNumberSchema,
   firstName: recruitNameSchema.optional(),
   lastName: recruitNameSchema.optional(),
-  rank: usmcRankSchema.optional(),
+  rank: recruitRankSchema.optional(),
   status: recruitStatusSchema.optional(),
   regiment: regimentSchema.optional(),
   battalion: battalionSchema,
@@ -166,9 +189,12 @@ export const recruitQuerySchema = z.object({
   battalion: z.string().optional(),
   regiment: regimentSchema.optional(),
   status: recruitStatusSchema.optional(),
-  rank: usmcRankSchema.optional(),
+  rank: recruitRankSchema.optional(),
   search: z.string().max(100, 'Search term must be 100 characters or less').optional(),
 });
+
+export type { RecruitRank } from '../constants/recruitRanks';
+export { recruitRankSchema } from '../constants/recruitRanks';
 
 /**
  * Type exports for TypeScript inference

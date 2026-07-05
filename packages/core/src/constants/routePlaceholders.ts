@@ -47,7 +47,7 @@ export const ROUTE_PLACEHOLDERS: Record<string, RoutePlaceholderConfig> = {
     ],
   },
   '/recruits/create': {
-    title: 'Create Recruit',
+    title: 'Add Recruit',
     sprintRef: 'Sprint 6',
     needsAdded: ['All core create flows complete (Sprint 6). Import placeholder only.'],
   },
@@ -57,9 +57,14 @@ export const ROUTE_PLACEHOLDERS: Record<string, RoutePlaceholderConfig> = {
     needsAdded: ['All core detail flows complete (Sprint 6).'],
   },
   '/recruits/[id]/edit': {
-    title: 'Edit Recruit',
+    title: 'Modify Recruit',
     sprintRef: 'Sprint 6',
     needsAdded: ['All core edit flows complete (Sprint 6).'],
+  },
+  '/recruits/[id]/transfer': {
+    title: 'Transfer Recruit',
+    sprintRef: 'Sprint 6',
+    needsAdded: ['Transfer flow with org assignment and status update.'],
   },
   '/count-cards': {
     title: 'Count Cards',

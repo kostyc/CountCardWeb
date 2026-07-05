@@ -14,6 +14,8 @@ interface SelectProps<T extends string> {
   options: SelectOption<T>[];
   onChange: (value: T) => void;
   placeholder?: string;
+  /** Tighter layout for spreadsheet-style grids */
+  compact?: boolean;
 }
 
 export function Select<T extends string>({
@@ -22,13 +24,14 @@ export function Select<T extends string>({
   options,
   onChange,
   placeholder = 'Select…',
+  compact = false,
 }: SelectProps<T>) {
   const theme = useAppTheme();
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.value === value);
 
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, compact && styles.wrapCompact]}>
       {label ? (
         <Text style={[styles.label, { color: theme.colors.textSecondary }]}>{label}</Text>
       ) : null}
@@ -36,10 +39,17 @@ export function Select<T extends string>({
         onPress={() => setOpen(true)}
         style={[
           styles.trigger,
+          compact && styles.triggerCompact,
           { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
         ]}
       >
-        <Text style={{ color: selected ? theme.colors.text : theme.colors.textMuted, fontSize: 16 }}>
+        <Text
+          numberOfLines={1}
+          style={{
+            color: selected ? theme.colors.text : theme.colors.textMuted,
+            fontSize: compact ? 13 : 16,
+          }}
+        >
           {selected?.label ?? placeholder}
         </Text>
       </Pressable>
@@ -93,6 +103,7 @@ export function Select<T extends string>({
 
 const styles = StyleSheet.create({
   wrap: { marginBottom: 16 },
+  wrapCompact: { marginBottom: 0 },
   label: { ...typography.caption, fontWeight: '600', marginBottom: 6, marginLeft: 2 },
   trigger: {
     borderWidth: 1.5,
@@ -101,6 +112,13 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     minHeight: 52,
     justifyContent: 'center',
+  },
+  triggerCompact: {
+    borderWidth: 1,
+    borderRadius: radius.sm,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    minHeight: 30,
   },
   backdrop: {
     flex: 1,

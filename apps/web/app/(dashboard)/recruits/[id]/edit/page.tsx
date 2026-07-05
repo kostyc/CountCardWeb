@@ -23,6 +23,7 @@ import Spinner from '@/components/feedback/Spinner';
 import ErrorState from '@/components/feedback/ErrorState';
 import type { RecruitProfile } from '@/types/models';
 import type { OrganizationalAssignment } from '@/types/auth';
+import { normalizeEdipiDigits } from '@countcard/core/utils/recruitEdipi';
 
 /**
  * Get breadcrumb items
@@ -32,7 +33,7 @@ function getBreadcrumbItems(recruitId: string, recruitName?: string) {
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Recruits', href: '/recruits' },
     { label: recruitName || 'Recruit', href: `/recruits/${recruitId}` },
-    { label: 'Edit', href: `/recruits/${recruitId}/edit` },
+    { label: 'Modify', href: `/recruits/${recruitId}/edit` },
   ];
 }
 
@@ -116,6 +117,9 @@ export default function EditRecruitPage(): JSX.Element {
       // Validate form data
       const validationResult = recruitUpdateSchema.safeParse({
         recruitId: formData.recruitId,
+        edipi: normalizeEdipiDigits(formData.edipi) || undefined,
+        weaponsSerialNumber: formData.weaponsSerialNumber,
+        rcoSerialNumber: formData.rcoSerialNumber,
         firstName: formData.firstName,
         lastName: formData.lastName,
         rank: formData.rank,
@@ -126,6 +130,13 @@ export default function EditRecruitPage(): JSX.Element {
         series: formData.series,
         platoon: formData.platoon,
         photoUrl: formData.photoUrl,
+        medicalNotes: formData.medicalNotes,
+        dietaryRestrictions: formData.dietaryRestrictions,
+        preferredContactMethod: formData.preferredContactMethod || undefined,
+        extendedNotes: formData.extendedNotes,
+        privacy: formData.fullProfileVisibleTo
+          ? { fullProfileVisibleTo: formData.fullProfileVisibleTo }
+          : undefined,
         updatedBy: user.uid,
       });
 
@@ -174,6 +185,9 @@ export default function EditRecruitPage(): JSX.Element {
         recruitId,
         {
           recruitId: formData.recruitId,
+          edipi: normalizeEdipiDigits(formData.edipi) || undefined,
+          weaponsSerialNumber: formData.weaponsSerialNumber,
+          rcoSerialNumber: formData.rcoSerialNumber,
           firstName: formData.firstName,
           lastName: formData.lastName,
           rank: formData.rank as any,
@@ -184,6 +198,13 @@ export default function EditRecruitPage(): JSX.Element {
           series: formData.series,
           platoon: formData.platoon,
           photoUrl: formData.photoUrl,
+          medicalNotes: formData.medicalNotes,
+          dietaryRestrictions: formData.dietaryRestrictions,
+          preferredContactMethod: formData.preferredContactMethod || undefined,
+          extendedNotes: formData.extendedNotes,
+          privacy: formData.fullProfileVisibleTo
+            ? { fullProfileVisibleTo: formData.fullProfileVisibleTo }
+            : undefined,
           updatedBy: user.uid,
         },
         user.uid

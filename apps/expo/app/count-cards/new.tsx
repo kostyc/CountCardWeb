@@ -13,6 +13,7 @@ import { countCardCreateSchema } from '@countcard/core/validation/countCardSchem
 import { createCountCard } from '@countcard/firebase/services/countCards';
 import { getRecruitsByPlatoon } from '@countcard/firebase/services/recruits';
 import type { RecruitProfile } from '@countcard/core/types/models';
+import { formatEdipiForDisplay } from '@countcard/core/utils/recruitEdipi';
 import { useAuth } from '@/context/AuthContext';
 import { useAppUser } from '@/hooks/useAppUser';
 import { Screen, Button, Input, Select, SectionHeader } from '@/components/ui';
@@ -231,7 +232,7 @@ export default function NewCountCardScreen() {
                   {entry.recruit.rank} {entry.recruit.lastName}, {entry.recruit.firstName}
                 </Text>
                 <Text style={[styles.recruitId, { color: theme.colors.textMuted }]}>
-                  {entry.recruitId}
+                  EDIPI {formatEdipiForDisplay(entry.recruit)}
                 </Text>
               </View>
               <Select

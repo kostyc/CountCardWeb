@@ -21,5 +21,9 @@ declare namespace NodeJS {
     // Application Configuration
     ADMIN_USER_IDS?: string; // Comma-separated list
     ALLOWED_ORIGINS?: string; // Comma-separated list
+
+    // Document image extraction — Gemini primary, xAI fallback (optional, server-side)
+    GEMINI_API_KEY?: string;
+    XAI_API_KEY?: string;
   }
 }

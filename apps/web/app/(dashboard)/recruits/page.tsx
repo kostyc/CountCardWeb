@@ -16,12 +16,13 @@ import { logError } from '@/lib/utils/logger';
 import { Container } from '@/components/ui/Container';
 import Breadcrumbs from '@/components/navigation/Breadcrumbs';
 import { RecruitList } from '@/components/recruits/RecruitList';
+import { RecruitQuickActions } from '@/components/recruits/RecruitQuickActions';
 import Spinner from '@/components/feedback/Spinner';
 import ErrorState from '@/components/feedback/ErrorState';
-import { Button } from '@/components/ui/Button';
 import type { RecruitProfile } from '@/types/models';
 import type { RecruitStatus } from '@/lib/validation/recruitSchemas';
-import type { USMCRank, Regiment } from '@/types/auth';
+import type { RecruitRank } from '@countcard/core/constants/recruitRanks';
+import type { Regiment } from '@/types/auth';
 import type { PaginationResult } from '@/lib/services/firestore/base';
 import { Timestamp } from 'firebase/firestore';
 
@@ -40,7 +41,7 @@ export interface RecruitFilters {
   series?: string;
   platoon?: string;
   status?: RecruitStatus;
-  rank?: USMCRank;
+  rank?: RecruitRank;
 }
 
 /**
@@ -60,7 +61,7 @@ const breadcrumbItems = [
 export default function RecruitsPage(): JSX.Element {
   const router = useRouter();
   const { user } = useAuth();
-  const { getOrganizationalScope, canView, canCreateAny } = useRecruitPermissions();
+  const { getOrganizationalScope, canView, canCreateAny, canEdit } = useRecruitPermissions();
 
   // State
   const [recruits, setRecruits] = useState<RecruitProfile[]>([]);
@@ -181,10 +182,22 @@ export default function RecruitsPage(): JSX.Element {
   };
 
   /**
-   * Handle create recruit
+   * Handle add recruit
    */
   const handleCreateRecruit = () => {
     router.push('/recruits/create');
+  };
+
+  const handleModifyRecruit = (recruitId: string) => {
+    router.push(`/recruits/${recruitId}/edit`);
+  };
+
+  const handleTransferRecruit = (recruitId: string) => {
+    router.push(`/recruits/${recruitId}/transfer`);
+  };
+
+  const handleImportRecruits = () => {
+    router.push('/recruits/import');
   };
 
   // Filter recruits by permissions (client-side check for additional security)
@@ -234,65 +247,57 @@ export default function RecruitsPage(): JSX.Element {
     return 0;
   });
 
-  // Loading state
-  if (loading && recruits.length === 0) {
-    return (
-      <Container>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Spinner size="lg" />
-        </div>
-      </Container>
-    );
-  }
-
-  // Error state
-  if (error && recruits.length === 0) {
-    return (
-      <Container>
-        <ErrorState
-          title="Failed to Load Recruits"
-          message={error.message}
-          retryLabel="Retry"
-          onRetry={() => {
-            setError(null);
-            setLastDoc(null);
-            loadRecruits(true);
-          }}
-        />
-      </Container>
-    );
-  }
+  const showListError = Boolean(error && recruits.length === 0 && !loading);
+  const showInitialLoading = loading && recruits.length === 0 && !error;
 
   return (
     <Container>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Breadcrumbs items={breadcrumbItems} />
-          {canCreateAny && (
-            <Button
-              variant="primary"
-              onClick={handleCreateRecruit}
-              className="z-10"
-            >
-              Create Recruit
-            </Button>
-          )}
+          <RecruitQuickActions />
         </div>
 
-        <RecruitList
-          recruits={sortedRecruits}
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          searchTerm={searchTerm}
-          onSearchChange={handleSearchChange}
-          sortField={sortField}
-          sortOrder={sortOrder}
-          onSortChange={handleSortChange}
-          loading={loading}
-          hasMore={hasMore}
-          onLoadMore={handleLoadMore}
-          onRecruitClick={handleRecruitClick}
-        />
+        {showListError ? (
+          <ErrorState
+            title="Failed to Load Recruits"
+            message={error?.message ?? 'Unable to load recruits.'}
+            retryLabel="Retry"
+            onRetry={() => {
+              setError(null);
+              setLastDoc(null);
+              loadRecruits(true);
+            }}
+            secondaryActionLabel={canCreateAny ? 'Import roster' : undefined}
+            onSecondaryAction={canCreateAny ? handleImportRecruits : undefined}
+          />
+        ) : showInitialLoading ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <Spinner size="lg" />
+          </div>
+        ) : (
+          <RecruitList
+            recruits={sortedRecruits}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
+            sortField={sortField}
+            sortOrder={sortOrder}
+            onSortChange={handleSortChange}
+            loading={loading}
+            hasMore={hasMore}
+            onLoadMore={handleLoadMore}
+            onRecruitClick={handleRecruitClick}
+            showRecruitActions={canCreateAny}
+            onImportClick={handleImportRecruits}
+            onCreateClick={handleCreateRecruit}
+            onModifyClick={handleModifyRecruit}
+            onTransferClick={handleTransferRecruit}
+            canModifyRecruit={(recruit) => canEdit(recruit).allowed}
+            canTransferRecruit={(recruit) => canEdit(recruit).allowed}
+          />
+        )}
       </div>
     </Container>
   );

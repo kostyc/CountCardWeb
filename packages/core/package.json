@@ -14,7 +14,10 @@
     "./constants/*": "./src/constants/*",
     "./logger": "./src/logger.ts",
     "./featureDetection": "./src/featureDetection.ts",
-    "./profileCompletion": "./src/profileCompletion.ts"
+    "./profileCompletion": "./src/profileCompletion.ts",
+    "./import/recruitExcelImport": "./src/import/recruitExcelImport.ts",
+    "./import/recruitTextTable": "./src/import/recruitTextTable.ts",
+    "./utils/recruitEdipi": "./src/utils/recruitEdipi.ts"
   },
   "dependencies": {
     "zod": "^4.3.5"

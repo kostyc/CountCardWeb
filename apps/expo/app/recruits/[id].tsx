@@ -1,9 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
-import { getRecruitById } from '@countcard/firebase/services/recruits';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { getRecruitProfileById } from '@countcard/firebase/services/recruits';
 import type { RecruitProfile } from '@countcard/core/types/models';
-import { Screen, StatusBadge, SectionHeader } from '@/components/ui';
+import { formatEdipiForDisplay } from '@countcard/core/utils/recruitEdipi';
+import { canEditRecruit } from '@countcard/core/permissions/recruits';
+import { useAuth } from '@/context/AuthContext';
+import { useAppUser } from '@/hooks/useAppUser';
+import { Screen, StatusBadge, SectionHeader, Button } from '@/components/ui';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { cardShadow, radius, spacing, typography } from '@/constants/theme';
 
@@ -19,16 +23,27 @@ function DetailField({ label, value }: { label: string; value?: string | null })
 
 export default function RecruitDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
+  const { user } = useAuth();
+  const { appUser } = useAppUser(user);
   const theme = useAppTheme();
   const [recruit, setRecruit] = useState<RecruitProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!id) return;
-    getRecruitById(id)
-      .then(setRecruit)
-      .finally(() => setLoading(false));
-  }, [id]);
+  const canModify = useMemo(() => {
+    if (!appUser || !recruit) return false;
+    return canEditRecruit(appUser, recruit).allowed;
+  }, [appUser, recruit]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!id) return;
+      setLoading(true);
+      getRecruitProfileById(id)
+        .then(setRecruit)
+        .finally(() => setLoading(false));
+    }, [id])
+  );
 
   if (loading) {
     return (
@@ -59,6 +74,24 @@ export default function RecruitDetailScreen() {
         <StatusBadge label={recruit.status ?? 'Unknown'} />
       </View>
 
+      {canModify ? (
+        <View style={styles.actions}>
+          <Button title="Modify Recruit" onPress={() => router.push(`/recruits/${id}/edit`)} />
+          <Button title="Transfer Recruit" variant="secondary" onPress={() => router.push(`/recruits/${id}/transfer`)} />
+        </View>
+      ) : null}
+
+      <SectionHeader title="Identification" />
+      <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
+        <DetailField label="EDIPI" value={formatEdipiForDisplay(recruit)} />
+      </View>
+
+      <SectionHeader title="Equipment" />
+      <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
+        <DetailField label="Weapons serial number" value={recruit.weaponsSerialNumber} />
+        <DetailField label="RCO serial number" value={recruit.rcoSerialNumber} />
+      </View>
+
       <SectionHeader title="Assignment" />
       <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
         <DetailField label="Platoon" value={recruit.platoon} />
@@ -78,8 +111,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   name: { ...typography.title },
-  card: { borderRadius: radius.lg, padding: spacing.xl, gap: 16 },
+  card: { borderRadius: radius.lg, padding: spacing.xl, gap: 16, marginBottom: spacing.base },
   field: { gap: 4 },
   fieldLabel: { ...typography.overline, textTransform: 'none', letterSpacing: 0 },
   fieldValue: { ...typography.body, fontWeight: '500' },
+  actions: { gap: 12, marginBottom: spacing.base },
 });

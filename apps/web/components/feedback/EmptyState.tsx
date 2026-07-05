@@ -53,6 +53,14 @@ export interface EmptyStateProps extends BaseComponentProps {
    */
   onAction?: () => void;
   /**
+   * Secondary action button label (e.g. Import roster)
+   */
+  secondaryActionLabel?: string;
+  /**
+   * Callback when secondary action button is clicked
+   */
+  onSecondaryAction?: () => void;
+  /**
    * Whether to show action button
    * @default true (if onAction is provided)
    */
@@ -78,6 +86,8 @@ export default function EmptyState({
   icon,
   actionLabel,
   onAction,
+  secondaryActionLabel,
+  onSecondaryAction,
   showAction,
   size = 'md',
   className,
@@ -126,6 +136,7 @@ export default function EmptyState({
 
   const textClasses = textSizeClasses[size];
   const shouldShowAction = showAction !== false && onAction && actionLabel;
+  const shouldShowSecondary = showAction !== false && onSecondaryAction && secondaryActionLabel;
 
   return (
     <div
@@ -166,16 +177,27 @@ export default function EmptyState({
         </p>
       )}
 
-      {/* Action Button */}
-      {shouldShowAction && (
-        <div className="mt-2">
-          <Button
-            variant="primary"
-            size={size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : 'md'}
-            onClick={onAction}
-          >
-            {actionLabel}
-          </Button>
+      {/* Action Buttons */}
+      {(shouldShowAction || shouldShowSecondary) && (
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+          {shouldShowSecondary && (
+            <Button
+              variant="secondary"
+              size={size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : 'md'}
+              onClick={onSecondaryAction}
+            >
+              {secondaryActionLabel}
+            </Button>
+          )}
+          {shouldShowAction && (
+            <Button
+              variant="primary"
+              size={size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : 'md'}
+              onClick={onAction}
+            >
+              {actionLabel}
+            </Button>
+          )}
         </div>
       )}
     </div>

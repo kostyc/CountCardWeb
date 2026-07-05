@@ -120,10 +120,17 @@ export default function RecruitDetailPage(): JSX.Element {
   }, [recruitId]);
 
   /**
-   * Handle edit
+   * Handle modify
    */
-  const handleEdit = () => {
+  const handleModify = () => {
     router.push(`/recruits/${recruitId}/edit`);
+  };
+
+  /**
+   * Handle transfer
+   */
+  const handleTransfer = () => {
+    router.push(`/recruits/${recruitId}/transfer`);
   };
 
   /**
@@ -181,9 +188,11 @@ export default function RecruitDetailPage(): JSX.Element {
             emergencyContacts={emergencyContacts}
             loading={loading}
             error={error}
-            onEdit={permissions.canEdit.allowed ? handleEdit : undefined}
+            onModify={permissions.canEdit.allowed ? handleModify : undefined}
+            onTransfer={permissions.canEdit.allowed ? handleTransfer : undefined}
             onDelete={permissions.canDelete.allowed ? handleDelete : undefined}
-            showEditButton={permissions.canEdit.allowed}
+            showModifyButton={permissions.canEdit.allowed}
+            showTransferButton={permissions.canEdit.allowed}
             showDeleteButton={permissions.canDelete.allowed}
             recruitId={recruitId}
           />

@@ -25,26 +25,31 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { OrganizationalAssignment, type OrganizationalAssignmentValue } from './OrganizationalAssignment';
 import { RecruitPhotoUpload } from './RecruitPhotoUpload';
-import { getRankOptions } from '@/lib/utils/ranks';
-import type { USMCRank } from '@/types/auth';
+import { getRecruitRankOptions } from '@/lib/utils/ranks';
+import type { RecruitRank } from '@countcard/core/constants/recruitRanks';
+import { DEFAULT_RECRUIT_RANK } from '@countcard/core/constants/recruitRanks';
 import { debugLog } from '@/lib/utils/debugLogger';
 import type { RecruitStatus } from '@/lib/validation/recruitSchemas';
 import type { RecruitProfile } from '@/types/models';
+import { deriveRecruitDocumentId, formatEdipiForDisplay } from '@countcard/core/utils/recruitEdipi';
 
 /**
  * Recruit form data type
  */
 export interface RecruitFormData {
+  edipi: string;
   recruitId: string;
   firstName: string;
   lastName: string;
-  rank: USMCRank | '';
+  rank: RecruitRank | '';
   status: RecruitStatus | '';
   regiment?: string;
   battalion?: string;
   company?: string;
   series?: string;
   platoon: string;
+  weaponsSerialNumber?: string;
+  rcoSerialNumber?: string;
   photoUrl?: string;
   medicalNotes?: string;
   dietaryRestrictions?: string;
@@ -58,12 +63,15 @@ export interface RecruitFormData {
  * Recruit form errors type
  */
 export interface RecruitFormErrors {
+  edipi?: string;
   recruitId?: string;
   firstName?: string;
   lastName?: string;
   rank?: string;
   status?: string;
   platoon?: string;
+  weaponsSerialNumber?: string;
+  rcoSerialNumber?: string;
   photoUrl?: string;
   medicalNotes?: string;
   dietaryRestrictions?: string;
@@ -143,16 +151,19 @@ export function RecruitForm({
 }: RecruitFormProps): JSX.Element {
   // Form state
   const [formData, setFormData] = useState<RecruitFormData>({
+    edipi: initialData ? formatEdipiForDisplay(initialData) : '',
     recruitId: initialData?.recruitId || '',
     firstName: initialData?.firstName || '',
     lastName: initialData?.lastName || '',
-    rank: initialData?.rank || '',
+    rank: initialData?.rank || (mode === 'create' ? DEFAULT_RECRUIT_RANK : ''),
     status: initialData?.status || '',
     regiment: initialData?.regiment,
     battalion: initialData?.battalion,
     company: initialData?.company,
     series: initialData?.series,
     platoon: initialData?.platoon || '',
+    weaponsSerialNumber: initialData?.weaponsSerialNumber,
+    rcoSerialNumber: initialData?.rcoSerialNumber,
     photoUrl: initialData?.photoUrl,
     medicalNotes: initialData?.medicalNotes,
     dietaryRestrictions: initialData?.dietaryRestrictions,
@@ -186,10 +197,13 @@ export function RecruitForm({
    * Handle form field change
    */
   const handleFieldChange = (field: keyof RecruitFormData, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === 'edipi' && mode === 'create') {
+        next.recruitId = deriveRecruitDocumentId(value);
+      }
+      return next;
+    });
   };
 
   /**
@@ -201,13 +215,14 @@ export function RecruitForm({
   };
 
   // Rank options
-  const rankOptions = getRankOptions();
+  const rankOptions = getRecruitRankOptions();
+  const storageRecruitId = formData.recruitId || deriveRecruitDocumentId(formData.edipi);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card className="p-6">
         <h2 className="text-2xl font-bold text-text-primary-light dark:text-text-primary-dark mb-6">
-          {mode === 'create' ? 'Create Recruit Profile' : 'Edit Recruit Profile'}
+          {mode === 'create' ? 'Add Recruit Profile' : 'Modify Recruit Profile'}
         </h2>
 
         {/* Personal Information Section */}
@@ -216,18 +231,19 @@ export function RecruitForm({
             Personal Information
           </h3>
 
-          {/* Recruit ID */}
+          {/* EDIPI */}
           <Input
             type="text"
-            label="Recruit ID"
+            label="EDIPI"
             required
-            value={formData.recruitId}
-            onChange={(e) => handleFieldChange('recruitId', e.target.value)}
-            placeholder="Enter recruit ID"
-            errorText={errors.recruitId}
-            helperText="Unique identifier for the recruit"
+            value={formData.edipi}
+            onChange={(e) => handleFieldChange('edipi', e.target.value)}
+            placeholder="Enter 10-digit EDIPI"
+            errorText={errors.edipi ?? errors.recruitId}
+            helperText="Department of Defense electronic identifier for the recruit"
             disabled={disabled || loading || mode === 'edit'}
             fullWidth
+            inputMode="numeric"
           />
 
           {/* First Name */}
@@ -299,10 +315,37 @@ export function RecruitForm({
           />
         </div>
 
+        {/* Equipment Section */}
+        <div className="space-y-4 mb-6">
+          <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark">
+            Equipment
+          </h3>
+          <Input
+            type="text"
+            label="Weapons serial number"
+            value={formData.weaponsSerialNumber || ''}
+            onChange={(e) => handleFieldChange('weaponsSerialNumber', e.target.value)}
+            placeholder="Enter weapons serial number"
+            errorText={errors.weaponsSerialNumber}
+            disabled={disabled || loading}
+            fullWidth
+          />
+          <Input
+            type="text"
+            label="RCO serial number"
+            value={formData.rcoSerialNumber || ''}
+            onChange={(e) => handleFieldChange('rcoSerialNumber', e.target.value)}
+            placeholder="Enter RCO serial number"
+            errorText={errors.rcoSerialNumber}
+            disabled={disabled || loading}
+            fullWidth
+          />
+        </div>
+
         {/* Photo Upload Section */}
-        {formData.recruitId && (
+        {storageRecruitId && formData.edipi && (
           <RecruitPhotoUpload
-            recruitId={formData.recruitId}
+            recruitId={storageRecruitId}
             currentPhotoUrl={formData.photoUrl}
             onUploadComplete={(photoUrl) => {
               handleFieldChange('photoUrl', photoUrl);
@@ -315,7 +358,7 @@ export function RecruitForm({
         )}
         
         {/* Photo URL Input (Fallback for manual entry or when recruitId not available) */}
-        {!formData.recruitId && (
+        {!formData.edipi && (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark">
               Profile Photo (Optional)
@@ -421,7 +464,7 @@ export function RecruitForm({
           disabled={disabled || loading}
           loading={loading}
         >
-          {mode === 'create' ? 'Create Recruit' : 'Update Recruit'}
+          {mode === 'create' ? 'Add Recruit' : 'Save Changes'}
         </Button>
       </div>
     </form>

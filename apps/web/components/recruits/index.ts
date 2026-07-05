@@ -15,6 +15,11 @@ export { RankBadge, type RankBadgeProps } from './RankBadge';
 export { RankDisplay, type RankDisplayProps } from './RankDisplay';
 export { RankSelect, type RankSelectProps } from './RankSelect';
 export { RecruitDataExport, type RecruitDataExportProps } from './RecruitDataExport';
+export { RecruitImportPreviewEditor } from './RecruitImportPreviewEditor';
+export { RecruitImport, type RecruitImportProps } from './RecruitImport';
+export { RecruitQuickActions, type RecruitQuickActionsProps } from './RecruitQuickActions';
+export { RecruitImportPhotoCapture, type RosterPhotoPage } from './RecruitImportPhotoCapture';
+export { RecruitTransferForm, type RecruitTransferFormData, type RecruitTransferFormProps } from './RecruitTransferForm';
 export {
   EmergencyContactFormModal,
   type EmergencyContactFormValues,

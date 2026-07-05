@@ -7,6 +7,7 @@
 
 import type { Timestamp } from 'firebase/firestore';
 import type { USMCRank, UserRole, Regiment } from './auth';
+import type { RecruitRank } from '../constants/recruitRanks';
 import type { Battalion, Company, Series } from '@countcard/core/validation/organizationSchemas';
 import type { RecruitStatus } from '@countcard/core/validation/recruitSchemas';
 import type { CountCardStatus, WorkflowState } from '@countcard/core/validation/countCardSchemas';
@@ -57,12 +58,18 @@ export type PhotoUrl = string;
 export interface RecruitProfile extends BaseEntity {
   /** Unique recruit identifier */
   recruitId: string;
+  /** DoD EDIPI (10-digit identifier shown to users) */
+  edipi?: string;
+  /** Issued weapons serial number */
+  weaponsSerialNumber?: string;
+  /** RCO (optics) serial number */
+  rcoSerialNumber?: string;
   /** First name */
   firstName: string;
   /** Last name */
   lastName: string;
-  /** USMC rank (E-5 through E-9 for Enlisted, O-1 through O-6 for Officers) */
-  rank: USMCRank;
+  /** Recruit pay grade (E-1, E-2, or E-3) */
+  rank: RecruitRank;
   /** Recruit status */
   status: RecruitStatus;
   /** Recruit Training Regiment (West/East) */
@@ -87,6 +94,26 @@ export interface RecruitProfile extends BaseEntity {
     toStatus: RecruitStatus;
     timestamp: Date | Timestamp;
     changedBy: string;
+    reason?: string;
+  }>;
+  /** Organizational transfer history */
+  transferHistory?: Array<{
+    fromAssignment: {
+      regiment?: Regiment;
+      battalion?: string;
+      company?: string;
+      series?: string;
+      platoon?: string;
+    };
+    toAssignment: {
+      regiment?: Regiment;
+      battalion?: string;
+      company?: string;
+      series?: string;
+      platoon?: string;
+    };
+    timestamp: Date | Timestamp;
+    transferredBy: string;
     reason?: string;
   }>;
   /** Extended profile: medical notes (sensitive – consider storing in encryptedData) */

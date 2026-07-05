@@ -8,15 +8,7 @@
 import { useState } from 'react';
 import Header from '@/components/layout/Header';
 import UserMenu from '@/components/layout/UserMenu';
-import type { NavMenuItem } from '@/components/navigation';
-
-const NAV_ITEMS: NavMenuItem[] = [
-  { label: 'Dashboard', href: '/dashboard' },
-  { label: 'Recruits', href: '/recruits' },
-  { label: 'Count Cards', href: '/count-cards' },
-  { label: 'Messages', href: '/conversations' },
-  { label: 'Settings', href: '/settings' },
-];
+import { useDashboardNavItems } from '@/components/navigation/useDashboardNavItems';
 
 export default function DashboardLayout({
   children,
@@ -24,13 +16,14 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }): JSX.Element {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navItems = useDashboardNavItems();
 
   return (
     <div className="min-h-screen min-w-0 overflow-x-hidden bg-background-primary-light dark:bg-background-primary-dark">
       <Header
         title="CountCard"
         titleHref="/dashboard"
-        navItems={NAV_ITEMS}
+        navItems={navItems}
         userMenu={<UserMenu />}
         onMobileMenuToggle={() => setMobileMenuOpen((o) => !o)}
         isMobileMenuOpen={mobileMenuOpen}

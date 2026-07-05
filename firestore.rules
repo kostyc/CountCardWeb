@@ -80,6 +80,17 @@ service cloud.firestore {
       allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
+    // Immutable audit trail — authenticated users may create entries for their own actions.
+    match /adminLogs/{logId} {
+      allow create: if isAuthenticated()
+        && request.resource.data.logId == logId
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.updatedBy == request.auth.uid;
+      allow read: if isAuthenticated();
+      allow update, delete: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

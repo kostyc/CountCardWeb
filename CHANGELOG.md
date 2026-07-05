@@ -5,9 +5,71 @@ All notable changes to CountCard Web are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.2.18...HEAD)
+## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.2.24...HEAD)
 
 - (Nothing yet.)
+
+## [2026.0.2.24] - 2026-07-05
+
+### Added
+
+- Recruit transfer API (`POST /api/recruits/[id]/transfer`) with server-side audit logging via Admin SDK.
+- Firestore security rules for `adminLogs` (authenticated create/read; immutable updates/deletes denied).
+- Shared recruit sub-screen back navigation on mobile (transfer and edit return to profile reliably on web).
+
+### Changed
+
+- Import roster grid uses full available width on web and mobile; compact rank picker in spreadsheet cells.
+- Expo and web transfer flows route through the transfer API when available, with Firestore fallback.
+- Recruit profile reloads on focus after transfer or edit.
+
+### Fixed
+
+- Recruit transfer no longer logs a client-side `adminLogs` permission error when rules are not yet deployed.
+- Header back and Cancel on mobile transfer/edit screens no longer stay on the same page.
+
+## [2026.0.2.23] - 2026-07-05
+
+### Added
+
+- Import preview spreadsheet grid: columns and rows with inline cell editing, row selection, and mass column updates (apply to selected or all rows, copy platoon from row 1).
+- Mobile import uses the same horizontal roster grid with mass-edit toolbar.
+
+## [2026.0.2.22] - 2026-07-05
+
+### Added
+
+- Recruit import preview: rows with missing first name, last name, or platoon are kept for review with inline editing before import (web and mobile).
+- Default platoon automatically fills missing platoon values in the import preview.
+
+### Changed
+
+- Import parsing accepts partial rows (missing platoon, single-word names, separate First/Last columns) instead of dropping them as errors.
+- EDIPI remains optional during import review.
+
+## [2026.0.2.21] - 2026-07-05
+
+### Fixed
+
+- Mobile recruit import no longer requires the HTTP API for Excel (.xlsx/.xls/.csv): spreadsheets parse on-device and commits write directly to Firestore.
+- Clearer API errors when Cloud Run returns 403 or the device cannot reach `EXPO_PUBLIC_API_BASE_URL` (photo/PDF import still needs API access).
+
+## [2026.0.2.20] - 2026-07-05
+
+### Added
+
+- Unified roster import: camera, photo library, Excel (.xlsx/.xls/.csv), and PDF from one screen on web and mobile.
+- Mobile import: choose Excel or PDF from Files via document picker; parsed through new `/api/recruits/import/parse-document` endpoint.
+
+### Changed
+
+- Web import UI: single “Add roster” card with Take photo, Choose images, Upload Excel, and Upload PDF actions (replaces separate photo and spreadsheet sections).
+
+## [2026.0.2.19] - 2026-07-05
+
+### Fixed
+
+- Recruit roster import: Excel files (`.xlsx`, `.xls`, `.csv`) now parse correctly when title rows appear above column headers; legacy `.xls`/`.csv` formats are accepted; spreadsheet files picked in the photo section are routed to document import.
 
 ## [2026.0.2.18] - 2026-07-04
 

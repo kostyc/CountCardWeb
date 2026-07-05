@@ -14,7 +14,8 @@ import {
   canDeleteRecruit,
   getRecruitOrganizationalScope,
 } from '@/lib/permissions/recruits';
-import { hasPermission } from '@/lib/permissions/roles';
+import { hasPermission, isAdminRole } from '@/lib/permissions/roles';
+import type { UserRole } from '@/types/auth';
 import type { RecruitProfile } from '@/types/models';
 import type { OrganizationalAssignment } from '@/types/auth';
 import type { PermissionCheckResult } from '@/lib/permissions/types';
@@ -115,6 +116,7 @@ export function useRecruitPermissions(): UseRecruitPermissionsResult {
     if (!user) return false;
     const role = user.customClaims?.role || user.profile?.role;
     if (!role) return false;
+    if (isAdminRole(role as UserRole)) return true;
     // Check if user has any edit permissions (which implies create permissions)
     return (
       hasPermission(role, 'edit_own_platoon') ||

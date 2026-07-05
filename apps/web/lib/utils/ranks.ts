@@ -5,8 +5,15 @@
  * rank grouping (Enlisted vs Officer), and rank sorting.
  */
 
-import type { USMCRank } from '@/types/auth';
 import type { SelectOption } from '@/components/forms/Select';
+import type { RecruitRank } from '@countcard/core/constants/recruitRanks';
+import {
+  getRecruitRankLabel,
+  getRecruitRankSelectOptions,
+  isRecruitRank,
+  RECRUIT_RANK_METADATA,
+} from '@countcard/core/constants/recruitRanks';
+import type { USMCRank } from '@/types/auth';
 
 /**
  * Rank metadata
@@ -149,3 +156,16 @@ export function isEnlistedRank(rank: USMCRank): boolean {
 export function isOfficerRank(rank: USMCRank): boolean {
   return RANK_METADATA[rank]?.type === 'officer';
 }
+
+/**
+ * Select options for recruit pay grades (E-1, E-2, E-3).
+ */
+export function getRecruitRankOptions(): SelectOption[] {
+  return getRecruitRankSelectOptions().map((option) => ({
+    value: option.value,
+    label: option.label,
+  }));
+}
+
+export { isRecruitRank, getRecruitRankLabel, RECRUIT_RANK_METADATA };
+export type { RecruitRank };

@@ -31,7 +31,8 @@ import type {
   RecruitProfileUpdate,
 } from '@countcard/core/types/models';
 import type { RecruitStatus } from '@countcard/core/validation/recruitSchemas';
-import type { USMCRank, Regiment } from '@countcard/core/types/auth';
+import type { RecruitRank } from '@countcard/core/constants/recruitRanks';
+import type { Regiment } from '@countcard/core/types/auth';
 import { Timestamp } from 'firebase/firestore';
 import { isStatusTransitionAllowed } from '@countcard/core/constants/recruitStatus';
 import { createAdminLogEntry } from './adminLogs';
@@ -167,6 +168,99 @@ export async function updateRecruitStatus(
   }
 }
 
+export type RecruitOrganizationalSnapshot = {
+  regiment?: Regiment;
+  battalion?: string;
+  company?: string;
+  series?: string;
+  platoon?: string;
+};
+
+/**
+ * Transfer a recruit to a new organizational assignment and mark as transferred.
+ */
+export async function transferRecruitProfile(
+  recruitId: string,
+  toAssignment: RecruitOrganizationalSnapshot & { platoon: string },
+  transferredBy: string,
+  reason?: string
+): Promise<void> {
+  try {
+    const currentRecruit = await getRecruitProfileById(recruitId);
+    if (!currentRecruit) {
+      throw new Error(`Recruit profile not found: ${recruitId}`);
+    }
+
+    const fromAssignment: RecruitOrganizationalSnapshot = {
+      regiment: currentRecruit.regiment,
+      battalion: currentRecruit.battalion,
+      company: currentRecruit.company,
+      series: currentRecruit.series,
+      platoon: currentRecruit.platoon,
+    };
+
+    const assignmentUnchanged =
+      fromAssignment.regiment === toAssignment.regiment &&
+      fromAssignment.battalion === toAssignment.battalion &&
+      fromAssignment.company === toAssignment.company &&
+      fromAssignment.series === toAssignment.series &&
+      fromAssignment.platoon === toAssignment.platoon;
+
+    if (assignmentUnchanged) {
+      throw new Error('New assignment must differ from the current assignment');
+    }
+
+    const transferEntry = {
+      fromAssignment,
+      toAssignment,
+      timestamp: Timestamp.now(),
+      transferredBy,
+      reason: reason || undefined,
+    };
+
+    const newStatus: RecruitStatus = 'transferred';
+    let status = currentRecruit.status;
+    let statusHistory = currentRecruit.statusHistory || [];
+
+    if (currentRecruit.status !== newStatus) {
+      if (!isStatusTransitionAllowed(currentRecruit.status, newStatus)) {
+        throw new Error(
+          `Cannot transfer recruit with status "${currentRecruit.status}".`
+        );
+      }
+      statusHistory = [
+        ...statusHistory,
+        {
+          fromStatus: currentRecruit.status,
+          toStatus: newStatus,
+          timestamp: Timestamp.now(),
+          changedBy: transferredBy,
+          reason: reason || 'Organizational transfer',
+        },
+      ];
+      status = newStatus;
+    }
+
+    const updateData: RecruitProfileUpdate = {
+      recruitId,
+      regiment: toAssignment.regiment,
+      battalion: toAssignment.battalion,
+      company: toAssignment.company,
+      series: toAssignment.series,
+      platoon: toAssignment.platoon,
+      status,
+      statusHistory,
+      transferHistory: [...(currentRecruit.transferHistory || []), transferEntry],
+      updatedBy: transferredBy,
+      updatedAt: Timestamp.now(),
+    };
+
+    await updateDocument(COLLECTION_NAME, recruitId, updateData, transferredBy);
+  } catch (error) {
+    throw handleFirestoreError(error, `Failed to transfer recruit ${recruitId}`);
+  }
+}
+
 /**
  * Delete recruit profile (with GDPR compliance)
  * Note: This permanently deletes the recruit profile. For GDPR compliance,
@@ -204,7 +298,7 @@ export async function listRecruits(
     series?: string;
     platoon?: string;
     status?: RecruitStatus;
-    rank?: USMCRank;
+    rank?: RecruitRank;
   },
   pagination?: PaginationOptions
 ): Promise<PaginationResult<RecruitProfile>> {
@@ -346,7 +440,7 @@ export async function getRecruitsByStatus(
  * Get recruits by rank
  */
 export async function getRecruitsByRank(
-  rank: USMCRank,
+  rank: RecruitRank,
   pagination?: PaginationOptions
 ): Promise<PaginationResult<RecruitProfile>> {
   try {
@@ -369,3 +463,6 @@ export async function getRecruitsByPlatoon(
     throw handleFirestoreError(error, `Failed to get recruits by platoon: ${platoon}`);
   }
 }
+
+/** @deprecated Use getRecruitProfileById — kept for existing Expo imports */
+export { getRecruitProfileById as getRecruitById };

@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Image, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import type { OrganizationalAssignment, Regiment, USMCRank } from '@countcard/core/types/auth';
+import type { OrganizationalAssignment, Regiment } from '@countcard/core/types/auth';
+import type { RecruitRank } from '@countcard/core/constants/recruitRanks';
+import { DEFAULT_RECRUIT_RANK } from '@countcard/core/constants/recruitRanks';
 import type { Battalion, Company, Series } from '@countcard/core/validation/organizationSchemas';
 import type { RecruitStatus } from '@countcard/core/validation/recruitSchemas';
 import { recruitCreateSchema } from '@countcard/core/validation/recruitSchemas';
+import { deriveRecruitDocumentId, normalizeEdipiDigits } from '@countcard/core/utils/recruitEdipi';
 import { canCreateRecruit } from '@countcard/core/permissions/recruits';
 import { hasPermission } from '@countcard/core/permissions/roles';
 import { createRecruitProfile } from '@countcard/firebase/services/recruits';
@@ -16,8 +19,7 @@ import { imageUploadHint, type PickedImage } from '@/lib/imageValidation';
 import { uploadRecruitPhoto } from '@/lib/storage';
 import { Screen, Button, Input, Select, SectionHeader } from '@/components/ui';
 import {
-  ENLISTED_RANKS,
-  OFFICER_RANKS,
+  RECRUIT_RANKS,
   REGIMENT_OPTIONS,
   BATTALIONS,
   BATTALION_COMPANIES,
@@ -58,10 +60,12 @@ export default function CreateRecruitScreen() {
   const router = useRouter();
   const theme = useAppTheme();
 
-  const [recruitId, setRecruitId] = useState('');
+  const [edipi, setEdipi] = useState('');
+  const [weaponsSerialNumber, setWeaponsSerialNumber] = useState('');
+  const [rcoSerialNumber, setRcoSerialNumber] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [rank, setRank] = useState<USMCRank | ''>('');
+  const [rank, setRank] = useState<RecruitRank | ''>(DEFAULT_RECRUIT_RANK);
   const [status, setStatus] = useState<RecruitStatus | ''>('active');
   const [regiment, setRegiment] = useState<Regiment | ''>('');
   const [battalion, setBattalion] = useState<Battalion | ''>('');
@@ -73,7 +77,7 @@ export default function CreateRecruitScreen() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const rankOptions = [...ENLISTED_RANKS, ...OFFICER_RANKS];
+  const rankOptions = RECRUIT_RANKS;
   const companyOptions = battalion
     ? (BATTALION_COMPANIES[battalion] ?? []).map((c) => ({ value: c, label: c }))
     : [];
@@ -115,8 +119,14 @@ export default function CreateRecruitScreen() {
     setFieldErrors({});
 
     try {
+      const recruitDocId = deriveRecruitDocumentId(edipi.trim());
+      const edipiDigits = normalizeEdipiDigits(edipi.trim());
+
       const validationResult = recruitCreateSchema.safeParse({
-        recruitId: recruitId.trim(),
+        recruitId: recruitDocId,
+        edipi: edipiDigits || undefined,
+        weaponsSerialNumber: weaponsSerialNumber.trim() || undefined,
+        rcoSerialNumber: rcoSerialNumber.trim() || undefined,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         rank,
@@ -160,16 +170,19 @@ export default function CreateRecruitScreen() {
 
       let photoUrl: string | undefined;
       if (photo) {
-        photoUrl = await uploadRecruitPhoto(photo, recruitId.trim());
+        photoUrl = await uploadRecruitPhoto(photo, recruitDocId);
       }
 
       await createRecruitProfile(
-        recruitId.trim(),
+        recruitDocId,
         {
-          recruitId: recruitId.trim(),
+          recruitId: recruitDocId,
+          edipi: edipiDigits || undefined,
+          weaponsSerialNumber: weaponsSerialNumber.trim() || undefined,
+          rcoSerialNumber: rcoSerialNumber.trim() || undefined,
           firstName: firstName.trim(),
           lastName: lastName.trim(),
-          rank: rank as USMCRank,
+          rank: rank as RecruitRank,
           status: status as RecruitStatus,
           regiment: regiment || undefined,
           battalion,
@@ -182,7 +195,7 @@ export default function CreateRecruitScreen() {
         user.uid
       );
 
-      router.replace(`/recruits/${recruitId.trim()}`);
+      router.replace(`/recruits/${recruitDocId}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to create recruit');
       setSubmitting(false);
@@ -204,11 +217,12 @@ export default function CreateRecruitScreen() {
       <SectionHeader title="Personal information" />
       <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
         <Input
-          label="Recruit ID"
-          value={recruitId}
-          onChangeText={setRecruitId}
+          label="EDIPI"
+          value={edipi}
+          onChangeText={setEdipi}
           autoCapitalize="none"
-          error={fieldErrors.recruitId}
+          keyboardType="number-pad"
+          error={fieldErrors.edipi ?? fieldErrors.recruitId}
         />
         <Input label="First name" value={firstName} onChangeText={setFirstName} error={fieldErrors.firstName} />
         <Input label="Last name" value={lastName} onChangeText={setLastName} error={fieldErrors.lastName} />
@@ -292,11 +306,27 @@ export default function CreateRecruitScreen() {
         />
       </View>
 
+      <SectionHeader title="Equipment" />
+      <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
+        <Input
+          label="Weapons serial number"
+          value={weaponsSerialNumber}
+          onChangeText={setWeaponsSerialNumber}
+          error={fieldErrors.weaponsSerialNumber}
+        />
+        <Input
+          label="RCO serial number"
+          value={rcoSerialNumber}
+          onChangeText={setRcoSerialNumber}
+          error={fieldErrors.rcoSerialNumber}
+        />
+      </View>
+
       {error ? <Text style={[styles.error, { color: theme.colors.error }]}>{error}</Text> : null}
 
       <View style={styles.actions}>
         <Button title="Cancel" variant="secondary" onPress={() => router.back()} disabled={submitting} />
-        <Button title="Create recruit" onPress={handleSubmit} loading={submitting} />
+        <Button title="Add Recruit" onPress={handleSubmit} loading={submitting} />
       </View>
     </Screen>
   );

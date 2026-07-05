@@ -65,6 +65,20 @@
       ]
     },
     {
+      "collectionGroup": "recruits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "lastName",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "firstName",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "countCards",
       "queryScope": "COLLECTION",
       "fields": [

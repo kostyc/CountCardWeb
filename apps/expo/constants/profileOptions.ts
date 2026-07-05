@@ -1,7 +1,11 @@
 import type { Regiment, USMCRank, UserRole } from '@countcard/core/types/auth';
+import { getRecruitRankSelectOptions } from '@countcard/core/constants/recruitRanks';
 import { REGIMENTS, BATTALIONS, BATTALION_COMPANIES, SERIES } from '@countcard/core/constants/organizations';
 
 export { REGIMENTS, BATTALIONS, BATTALION_COMPANIES, SERIES };
+
+/** Recruit pay grades — E-1, E-2, E-3 only. */
+export const RECRUIT_RANKS = getRecruitRankSelectOptions();
 
 export const ENLISTED_RANKS: { value: USMCRank; label: string }[] = [
   { value: 'Sgt', label: 'Sergeant (Sgt)' },

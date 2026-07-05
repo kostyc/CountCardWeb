@@ -26,11 +26,13 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState, Skeleton } from '@/components/feedback';
 import { getCompaniesByBattalion, getAllBattalions } from '@/lib/services/firestore/organizations';
-import { getRankOptions } from '@/lib/utils/ranks';
+import { getRecruitRankOptions } from '@/lib/utils/ranks';
 import { RankDisplay } from './RankDisplay';
+import { formatEdipiForDisplay } from '@countcard/core/utils/recruitEdipi';
 import type { RecruitProfile } from '@/types/models';
 import type { RecruitStatus } from '@/lib/validation/recruitSchemas';
-import type { USMCRank, Regiment } from '@/types/auth';
+import type { RecruitRank } from '@countcard/core/constants/recruitRanks';
+import type { Regiment } from '@/types/auth';
 import type { Battalion, Company, Series } from '@/lib/validation/organizationSchemas';
 import type { SelectOption } from '@/components/forms/Select';
 
@@ -44,7 +46,7 @@ export interface RecruitFilters {
   series?: string;
   platoon?: string;
   status?: RecruitStatus;
-  rank?: USMCRank;
+  rank?: RecruitRank;
 }
 
 /**
@@ -106,6 +108,16 @@ export interface RecruitListProps {
    */
   onRecruitClick: (recruitId: string) => void;
   /**
+   * Show import/create actions in empty state
+   */
+  showRecruitActions?: boolean;
+  onImportClick?: () => void;
+  onCreateClick?: () => void;
+  onModifyClick?: (recruitId: string) => void;
+  onTransferClick?: (recruitId: string) => void;
+  canModifyRecruit?: (recruit: RecruitProfile) => boolean;
+  canTransferRecruit?: (recruit: RecruitProfile) => boolean;
+  /**
    * View mode (table or card)
    * @default 'table'
    */
@@ -153,8 +165,16 @@ export function RecruitList({
   hasMore = false,
   onLoadMore,
   onRecruitClick,
+  showRecruitActions = false,
+  onImportClick,
+  onCreateClick,
+  onModifyClick,
+  onTransferClick,
+  canModifyRecruit,
+  canTransferRecruit,
   viewMode = 'table',
 }: RecruitListProps): JSX.Element {
+  const showRowActions = Boolean(onModifyClick || onTransferClick);
   // View mode state
   const [currentViewMode, setCurrentViewMode] = useState<'table' | 'card'>(viewMode);
 
@@ -199,7 +219,7 @@ export function RecruitList({
   );
 
   // Rank options
-  const rankOptions = useMemo(() => getRankOptions(), []);
+  const rankOptions = useMemo(() => getRecruitRankOptions(), []);
 
   /**
    * Handle filter change
@@ -231,7 +251,7 @@ export function RecruitList({
           newFilters.status = value as RecruitStatus;
           break;
         case 'rank':
-          newFilters.rank = value as USMCRank;
+          newFilters.rank = value as RecruitRank;
           break;
         default:
           // TypeScript will catch any missing cases
@@ -317,7 +337,7 @@ export function RecruitList({
                 <Input
                   type="text"
                   label="Search"
-                  placeholder="Search by name or recruit ID..."
+                  placeholder="Search by name or EDIPI..."
                   value={searchTerm}
                   onChange={(e) => onSearchChange(e.target.value)}
                   fullWidth
@@ -406,10 +426,20 @@ export function RecruitList({
           description={
             hasActiveFilters
               ? 'No recruits match your current filters. Try adjusting your search or filters.'
-              : 'No recruits have been created yet. Create your first recruit to get started.'
+              : 'No recruits yet. Import a roster from Excel, PDF, or photos — or add recruits one at a time.'
           }
-          actionLabel={hasActiveFilters ? 'Clear Filters' : 'Create Recruit'}
-          onAction={hasActiveFilters ? handleClearFilters : undefined}
+          actionLabel={hasActiveFilters ? 'Clear Filters' : showRecruitActions ? 'Add Recruit' : undefined}
+          onAction={
+            hasActiveFilters
+              ? handleClearFilters
+              : showRecruitActions && onCreateClick
+                ? onCreateClick
+                : undefined
+          }
+          secondaryActionLabel={
+            !hasActiveFilters && showRecruitActions && onImportClick ? 'Import roster' : undefined
+          }
+          onSecondaryAction={!hasActiveFilters && showRecruitActions ? onImportClick : undefined}
         />
       </div>
     );
@@ -455,7 +485,7 @@ export function RecruitList({
               <Input
                 type="text"
                 label="Search"
-                placeholder="Search by name or recruit ID..."
+                placeholder="Search by name or EDIPI..."
                 value={searchTerm}
                 onChange={(e) => onSearchChange(e.target.value)}
                 fullWidth
@@ -580,6 +610,11 @@ export function RecruitList({
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-primary-light dark:text-text-primary-dark">
                     Platoon
                   </th>
+                  {showRowActions ? (
+                    <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-text-primary-light dark:text-text-primary-dark">
+                      Actions
+                    </th>
+                  ) : null}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-primary-light dark:divide-border-primary-dark">
@@ -594,7 +629,7 @@ export function RecruitList({
                         {recruit.lastName}, {recruit.firstName}
                       </div>
                       <div className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-                        {recruit.recruitId}
+                        EDIPI: {formatEdipiForDisplay(recruit)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -634,11 +669,38 @@ export function RecruitList({
                         {recruit.platoon || '—'}
                       </div>
                     </td>
+                    {showRowActions ? (
+                      <td
+                        className="px-6 py-4 whitespace-nowrap text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex justify-end gap-2">
+                          {onModifyClick && canModifyRecruit?.(recruit) ? (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => onModifyClick(recruit.id)}
+                            >
+                              Modify
+                            </Button>
+                          ) : null}
+                          {onTransferClick && canTransferRecruit?.(recruit) ? (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => onTransferClick(recruit.id)}
+                            >
+                              Transfer
+                            </Button>
+                          ) : null}
+                        </div>
+                      </td>
+                    ) : null}
                   </tr>
                 ))}
                 {loading && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-4">
+                    <td colSpan={showRowActions ? 6 : 5} className="px-6 py-4">
                       <Skeleton lines={3} />
                     </td>
                   </tr>
@@ -661,7 +723,7 @@ export function RecruitList({
                     {recruit.lastName}, {recruit.firstName}
                   </h3>
                   <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-                    {recruit.recruitId}
+                    EDIPI: {formatEdipiForDisplay(recruit)}
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -715,6 +777,20 @@ export function RecruitList({
                     </span>
                   </div>
                 </div>
+                {showRowActions ? (
+                  <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
+                    {onModifyClick && canModifyRecruit?.(recruit) ? (
+                      <Button variant="secondary" size="sm" onClick={() => onModifyClick(recruit.id)}>
+                        Modify
+                      </Button>
+                    ) : null}
+                    {onTransferClick && canTransferRecruit?.(recruit) ? (
+                      <Button variant="secondary" size="sm" onClick={() => onTransferClick(recruit.id)}>
+                        Transfer
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             </Card>
           ))}

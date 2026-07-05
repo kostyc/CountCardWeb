@@ -11,6 +11,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { debugLog } from '@/lib/utils/debugLogger';
+import { RecruitQuickActions } from '@/components/recruits/RecruitQuickActions';
+import { useRecruitPermissions } from '@/hooks/useRecruitPermissions';
 
 const QUICK_LINKS = [
   {
@@ -47,6 +49,7 @@ const QUICK_LINKS = [
 
 export default function DashboardPage(): JSX.Element {
   const { user, loading, initialized } = useAuth();
+  const { canCreateAny } = useRecruitPermissions();
   const router = useRouter();
 
   useEffect(() => {
@@ -92,16 +95,40 @@ export default function DashboardPage(): JSX.Element {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="mb-8 sm:mb-10">
-          <h1 className="text-2xl sm:text-3xl font-bold text-text-heading-light dark:text-text-heading-dark">
-            Welcome, {user.displayName || user.email || 'User'}
-          </h1>
-          <p className="mt-1 text-base text-text-secondary-light dark:text-text-secondary-dark">
-            Choose a section to get started.
-          </p>
+        <div className="mb-8 sm:mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-text-heading-light dark:text-text-heading-dark">
+              Welcome, {user.displayName || user.email || 'User'}
+            </h1>
+            <p className="mt-1 text-base text-text-secondary-light dark:text-text-secondary-dark">
+              Choose a section to get started.
+            </p>
+          </div>
+          <RecruitQuickActions className="shrink-0" />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {canCreateAny && (
+            <Link
+              href="/recruits/import"
+              className="group flex flex-col p-6 rounded-xl bg-background-card-light dark:bg-background-card-dark border-2 border-dashed border-marine-red/40 dark:border-marine-red/50 shadow-sm hover:shadow-lg hover:border-marine-red/60 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-marine-red focus:ring-offset-2 min-h-[44px] sm:col-span-2 lg:col-span-3"
+            >
+              <span className="flex shrink-0 items-center justify-center w-14 h-14 rounded-xl bg-marine-red/10 dark:bg-marine-red/20 text-marine-red mb-4">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+              </span>
+              <h2 className="text-lg font-semibold text-text-heading-light dark:text-text-heading-dark">
+                Import roster
+              </h2>
+              <p className="mt-2 text-sm text-text-secondary-light dark:text-text-secondary-dark flex-1">
+                Bulk-add recruits from Excel, PDF, or photos of a printed roster.
+              </p>
+              <span className="mt-4 text-sm font-medium text-marine-red group-hover:underline">
+                Go to Import roster →
+              </span>
+            </Link>
+          )}
           {QUICK_LINKS.map((link) => (
             <Link
               key={link.href}

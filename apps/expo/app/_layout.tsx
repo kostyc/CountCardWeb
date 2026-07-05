@@ -57,7 +57,10 @@ function RootNavigator() {
       <Stack.Screen name="privacy-policy" options={{ title: 'Privacy Policy' }} />
       <Stack.Screen name="terms-of-service" options={{ title: 'Terms of Service' }} />
       <Stack.Screen name="share" options={{ title: 'Share App' }} />
-      <Stack.Screen name="recruits/create" options={{ title: 'Create Recruit' }} />
+      <Stack.Screen name="recruits/create" options={{ title: 'Add Recruit' }} />
+      <Stack.Screen name="recruits/import" options={{ title: 'Import Roster' }} />
+      <Stack.Screen name="recruits/[id]/edit" options={{ title: 'Modify Recruit' }} />
+      <Stack.Screen name="recruits/[id]/transfer" options={{ title: 'Transfer Recruit' }} />
       <Stack.Screen name="count-cards/new" options={{ title: 'New Count Card' }} />
     </Stack>
   );
