@@ -266,6 +266,8 @@ export {
   conversationTypeSchema,
   conversationOrgScopeSchema,
   fitnessScoreEventSchema,
+  receivingUrinalysisSchema,
+  receivingUrinalysisResultSchema,
   receivingChecklistEntrySchema,
   type CustodyPhase,
   type TransferBatchStatus,

@@ -12,4 +12,5 @@ export * from './constants/rtrPlatoonNumbering';
 export * from './constants/recruitStatus';
 export * from './constants/custodyPhase';
 export * from './constants/receivingChecklist';
+export * from './constants/progressEvents';
 export * from './constants/routePlaceholders';

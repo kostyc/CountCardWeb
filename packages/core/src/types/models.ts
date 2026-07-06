@@ -141,10 +141,14 @@ export interface RecruitProfile extends BaseEntity {
   heightInches?: number;
   /** Weight in pounds at intake */
   weightPounds?: number;
+  /** IST scores at Receiving (first fitness event) */
+  initialIst?: FitnessScoreRecord;
   /** Initial PFT scores at Receiving */
   initialPft?: FitnessScoreRecord;
   /** Initial CFT scores at Receiving */
   initialCft?: FitnessScoreRecord;
+  /** Urinalysis result at Receiving */
+  receivingUrinalysis?: ReceivingUrinalysisRecord;
   /** Receiving medical/admin checklist */
   receivingChecklist?: ReceivingChecklistEntry[];
   /** Intended destination assignment (before custody accept) */
@@ -164,6 +168,15 @@ export interface FitnessScoreRecord {
   runSeconds?: number;
   totalScore?: number;
   pass?: boolean;
+  recordedAt?: Date | Timestamp;
+}
+
+/**
+ * Urinalysis result captured at Receiving
+ */
+export interface ReceivingUrinalysisRecord {
+  result: 'pass' | 'fail' | 'pending';
+  notes?: string;
   recordedAt?: Date | Timestamp;
 }
 

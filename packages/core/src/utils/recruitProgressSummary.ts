@@ -1,4 +1,4 @@
-import type { FitnessScoreRecord, RecruitProgressEvent } from '../types/models';
+import type { FitnessScoreRecord, RecruitProgressEvent, ReceivingUrinalysisRecord } from '../types/models';
 import type { ProgressEventType } from '../validation/lifecycleSchemas';
 
 export type RecruitProgressSummary = Partial<Record<ProgressEventType, string>>;
@@ -60,6 +60,18 @@ function formatTotalScore(record: FitnessScoreRecord, compact: boolean): string 
     return compact ? `${score} (F)` : `${score} (fail)`;
   }
   return score;
+}
+
+export function formatReceivingUrinalysis(
+  record?: ReceivingUrinalysisRecord
+): string | undefined {
+  if (!record) return undefined;
+  const resultLabel =
+    record.result === 'pass' ? 'Pass' : record.result === 'fail' ? 'Fail' : 'Pending';
+  if (record.notes?.trim()) {
+    return `${resultLabel} · ${record.notes.trim()}`;
+  }
+  return resultLabel;
 }
 
 export function formatFitnessScore(

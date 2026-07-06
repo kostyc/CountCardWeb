@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { RecruitRank } from '@countcard/core/constants/recruitRanks';
 import { DEFAULT_RECRUIT_RANK } from '@countcard/core/constants/recruitRanks';
@@ -28,9 +28,15 @@ export default function ReceivingIntakeScreen() {
   const [rank, setRank] = useState<RecruitRank | ''>(DEFAULT_RECRUIT_RANK);
   const [heightInches, setHeightInches] = useState('');
   const [weightPounds, setWeightPounds] = useState('');
+  const [istPullUps, setIstPullUps] = useState('');
+  const [istPlankSeconds, setIstPlankSeconds] = useState('');
+  const [istRunMin, setIstRunMin] = useState('');
+  const [istRunSec, setIstRunSec] = useState('');
   const [initialPftPullUps, setInitialPftPullUps] = useState('');
   const [initialPftPlankSeconds, setInitialPftPlankSeconds] = useState('');
   const [initialCftTotal, setInitialCftTotal] = useState('');
+  const [urinalysisResult, setUrinalysisResult] = useState<'pass' | 'fail' | 'pending'>('pending');
+  const [urinalysisNotes, setUrinalysisNotes] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -80,6 +86,16 @@ export default function ReceivingIntakeScreen() {
           ...receivingFields,
           heightInches: heightInches ? Number(heightInches) : undefined,
           weightPounds: parsedWeight,
+          initialIst:
+            istPullUps || istPlankSeconds || istRunMin || istRunSec
+              ? {
+                  pullUps: istPullUps ? Number(istPullUps) : undefined,
+                  plankSeconds: istPlankSeconds ? Number(istPlankSeconds) : undefined,
+                  runMinutes: istRunMin ? Number(istRunMin) : undefined,
+                  runSeconds: istRunSec ? Number(istRunSec) : undefined,
+                  recordedAt: new Date(),
+                }
+              : undefined,
           initialPft:
             initialPftPullUps || initialPftPlankSeconds
               ? {
@@ -91,6 +107,14 @@ export default function ReceivingIntakeScreen() {
           initialCft: initialCftTotal
             ? { totalScore: Number(initialCftTotal), recordedAt: new Date() }
             : undefined,
+          receivingUrinalysis:
+            urinalysisResult !== 'pending' || urinalysisNotes.trim()
+              ? {
+                  result: urinalysisResult,
+                  notes: urinalysisNotes.trim() || undefined,
+                  recordedAt: new Date(),
+                }
+              : undefined,
           createdBy: user.uid,
         },
         user.uid
@@ -148,20 +172,42 @@ export default function ReceivingIntakeScreen() {
         </Text>
       </View>
 
-      <SectionHeader title="Intake metrics" />
+      <SectionHeader title="IST" subtitle="Initial Strength Test — first event at receiving" />
       <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
         <Input
-          label="Height (inches)"
-          value={heightInches}
-          onChangeText={setHeightInches}
+          label="IST pull-ups"
+          value={istPullUps}
+          onChangeText={setIstPullUps}
           keyboardType="number-pad"
         />
         <Input
-          label="Weight (lbs)"
-          value={weightPounds}
-          onChangeText={setWeightPounds}
+          label="IST plank (seconds)"
+          value={istPlankSeconds}
+          onChangeText={setIstPlankSeconds}
           keyboardType="number-pad"
         />
+        <View style={styles.runRow}>
+          <View style={styles.runField}>
+            <Input
+              label="IST 1.5 mi run (min)"
+              value={istRunMin}
+              onChangeText={setIstRunMin}
+              keyboardType="number-pad"
+            />
+          </View>
+          <View style={styles.runField}>
+            <Input
+              label="Run (sec)"
+              value={istRunSec}
+              onChangeText={setIstRunSec}
+              keyboardType="number-pad"
+            />
+          </View>
+        </View>
+      </View>
+
+      <SectionHeader title="Initial PFT / CFT" />
+      <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
         <Input
           label="Initial PFT pull-ups"
           value={initialPftPullUps}
@@ -179,6 +225,64 @@ export default function ReceivingIntakeScreen() {
           value={initialCftTotal}
           onChangeText={setInitialCftTotal}
           keyboardType="number-pad"
+        />
+      </View>
+
+      <SectionHeader title="Physical" />
+      <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
+        <Input
+          label="Height (inches)"
+          value={heightInches}
+          onChangeText={setHeightInches}
+          keyboardType="number-pad"
+        />
+        <Input
+          label="Weight (lbs)"
+          value={weightPounds}
+          onChangeText={setWeightPounds}
+          keyboardType="number-pad"
+        />
+      </View>
+
+      <SectionHeader title="Urinalysis" />
+      <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
+        <Text style={[styles.fieldLabel, { color: theme.colors.textSecondary }]}>Result</Text>
+        <View style={styles.resultRow}>
+          {(['pending', 'pass', 'fail'] as const).map((option) => {
+            const selected = urinalysisResult === option;
+            const label = option === 'pending' ? 'Pending' : option === 'pass' ? 'Pass' : 'Fail';
+            return (
+              <Pressable
+                key={option}
+                accessibilityRole="radio"
+                accessibilityState={{ selected }}
+                onPress={() => setUrinalysisResult(option)}
+                style={({ pressed }) => [
+                  styles.resultChip,
+                  {
+                    backgroundColor: selected ? theme.colors.primary : theme.colors.surface,
+                    borderColor: selected ? theme.colors.primary : theme.colors.border,
+                    opacity: pressed ? 0.88 : 1,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.resultChipText,
+                    { color: selected ? theme.colors.onPrimary : theme.colors.text },
+                  ]}
+                >
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        <Input
+          label="Notes"
+          value={urinalysisNotes}
+          onChangeText={setUrinalysisNotes}
+          placeholder="Optional"
         />
       </View>
 
@@ -201,6 +305,19 @@ const styles = StyleSheet.create({
   },
   lockedOrg: { ...typography.caption, marginTop: -4 },
   fieldError: { ...typography.caption, marginTop: -8, marginBottom: 8 },
+  fieldLabel: { ...typography.caption, fontWeight: '600', marginBottom: 6 },
+  runRow: { flexDirection: 'row', gap: 12 },
+  runField: { flex: 1 },
+  resultRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 8 },
+  resultChip: {
+    borderWidth: 1.5,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  resultChipText: { ...typography.callout, fontWeight: '600' },
   error: { ...typography.body, marginBottom: spacing.sm },
   actions: { gap: 12, marginTop: spacing.sm, marginBottom: spacing.xl },
 });

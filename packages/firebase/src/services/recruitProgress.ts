@@ -12,7 +12,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { getDb } from '../instance';
-import { handleFirestoreError } from './base';
+import { handleFirestoreError, stripUndefined } from './base';
 import type {
   RecruitProgressEvent,
   RecruitComment,
@@ -56,7 +56,7 @@ export async function addRecruitProgressEvent(
       updatedAt: Timestamp.now(),
       createdBy: input.recordedBy,
     };
-    const docRef = await addDoc(ref, payload);
+    const docRef = await addDoc(ref, stripUndefined(payload));
     return docRef.id;
   } catch (error) {
     throw handleFirestoreError(error, `Failed to add progress event for ${recruitId}`);
@@ -99,7 +99,7 @@ export async function addRecruitComment(
       category: input.category,
       createdAt: Timestamp.now(),
     };
-    const docRef = await addDoc(ref, payload);
+    const docRef = await addDoc(ref, stripUndefined(payload));
     return docRef.id;
   } catch (error) {
     throw handleFirestoreError(error, `Failed to add comment for ${recruitId}`);

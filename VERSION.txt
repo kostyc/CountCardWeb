@@ -1,13 +1,15 @@
 CountCard Version Tracking
 ==================================
-Full Version: 2026.0.5.39
+Full Version: 2026.0.5.40
 Store Version: 2026.0.5
-Build Number: 39
+Build Number: 40
 Last Updated: 2026-07-06
 Release Type: Development
 
 Version History:
 ---------------
+2026.0.5.40 (2026-07-06) - Recruit receiving IST, urinalysis, and roster UX
+
 2026.0.5.39 (2026-07-06) - Web deprecation Phase 7 — Expo-only client
 
 2026.0.5.38 (2026-07-06) - Web deprecation Phase 5 — Expo UI parity

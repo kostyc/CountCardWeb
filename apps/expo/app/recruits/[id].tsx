@@ -8,6 +8,7 @@ import { canEditRecruit, canSeeFullRecruitProfile } from '@countcard/core/permis
 import { canPerformReceivingWorkflow } from '@countcard/core/permissions/adminAccess';
 import { CUSTODY_PHASE_METADATA, isTrainingCustodyPhase } from '@countcard/core/constants/custodyPhase';
 import { RecruitProgressSection } from '@/components/recruits/RecruitProgressSection';
+import { RecruitReceivingSection } from '@/components/recruits/RecruitReceivingSection';
 import { RecruitWeightSection } from '@/components/recruits/RecruitWeightSection';
 import { useAuth } from '@/context/AuthContext';
 import { useAppUser } from '@/hooks/useAppUser';
@@ -202,6 +203,20 @@ export default function RecruitDetailScreen() {
         </>
       ) : null}
 
+
+      {user ? (
+        <RecruitReceivingSection
+          recruit={recruit}
+          appUser={appUser}
+          userId={user.uid}
+          onUpdated={() => {
+            if (!id) return;
+            getRecruitProfileById(id).then((data) => {
+              if (data) setRecruit(data);
+            });
+          }}
+        />
+      ) : null}
 
       {user ? (
         <RecruitWeightSection recruit={recruit} appUser={appUser} userId={user.uid} />

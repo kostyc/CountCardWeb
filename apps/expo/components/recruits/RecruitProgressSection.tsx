@@ -7,6 +7,7 @@ import {
   formatProgressEventDisplay,
   isFitnessScoreEventType,
 } from '@countcard/core/utils/recruitProgressSummary';
+import { PROGRESS_EVENT_ORDER, progressEventLabel } from '@countcard/core/constants/progressEvents';
 import { canEditRecruitProgress } from '@countcard/core/permissions/lifecycle';
 import type { AppUser } from '@countcard/core/types/auth';
 import {
@@ -17,22 +18,14 @@ import { Button, Input, SectionHeader } from '@/components/ui';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { cardShadow, radius, spacing, typography } from '@/constants/theme';
 
-const EVENT_TYPES: { value: ProgressEventType; label: string }[] = [
-  { value: 'initial_pft', label: 'Initial PFT' },
-  { value: 'initial_cft', label: 'Initial CFT' },
-  { value: 'initial_drill', label: 'Initial IST / Drill' },
-  { value: 'final_pft', label: 'Final PFT' },
-  { value: 'final_cft', label: 'Final CFT' },
-  { value: 'final_drill', label: 'Final Drill' },
-  { value: 'initial_inspection', label: 'Initial Inspection' },
-  { value: 'final_inspection', label: 'Final Inspection' },
-  { value: 'bn_co_inspection', label: 'Bn Co Inspection' },
-  { value: 'hike', label: 'Hiking' },
-  { value: 'general_comment', label: 'General Comment' },
-];
+const EVENT_TYPES: { value: ProgressEventType; label: string }[] = PROGRESS_EVENT_ORDER.map(
+  (value) => ({ value, label: progressEventLabel(value) })
+);
 
 const PROGRESS_SUMMARY_FIELDS: { key: ProgressEventType; label: string }[] = [
-  { key: 'initial_drill', label: 'Initial IST / Drill' },
+  { key: 'initial_drill', label: 'IST' },
+  { key: 'initial_pft', label: 'Initial PFT' },
+  { key: 'initial_cft', label: 'Initial CFT' },
   { key: 'final_pft', label: 'Final PFT' },
   { key: 'final_cft', label: 'Final CFT' },
   { key: 'final_drill', label: 'Final Drill' },
@@ -156,7 +149,7 @@ export function RecruitProgressSection({ recruit, appUser, userId }: RecruitProg
   const [events, setEvents] = useState<RecruitProgressEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [eventType, setEventType] = useState<ProgressEventType>('final_pft');
+  const [eventType, setEventType] = useState<ProgressEventType>('initial_drill');
   const [eventNotes, setEventNotes] = useState('');
   const [scorePullUps, setScorePullUps] = useState('');
   const [scorePlank, setScorePlank] = useState('');
@@ -255,6 +248,10 @@ export function RecruitProgressSection({ recruit, appUser, userId }: RecruitProg
     <>
       <SectionHeader title="Fitness & progress" />
       <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
+        <Text style={[styles.label, { color: theme.colors.textMuted }]}>IST (profile)</Text>
+        <Text style={[styles.value, styles.multilineValue, { color: theme.colors.text }]}>
+          {formatFitnessScore(recruit.initialIst, { multiline: true }) ?? '—'}
+        </Text>
         <Text style={[styles.label, { color: theme.colors.textMuted }]}>Initial PFT (profile)</Text>
         <Text style={[styles.value, { color: theme.colors.text }]}>
           {formatFitnessScore(recruit.initialPft, { multiline: true }) ?? '—'}
@@ -364,8 +361,7 @@ export function RecruitProgressSection({ recruit, appUser, userId }: RecruitProg
             return (
               <View key={event.eventId} style={styles.eventRow}>
                 <Text style={[styles.eventType, { color: theme.colors.text }]}>
-                  {EVENT_TYPES.find((entry) => entry.value === event.type)?.label ??
-                    event.type.replace(/_/g, ' ')}
+                  {progressEventLabel(event.type)}
                 </Text>
                 <Text style={[styles.eventNotes, { color: theme.colors.textSecondary }]}>{display}</Text>
               </View>

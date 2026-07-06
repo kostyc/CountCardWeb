@@ -46,6 +46,14 @@ export const fitnessScoreEventSchema = z.object({
   recordedAt: z.coerce.date().optional(),
 });
 
+export const receivingUrinalysisResultSchema = z.enum(['pass', 'fail', 'pending']);
+
+export const receivingUrinalysisSchema = z.object({
+  result: receivingUrinalysisResultSchema,
+  notes: z.string().max(500).optional(),
+  recordedAt: z.coerce.date().optional(),
+});
+
 export const organizationalAssignmentPartialSchema = z.object({
   regiment: regimentSchema.optional(),
   battalion: battalionSchema.optional(),

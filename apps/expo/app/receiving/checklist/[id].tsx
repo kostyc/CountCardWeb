@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useAppUser } from '@/hooks/useAppUser';
 import { Screen, SectionHeader, Button } from '@/components/ui';
 import { ReceivingChecklistForm } from '@/components/receiving/ReceivingChecklistForm';
+import { RecruitReceivingSection } from '@/components/recruits/RecruitReceivingSection';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { spacing, typography } from '@/constants/theme';
 
@@ -74,6 +75,14 @@ export default function ReceivingChecklistScreen() {
         subtitle="Receiving medical checklist"
       />
       <ReceivingChecklistForm recruit={recruit} onUpdated={reload} />
+      {user ? (
+        <RecruitReceivingSection
+          recruit={recruit}
+          appUser={appUser}
+          userId={user.uid}
+          onUpdated={reload}
+        />
+      ) : null}
       <Button title="View recruit profile" variant="secondary" onPress={() => router.push(`/recruits/${id}`)} />
       <Button title="Back to transfers" variant="secondary" onPress={() => router.push('/receiving/transfers')} />
     </Screen>

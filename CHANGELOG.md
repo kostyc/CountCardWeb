@@ -5,10 +5,14 @@ All notable changes to CountCard Web are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.5.39...HEAD)
+## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.5.40...HEAD)
+
+## [2026.0.5.40] - 2026-07-06 — Recruit receiving IST, urinalysis, and roster UX
 
 ### Added
 
+- Recruit profile **Receiving** section — IST scores and urinalysis result captured at intake, editable on profile and receiving checklist.
+- Receiving **intake** — IST fields (first event), urinalysis, then initial PFT/CFT and physical metrics.
 - Recruit **weight tracking** — append-only weigh-ins with history, trend chart, and analytics (latest, change, min/max) on each recruit profile.
 - Recruit **Middle Initial** field — spreadsheet column (default visible), edit screen, and profile detail.
 - Expo recruits **Spreadsheet** layout — column/row grid (Last Name, First Name, EDIPI, platoon, rank, status, and more) with customizable visible columns saved on device.
@@ -17,11 +21,17 @@ Version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 
 ### Changed
 
+- **IST** is the first progress event — event picker, summary, and profile display order IST before PFT/CFT; `initial_drill` labeled IST.
 - Recruit progress **event type** picker on mobile — tappable chips replace the dropdown for faster selection on narrow screens.
 - PFT/CFT/IST fitness scores show **per-event breakdown** (pull-ups, plank, run, crunches, total) on recruit detail, progress timeline, and spreadsheet columns.
 - Expo recruit spreadsheet columns stay aligned with headers; Rank/Status selects constrained to cell width.
 - Expo recruit spreadsheet columns auto-size to cell text (single line); **Comments** column wraps and is available in column picker.
 - Unassigned recruits (missing company or platoon) sort to the **top** of the list and appear first in battalion company-column view.
+
+### Fixed
+
+- Recruit progress events on mobile no longer fail when optional fields (location, notes, scores, pass/fail) are omitted — client Firestore writes now strip undefined values before `addDoc`.
+- **Modify recruit** screen now includes height and weight at intake fields so receiving staff can add or correct intake metrics after creation (detail page remains read-only).
 
 ## [2026.0.5.39] - 2026-07-06 — Web deprecation Phase 7 — Expo-only client
 

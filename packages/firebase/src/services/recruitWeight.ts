@@ -4,7 +4,7 @@
 
 import { collection, addDoc, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
 import { getDb } from '../instance';
-import { handleFirestoreError } from './base';
+import { handleFirestoreError, stripUndefined } from './base';
 import type { RecruitWeightEntry } from '@countcard/core/types/models';
 import { updateRecruitProfile } from './recruits';
 
@@ -33,7 +33,7 @@ export async function addRecruitWeightEntry(
       updatedAt: recordedAt,
       createdBy: input.recordedBy,
     };
-    const docRef = await addDoc(ref, payload);
+    const docRef = await addDoc(ref, stripUndefined(payload));
 
     await updateRecruitProfile(
       recruitId,
