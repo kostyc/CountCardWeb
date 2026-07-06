@@ -3,10 +3,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp } from 'firebase-admin/firestore';
 import '@/lib/firebase/config';
 import { verifyAuthToken } from '@/lib/permissions/server';
-import { signDILeadershipCard } from '@/lib/services/firestore/diLeadershipCards';
+import { signDILeadershipCardAdmin } from '@/lib/lifecycle/diLeadershipCardsAdmin';
 import { canCreateDiCard } from '@/lib/lifecycle/permissions';
 import { logError } from '@/lib/utils/logger';
 import { z } from 'zod';
@@ -37,12 +37,12 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
-    await signDILeadershipCard(
+    await signDILeadershipCardAdmin(
       id,
       parsed.data.which,
       {
         userId: token.uid,
-        signedAt: Timestamp.now(),
+        signedAt: Timestamp.now().toDate(),
         signatureImageUrl: parsed.data.signatureImageUrl,
         attestationHash: parsed.data.attestationHash,
       },

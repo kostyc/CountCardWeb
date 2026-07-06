@@ -1,0 +1,57 @@
+---
+description: CountCard gcloud/Firebase auth — never set global default project; reauth each session
+alwaysApply: true
+---
+
+# CountCard gcloud / Firebase auth
+
+User runs **many** GCP/Firebase projects. Do **not** change their global gcloud default.
+
+## Never do
+
+- `gcloud config set project …` (changes global active project for all terminals)
+- `gcloud auth application-default set-quota-project …` without explicit user approval (writes global ADC quota project)
+- Assume ADC or `gcloud config get-value project` matches CountCard
+
+## CountCard project identity
+
+| Setting | Value |
+|---------|--------|
+| GCP / Firebase project ID | `countcard-94c5b` |
+| Firebase Admin SA | `firebase-adminsdk-fbsvc@countcard-94c5b.iam.gserviceaccount.com` |
+| Repo-local Firebase default | `.firebaserc` only (safe in this repo) |
+
+Service account **key creation is blocked** by org policy — use ADC, not `FIREBASE_ADMIN_*` key files.
+
+## Start of each CountCard session (before Admin SDK / deploy / E2E)
+
+Ask the user to reauth in **their** terminal (browser required). Give them this checklist:
+
+```bash
+cd /Users/daddymac/Projects/Countcard
+gcloud auth login
+firebase login --reauth
+gcloud auth application-default login
+```
+
+Then run verification (agent or user):
+
+```bash
+./scripts/verify-countcard-auth.sh
+```
+
+Do **not** proceed with `sprint27-e2e.mjs`, Firestore deploy, or API export tests until verify passes.
+
+## Scoped commands (always pass project explicitly)
+
+```bash
+gcloud … --project=countcard-94c5b
+GOOGLE_CLOUD_QUOTA_PROJECT=countcard-94c5b node scripts/verify-admin-sdk.mjs
+firebase deploy --only firestore:rules   # uses .firebaserc in repo root
+```
+
+## If verify fails
+
+- `invalid_rapt` / `Reauthentication failed` → user must rerun login commands above
+- Key creation blocked → expected; stay on ADC path
+- Wrong project in output → stop; user may be on a different GCP account or project

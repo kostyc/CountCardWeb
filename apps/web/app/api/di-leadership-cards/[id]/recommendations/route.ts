@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/permissions/server';
 import { diRecommendationInputSchema } from '@countcard/core/validation/lifecycleSchemas';
-import { appendDIRecommendation } from '@/lib/services/firestore/diLeadershipCards';
+import { appendDIRecommendationAdmin } from '@/lib/lifecycle/diLeadershipCardsAdmin';
 import { canCreateDiCard } from '@/lib/lifecycle/permissions';
 import { logError } from '@/lib/utils/logger';
 
@@ -29,7 +29,7 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
-    await appendDIRecommendation(id, token.uid, parsed.data.text, token.uid);
+    await appendDIRecommendationAdmin(id, token.uid, parsed.data.text, token.uid);
     return NextResponse.json({ success: true });
   } catch (error) {
     logError(error as Error, 'API.diLeadershipCards.recommendations');

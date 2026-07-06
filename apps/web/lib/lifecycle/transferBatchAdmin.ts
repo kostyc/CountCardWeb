@@ -12,13 +12,18 @@ function batchRef(id: string) {
   return adminDb.collection('transferBatches').doc(id);
 }
 
+function omitUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
+  return Object.fromEntries(Object.entries(obj).filter(([, value]) => value !== undefined)) as Partial<T>;
+}
+
 function historyEntry(action: string, userId: string, notes?: string) {
-  return {
+  const entry: { action: string; timestamp: Date; userId: string; notes?: string } = {
     action,
     timestamp: Timestamp.now().toDate(),
     userId,
-    notes,
   };
+  if (notes !== undefined) entry.notes = notes;
+  return entry;
 }
 
 export async function createTransferBatchAdmin(
@@ -45,7 +50,7 @@ export async function createTransferBatchAdmin(
     },
     destinationAssignment: data.destinationAssignment,
     recruitIds: data.recruitIds,
-    notes: data.notes,
+    ...(data.notes !== undefined ? { notes: data.notes } : {}),
     workflowHistory: [historyEntry('created', data.createdBy)],
     createdAt: now.toDate(),
     updatedAt: now.toDate(),
@@ -139,13 +144,13 @@ export async function acceptTransferBatchAdmin(batchId: string, userId: string):
     const recruitSnap = await recruitRef.get();
     if (!recruitSnap.exists) continue;
     const recruitData = recruitSnap.data() as Record<string, unknown>;
-    const fromAssignment = {
+    const fromAssignment = omitUndefined({
       regiment: recruitData.regiment,
       battalion: recruitData.battalion,
       company: recruitData.company,
       series: recruitData.series,
       platoon: recruitData.platoon,
-    };
+    });
     const transferEntry = {
       fromAssignment,
       toAssignment: dest,
@@ -189,7 +194,7 @@ export async function rejectTransferBatchAdmin(
     status: 'rejected',
     rejectedAt: Timestamp.now(),
     rejectedBy: userId,
-    rejectionReason: reason,
+    ...(reason !== undefined ? { rejectionReason: reason } : {}),
     workflowHistory: FieldValue.arrayUnion(historyEntry('rejected', userId, reason)),
     updatedBy: userId,
     updatedAt: Timestamp.now(),

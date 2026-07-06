@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import '@/lib/firebase/config';
 import { verifyAuthToken } from '@/lib/permissions/server';
 import { conversationTypeSchema, conversationOrgScopeSchema } from '@countcard/core/validation/lifecycleSchemas';
-import { createOrgChannelConversation } from '@/lib/services/firestore/conversations';
+import { createOrgChannelConversationAdmin } from '@/lib/lifecycle/conversationsAdmin';
 import { canCreateOrgChannel } from '@/lib/lifecycle/permissions';
 import { z } from 'zod';
 import { logError } from '@/lib/utils/logger';
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Use direct conversation flow for DMs' }, { status: 400 });
     }
 
-    const conversationId = await createOrgChannelConversation({
+    const conversationId = await createOrgChannelConversationAdmin({
       conversationType: parsed.data.conversationType,
       organizationalScope: parsed.data.organizationalScope,
       createdBy: token.uid,

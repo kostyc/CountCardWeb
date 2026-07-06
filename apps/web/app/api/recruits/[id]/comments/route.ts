@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/permissions/server';
 import { recruitCommentInputSchema } from '@countcard/core/validation/lifecycleSchemas';
-import { addRecruitComment } from '@/lib/services/firestore/recruitProgress';
+import { addRecruitCommentAdmin } from '@/lib/lifecycle/recruitProgressAdmin';
 import { canEditRecruitProgress } from '@/lib/lifecycle/permissions';
 import { adminDb } from '@/lib/firebase/admin';
 import type { RecruitProfile } from '@/types/models';
@@ -37,7 +37,7 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
-    const commentDocId = await addRecruitComment(recruitId, {
+    const commentDocId = await addRecruitCommentAdmin(recruitId, {
       authorId: token.uid,
       authorRole: token.role,
       body: parsed.data.body,

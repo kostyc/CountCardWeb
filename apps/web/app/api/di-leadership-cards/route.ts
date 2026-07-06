@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import '@/lib/firebase/config';
 import { verifyAuthToken } from '@/lib/permissions/server';
 import { diLeadershipCardInputSchema } from '@countcard/core/validation/lifecycleSchemas';
-import { createDILeadershipCard } from '@/lib/services/firestore/diLeadershipCards';
+import { createDILeadershipCardAdmin } from '@/lib/lifecycle/diLeadershipCardsAdmin';
 import { canCreateDiCard } from '@/lib/lifecycle/permissions';
 import { logError } from '@/lib/utils/logger';
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const cardId = `dic-${Date.now()}`;
     const org = token.organizationalAssignment;
-    await createDILeadershipCard(
+    await createDILeadershipCardAdmin(
       cardId,
       {
         cardId,

@@ -35,12 +35,13 @@ function updatedAtMs(value: TransferBatch['updatedAt']): number {
 }
 
 function historyEntry(action: string, userId: string, notes?: string) {
-  return {
+  const entry: { action: string; timestamp: Date; userId: string; notes?: string } = {
     action,
     timestamp: new Date(),
     userId,
-    notes,
   };
+  if (notes !== undefined) entry.notes = notes;
+  return entry;
 }
 
 function omitUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {

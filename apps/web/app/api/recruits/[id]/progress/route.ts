@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthToken } from '@/lib/permissions/server';
 import { progressEventInputSchema } from '@countcard/core/validation/lifecycleSchemas';
-import { addRecruitProgressEvent } from '@/lib/services/firestore/recruitProgress';
+import { addRecruitProgressEventAdmin } from '@/lib/lifecycle/recruitProgressAdmin';
 import { canEditRecruitProgress } from '@/lib/lifecycle/permissions';
 import { adminDb } from '@/lib/firebase/admin';
 import type { RecruitProfile } from '@/types/models';
@@ -37,7 +37,7 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
-    const eventDocId = await addRecruitProgressEvent(recruitId, {
+    const eventDocId = await addRecruitProgressEventAdmin(recruitId, {
       ...parsed.data,
       recordedBy: token.uid,
     });
