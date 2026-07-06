@@ -16,6 +16,8 @@ interface SelectProps<T extends string> {
   placeholder?: string;
   /** Tighter layout for spreadsheet-style grids */
   compact?: boolean;
+  /** Stretch trigger to parent cell width (grid cells) */
+  fillWidth?: boolean;
 }
 
 export function Select<T extends string>({
@@ -25,13 +27,14 @@ export function Select<T extends string>({
   onChange,
   placeholder = 'Select…',
   compact = false,
+  fillWidth = false,
 }: SelectProps<T>) {
   const theme = useAppTheme();
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.value === value);
 
   return (
-    <View style={[styles.wrap, compact && styles.wrapCompact]}>
+    <View style={[styles.wrap, compact && styles.wrapCompact, fillWidth && styles.wrapFill]}>
       {label ? (
         <Text style={[styles.label, { color: theme.colors.textSecondary }]}>{label}</Text>
       ) : null}
@@ -40,15 +43,20 @@ export function Select<T extends string>({
         style={[
           styles.trigger,
           compact && styles.triggerCompact,
+          fillWidth && styles.triggerFill,
           { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
         ]}
       >
         <Text
           numberOfLines={1}
-          style={{
-            color: selected ? theme.colors.text : theme.colors.textMuted,
-            fontSize: compact ? 13 : 16,
-          }}
+          ellipsizeMode="tail"
+          style={[
+            fillWidth && styles.triggerTextFill,
+            {
+              color: selected ? theme.colors.text : theme.colors.textMuted,
+              fontSize: compact ? 13 : 16,
+            },
+          ]}
         >
           {selected?.label ?? placeholder}
         </Text>
@@ -104,6 +112,11 @@ export function Select<T extends string>({
 const styles = StyleSheet.create({
   wrap: { marginBottom: 16 },
   wrapCompact: { marginBottom: 0 },
+  wrapFill: {
+    width: '100%',
+    maxWidth: '100%',
+    alignSelf: 'stretch',
+  },
   label: { ...typography.caption, fontWeight: '600', marginBottom: 6, marginLeft: 2 },
   trigger: {
     borderWidth: 1.5,
@@ -119,6 +132,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 4,
     minHeight: 30,
+  },
+  triggerFill: {
+    width: '100%',
+    maxWidth: '100%',
+    alignSelf: 'stretch',
+    overflow: 'hidden',
+  },
+  triggerTextFill: {
+    flexShrink: 1,
   },
   backdrop: {
     flex: 1,

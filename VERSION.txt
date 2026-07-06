@@ -1,13 +1,29 @@
 CountCard Version Tracking
 ==================================
-Full Version: 2026.0.5.31
+Full Version: 2026.0.5.39
 Store Version: 2026.0.5
-Build Number: 31
-Last Updated: 2026-07-05
+Build Number: 39
+Last Updated: 2026-07-06
 Release Type: Development
 
 Version History:
 ---------------
+2026.0.5.39 (2026-07-06) - Web deprecation Phase 7 — Expo-only client
+
+2026.0.5.38 (2026-07-06) - Web deprecation Phase 5 — Expo UI parity
+
+2026.0.5.37 (2026-07-06) - Kilo receiving ingestion workflow
+
+2026.0.5.36 (2026-07-06) - Shared design tokens across web and Expo
+
+2026.0.5.35 (2026-07-06) - Fix recruit list after import
+
+2026.0.5.34 (2026-07-06) - Recruit search by last name or EDIPI
+
+2026.0.5.33 (2026-07-06) - Recruits list Firestore indexes
+
+2026.0.5.32 (2026-07-05) - Sprint 27 API E2E via ADC
+
 2026.0.5.31 (2026-07-05) - Sprint 27 manual verification complete
 
 2026.0.4.30 (2026-07-05) - Sprint 27 transfer batch E2E unblocked

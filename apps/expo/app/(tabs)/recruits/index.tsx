@@ -11,6 +11,11 @@ import {
 import { listRecruits } from '@countcard/firebase/services/recruits';
 import type { RecruitProfile } from '@countcard/core/types/models';
 import { formatEdipiForDisplay } from '@countcard/core/utils/recruitEdipi';
+import { matchesRecruitSearch } from '@countcard/core/utils/recruitSearch';
+import { buildRecruitCompanySections } from '@countcard/core/utils/recruitCompanyGrouping';
+import { prioritizeUnassignedRecruits } from '@countcard/core/utils/recruitAssignment';
+import { DEFAULT_RECRUIT_LIST_COLUMN_IDS } from '@countcard/core/utils/recruitListColumns';
+import type { RecruitProgressSummary } from '@countcard/core/utils/recruitProgressSummary';
 import {
   canViewRecruit,
   getRecruitOrganizationalScope,
@@ -22,13 +27,17 @@ import type { RecruitSortField, RecruitSortOrder } from '@countcard/core/permiss
 import { getCompaniesByBattalion } from '@countcard/core/constants/organizations';
 import type { Battalion, Company } from '@countcard/core/validation/organizationSchemas';
 import { hasPermission, isAdminRole } from '@countcard/core/permissions/roles';
+import {
+  loadProgressSummariesForRecruits,
+  progressColumnNeedsFetch,
+} from '@countcard/firebase/services/recruitProgress';
 import { useRouter } from 'expo-router';
 import { Screen, ListRow, EmptyState, StatusBadge, Button } from '@/components/ui';
 import { RecruitListToolbar } from '@/components/recruits/RecruitListToolbar';
-import {
-  RecruitCompanySectionList,
-  type RecruitCompanySection,
-} from '@/components/recruits/RecruitCompanySectionList';
+import { RecruitCompanySectionList } from '@/components/recruits/RecruitCompanySectionList';
+import { RecruitListGrid } from '@/components/recruits/RecruitListGrid';
+import { RecruitColumnPicker } from '@/components/recruits/RecruitColumnPicker';
+import { useRecruitListColumns } from '@/hooks/useRecruitListColumns';
 import { useAuth } from '@/context/AuthContext';
 import { useAppUser } from '@/hooks/useAppUser';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -82,7 +91,7 @@ function RecruitActionBar({
         onPress={onCreate}
         style={[styles.actionChip, { backgroundColor: theme.colors.primary }]}
       >
-        <Text style={[styles.actionChipText, { color: '#fff' }]}>Add Recruit</Text>
+        <Text style={[styles.actionChipText, { color: theme.colors.onPrimary }]}>Add Recruit</Text>
       </Pressable>
     </View>
   );
@@ -93,12 +102,24 @@ export default function RecruitsScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { appUser, loading: userLoading } = useAppUser(user);
+  const {
+    ready: columnsReady,
+    visibleColumnIds,
+    viewStyle,
+    setViewStyle,
+    toggleColumn,
+    setVisibleColumnIds,
+  } = useRecruitListColumns();
   const [recruits, setRecruits] = useState<RecruitProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sortField, setSortField] = useState<RecruitSortField>('name');
   const [sortOrder, setSortOrder] = useState<RecruitSortOrder>('asc');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [columnPickerOpen, setColumnPickerOpen] = useState(false);
+  const [progressSummaries, setProgressSummaries] = useState<Record<string, RecruitProgressSummary>>({});
+  const [progressLoading, setProgressLoading] = useState(false);
 
   const listViewMode = useMemo(() => {
     const role = appUser?.customClaims?.role || appUser?.profile?.role;
@@ -163,28 +184,41 @@ export default function RecruitsScreen() {
     loadRecruits();
   }, [loadRecruits, userLoading]);
 
-  const sortedRecruits = useMemo(
-    () => sortRecruits(recruits, sortField, sortOrder),
-    [recruits, sortField, sortOrder]
+  const filteredRecruits = useMemo(
+    () => recruits.filter((recruit) => matchesRecruitSearch(recruit, searchTerm)),
+    [recruits, searchTerm]
   );
 
-  const companySections = useMemo((): RecruitCompanySection[] => {
-    const grouped: Record<string, RecruitProfile[]> = {};
-    for (const company of battalionCompanies) {
-      grouped[company] = [];
+  const sortedRecruits = useMemo(() => {
+    const sorted = sortRecruits(filteredRecruits, sortField, sortOrder);
+    return prioritizeUnassignedRecruits(sorted, battalionCompanies);
+  }, [filteredRecruits, sortField, sortOrder, battalionCompanies]);
+
+  const companySections = useMemo(
+    () => buildRecruitCompanySections(sortedRecruits, battalionCompanies),
+    [sortedRecruits, battalionCompanies]
+  );
+
+  useEffect(() => {
+    if (viewStyle !== 'grid' || !progressColumnNeedsFetch(visibleColumnIds)) {
+      setProgressSummaries({});
+      return;
     }
-    for (const recruit of sortedRecruits) {
-      const company = recruit.company;
-      if (company && grouped[company]) {
-        grouped[company].push(recruit);
-      }
-    }
-    return battalionCompanies.map((company) => ({
-      title: company,
-      company,
-      data: grouped[company] ?? [],
-    }));
-  }, [sortedRecruits, battalionCompanies]);
+
+    let cancelled = false;
+    setProgressLoading(true);
+    void loadProgressSummariesForRecruits(sortedRecruits.map((recruit) => recruit.recruitId))
+      .then((summaries) => {
+        if (!cancelled) setProgressSummaries(summaries);
+      })
+      .finally(() => {
+        if (!cancelled) setProgressLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sortedRecruits, viewStyle, visibleColumnIds]);
 
   const goImport = () => router.push('/recruits/import');
   const goCreate = () => router.push('/recruits/create');
@@ -194,7 +228,20 @@ export default function RecruitsScreen() {
     loadRecruits();
   };
 
-  if (userLoading || loading) {
+  const toolbarProps = {
+    searchTerm,
+    onSearchChange: setSearchTerm,
+    sortField,
+    sortOrder,
+    onSortFieldChange: setSortField,
+    onSortOrderToggle: () => setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc')),
+    scopeLabel,
+    viewStyle,
+    onViewStyleChange: setViewStyle,
+    onCustomizeColumns: () => setColumnPickerOpen(true),
+  };
+
+  if (userLoading || loading || !columnsReady) {
     return (
       <Screen padded={false}>
         <RecruitActionBar canCreateAny={canCreateAny} onImport={goImport} onCreate={goCreate} />
@@ -223,17 +270,11 @@ export default function RecruitsScreen() {
     );
   }
 
-  if (sortedRecruits.length === 0) {
+  if (recruits.length === 0) {
     return (
       <Screen scroll>
         <RecruitActionBar canCreateAny={canCreateAny} onImport={goImport} onCreate={goCreate} />
-        <RecruitListToolbar
-          sortField={sortField}
-          sortOrder={sortOrder}
-          onSortFieldChange={setSortField}
-          onSortOrderToggle={() => setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'))}
-          scopeLabel={scopeLabel}
-        />
+        <RecruitListToolbar {...toolbarProps} />
         <EmptyState
           title="No recruits yet"
           message="Import a roster from photos or spreadsheet data, or create recruits one at a time."
@@ -249,18 +290,53 @@ export default function RecruitsScreen() {
     );
   }
 
+  if (sortedRecruits.length === 0) {
+    return (
+      <Screen scroll>
+        <RecruitActionBar canCreateAny={canCreateAny} onImport={goImport} onCreate={goCreate} />
+        <RecruitListToolbar {...toolbarProps} />
+        <EmptyState
+          title="No matching recruits"
+          message="Try a different last name or EDIPI."
+          icon="magnifyingglass"
+        />
+      </Screen>
+    );
+  }
+
   return (
     <Screen scroll={false} padded={false}>
       <RecruitActionBar canCreateAny={canCreateAny} onImport={goImport} onCreate={goCreate} />
-      <RecruitListToolbar
-        sortField={sortField}
-        sortOrder={sortOrder}
-        onSortFieldChange={setSortField}
-        onSortOrderToggle={() => setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'))}
-        scopeLabel={scopeLabel}
+      <RecruitListToolbar {...toolbarProps} />
+      <RecruitColumnPicker
+        visible={columnPickerOpen}
+        visibleColumnIds={visibleColumnIds}
+        onToggleColumn={toggleColumn}
+        onClose={() => setColumnPickerOpen(false)}
+        onReset={() => void setVisibleColumnIds([...DEFAULT_RECRUIT_LIST_COLUMN_IDS])}
       />
 
-      {listViewMode === 'company_columns' ? (
+      {viewStyle === 'grid' ? (
+        <>
+          {progressLoading ? (
+            <View style={styles.progressLoading}>
+              <ActivityIndicator color={theme.colors.primary} size="small" />
+              <Text style={{ color: theme.colors.textMuted, fontSize: 13 }}>Loading progress columns…</Text>
+            </View>
+          ) : null}
+          <RecruitListGrid
+            recruits={sortedRecruits}
+            visibleColumnIds={visibleColumnIds}
+            progressSummaries={progressSummaries}
+            battalionCompanies={battalionCompanies}
+            appUser={appUser}
+            userId={user?.uid ?? ''}
+            onRecruitPress={(recruitId) => router.push(`/recruits/${recruitId}`)}
+            onRecruitsUpdated={loadRecruits}
+            refreshing={refreshing}
+          />
+        </>
+      ) : listViewMode === 'company_columns' ? (
         <RecruitCompanySectionList
           sections={companySections}
           onRecruitPress={(id) => router.push(`/recruits/${id}`)}
@@ -330,5 +406,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
     borderRadius: radius.lg,
     overflow: 'hidden',
+  },
+  progressLoading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: 20,
+    paddingBottom: spacing.xs,
   },
 });

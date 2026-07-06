@@ -15,8 +15,19 @@ functions/node_modules
 # next.js
 /.next/
 /out/
-apps/web/.next/
-apps/web/out/
+archive/apps-web/.next/
+archive/apps-web/out/
+
+# expo
+apps/expo/.expo/
+apps/expo/web-build/
+apps/expo/dist/
+
+# cloud functions (compiled on deploy)
+functions/lib/
+
+# turbo
+.turbo/
 
 # production
 /build

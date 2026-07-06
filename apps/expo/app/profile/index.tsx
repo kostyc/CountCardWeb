@@ -5,6 +5,7 @@ import { verifyCrossPlatformCompatibility } from '@countcard/encryption';
 import { useAuth } from '@/context/AuthContext';
 import { getUserProfileById } from '@countcard/firebase/services/userProfiles';
 import { Screen, SectionHeader, StatusBadge, Button } from '@/components/ui';
+import EncryptionKeyManagement from '@/components/profile/EncryptionKeyManagement';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { cardShadow, radius, spacing, typography } from '@/constants/theme';
 
@@ -66,12 +67,7 @@ export default function ProfileScreen() {
       </View>
 
       <SectionHeader title="Key management" subtitle="Generate, rotate, and recover keys" />
-      <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
-        <Text style={[styles.body, { color: theme.colors.textSecondary }]}>
-          Advanced key management UI is available on web. Native key flows will ship in a future
-          release.
-        </Text>
-      </View>
+      <EncryptionKeyManagement variant="summary" />
     </Screen>
   );
 }

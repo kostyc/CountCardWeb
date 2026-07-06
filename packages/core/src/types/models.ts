@@ -75,6 +75,8 @@ export interface RecruitProfile extends BaseEntity {
   firstName: string;
   /** Last name */
   lastName: string;
+  /** Middle initial (optional) */
+  middleInitial?: string;
   /** Recruit pay grade (E-1, E-2, or E-3) */
   rank: RecruitRank;
   /** Recruit status */
@@ -229,6 +231,10 @@ export interface TransferBatch extends BaseEntity {
   publishedBy?: string;
   initiatedAt?: Date | Timestamp;
   initiatedBy?: string;
+  firstSgtReviewedAt?: Date | Timestamp;
+  firstSgtReviewedBy?: string;
+  cdiReviewedAt?: Date | Timestamp;
+  cdiReviewedBy?: string;
   completedAt?: Date | Timestamp;
   completedBy?: string;
   rejectedAt?: Date | Timestamp;
@@ -271,6 +277,19 @@ export interface RecruitComment {
   body: string;
   category: RecruitCommentCategory;
   createdAt: Date | Timestamp;
+}
+
+
+/**
+ * Append-only recruit weight measurement
+ */
+export interface RecruitWeightEntry extends BaseEntity {
+  entryId: string;
+  recruitId: string;
+  weightPounds: number;
+  recordedAt: Date | Timestamp;
+  recordedBy: string;
+  notes?: string;
 }
 
 /**
@@ -535,6 +554,8 @@ export interface UserProfileDocument extends BaseEntity {
   firstName: string;
   /** Last name */
   lastName: string;
+  /** Middle initial (optional) */
+  middleInitial?: string;
   /** USMC rank */
   rank: USMCRank;
   /** Display name (Format: [Rank] [Last Name]) */
@@ -613,6 +634,8 @@ export interface EmergencyContact extends BaseEntity {
   firstName: string;
   /** Last name */
   lastName: string;
+  /** Middle initial (optional) */
+  middleInitial?: string;
   /** Relationship to recruit */
   relationship: ContactRelationship;
   /** Primary phone number */

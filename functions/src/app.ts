@@ -6,6 +6,10 @@ import userRoutes from './routes/user';
 import countCardRoutes from './routes/countCards';
 import adminRoutes from './routes/admin';
 import recruitRoutes from './routes/recruits';
+import transferBatchRoutes from './routes/transferBatches';
+import diLeadershipCardRoutes from './routes/diLeadershipCards';
+import conversationRoutes from './routes/conversations';
+import recruitImportRoutes from './routes/recruitImport';
 
 let apiApp: express.Application | undefined;
 
@@ -30,7 +34,11 @@ export function createApiApp(): express.Application {
     base.use('/user', userRoutes);
     base.use('/count-cards', countCardRoutes);
     base.use('/admin', adminRoutes);
+    base.use('/recruits', recruitImportRoutes);
     base.use('/recruits', recruitRoutes);
+    base.use('/transfer-batches', transferBatchRoutes);
+    base.use('/di-leadership-cards', diLeadershipCardRoutes);
+    base.use('/conversations', conversationRoutes);
   };
 
   const apiRouter = express.Router();

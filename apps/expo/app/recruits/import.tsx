@@ -12,6 +12,11 @@ import { useRouter } from 'expo-router';
 import type { RecruitRank } from '@countcard/core/constants/recruitRanks';
 import { DEFAULT_RECRUIT_RANK } from '@countcard/core/constants/recruitRanks';
 import { hasPermission, isAdminRole } from '@countcard/core/permissions/roles';
+import { canPerformReceivingWorkflow } from '@countcard/core/permissions/adminAccess';
+import { RECEIVING_DEFAULT_ASSIGNMENT, RECEIVING_PLATOON } from '@countcard/core/constants/custodyPhase';
+import { getRecruitListFilterLevel } from '@countcard/core/permissions/recruits';
+import { getCompaniesByBattalion } from '@countcard/core/constants/organizations';
+import type { Battalion, Company } from '@countcard/core/validation/organizationSchemas';
 import type { ParsedRecruitImportRow, RecruitImportDuplicateWarning } from '@countcard/core/import/recruitExcelImport';
 import {
   isImportRowReadyForCommit,
@@ -59,6 +64,7 @@ export default function RecruitImportScreen() {
   const theme = useAppTheme();
 
   const [platoon, setPlatoon] = useState('');
+  const [defaultCompany, setDefaultCompany] = useState<Company | ''>('');
   const [defaultRank, setDefaultRank] = useState<RecruitRank | ''>(DEFAULT_RECRUIT_RANK);
   const [pages, setPages] = useState<RosterPage[]>([]);
   const [parsedRows, setParsedRows] = useState<ParsedRecruitImportRow[]>([]);
@@ -71,8 +77,11 @@ export default function RecruitImportScreen() {
 
   const rankOptions = RECRUIT_RANKS;
 
+  const receivingMode = useMemo(() => canPerformReceivingWorkflow(appUser), [appUser]);
+
   const canCreateAny = useMemo(() => {
     if (!appUser) return false;
+    if (receivingMode) return true;
     const role = appUser.customClaims?.role || appUser.profile?.role;
     if (!role) return false;
     if (isAdminRole(role)) return true;
@@ -82,7 +91,7 @@ export default function RecruitImportScreen() {
       hasPermission(role, 'edit_company') ||
       hasPermission(role, 'edit_battalion')
     );
-  }, [appUser]);
+  }, [appUser, receivingMode]);
 
   useEffect(() => {
     if (appUser && !canCreateAny) {
@@ -101,6 +110,35 @@ export default function RecruitImportScreen() {
     }
   }, [appUser, platoon]);
 
+  const userBattalion = useMemo((): Battalion | undefined => {
+    const battalion =
+      appUser?.customClaims?.organizationalAssignment?.battalion ??
+      appUser?.profile?.organizationalAssignment?.battalion;
+    return battalion as Battalion | undefined;
+  }, [appUser]);
+
+  const companyOptions = useMemo(() => {
+    if (!userBattalion) return [];
+    return getCompaniesByBattalion(userBattalion).map((company) => ({
+      value: company,
+      label: company,
+    }));
+  }, [userBattalion]);
+
+  const showDefaultCompany = useMemo(() => {
+    const role = appUser?.customClaims?.role ?? appUser?.profile?.role;
+    return getRecruitListFilterLevel(role) === 'battalion' && companyOptions.length > 0;
+  }, [appUser, companyOptions.length]);
+
+  useEffect(() => {
+    const scopeCompany =
+      appUser?.customClaims?.organizationalAssignment?.company ??
+      appUser?.profile?.organizationalAssignment?.company;
+    if (scopeCompany && !defaultCompany) {
+      setDefaultCompany(scopeCompany as Company);
+    }
+  }, [appUser, defaultCompany]);
+
   useEffect(() => {
     if (!platoon) return;
     setParsedRows((prev) =>
@@ -113,20 +151,41 @@ export default function RecruitImportScreen() {
     );
   }, [platoon]);
 
+  useEffect(() => {
+    if (!defaultCompany) return;
+    setParsedRows((prev) =>
+      prev.map((row) => (row.company ? row : { ...row, company: defaultCompany }))
+    );
+  }, [defaultCompany]);
+
   const incompleteRowCount = useMemo(
     () => parsedRows.filter((row) => !isImportRowReadyForCommit(row)).length,
     [parsedRows]
   );
 
   const orgDefaults = useMemo(
-    () => ({
-      regiment: appUser?.customClaims?.organizationalAssignment?.regiment ?? appUser?.profile?.organizationalAssignment?.regiment,
-      battalion: appUser?.customClaims?.organizationalAssignment?.battalion ?? appUser?.profile?.organizationalAssignment?.battalion,
-      company: appUser?.customClaims?.organizationalAssignment?.company ?? appUser?.profile?.organizationalAssignment?.company,
-      series: appUser?.customClaims?.organizationalAssignment?.series ?? appUser?.profile?.organizationalAssignment?.series,
-      platoon: platoon || undefined,
-    }),
-    [appUser, platoon]
+    () =>
+      receivingMode
+        ? {
+            regiment:
+              appUser?.customClaims?.organizationalAssignment?.regiment ??
+              appUser?.profile?.organizationalAssignment?.regiment ??
+              'West',
+            battalion: RECEIVING_DEFAULT_ASSIGNMENT.battalion,
+            company: RECEIVING_DEFAULT_ASSIGNMENT.company,
+            platoon: RECEIVING_PLATOON,
+          }
+        : {
+            regiment: appUser?.customClaims?.organizationalAssignment?.regiment ?? appUser?.profile?.organizationalAssignment?.regiment,
+            battalion: appUser?.customClaims?.organizationalAssignment?.battalion ?? appUser?.profile?.organizationalAssignment?.battalion,
+            company:
+              defaultCompany ||
+              appUser?.customClaims?.organizationalAssignment?.company ||
+              appUser?.profile?.organizationalAssignment?.company,
+            series: appUser?.customClaims?.organizationalAssignment?.series ?? appUser?.profile?.organizationalAssignment?.series,
+            platoon: platoon || undefined,
+          },
+    [appUser, platoon, defaultCompany, receivingMode]
   );
 
   function applyMergedPreview(nextPages: RosterPage[]) {
@@ -302,7 +361,7 @@ export default function RecruitImportScreen() {
     setCommitting(true);
     setError(null);
     try {
-      const result = await commitRecruitImport(parsedRows, dryRun, user.uid, appUser);
+      const result = await commitRecruitImport(parsedRows, dryRun, user.uid, appUser, { receivingMode });
       const message = dryRun
         ? `Dry run: ${result.summary.created} would be created, ${result.summary.skipped} skipped, ${result.summary.failed} failed`
         : `Import complete: ${result.summary.created} created, ${result.summary.skipped} skipped, ${result.summary.failed} failed`;
@@ -312,7 +371,7 @@ export default function RecruitImportScreen() {
           text: 'OK',
           onPress: () => {
             if (!dryRun && result.summary.created > 0) {
-              router.replace('/(tabs)/recruits');
+              router.replace(receivingMode ? '/receiving/transfers' : '/(tabs)/recruits');
             }
           },
         },
@@ -339,8 +398,12 @@ export default function RecruitImportScreen() {
   return (
     <Screen scroll>
       <SectionHeader
-        title="Import roster"
-        subtitle="Use camera, photos, Excel (.xlsx/.xls/.csv), or PDF — review, then import."
+        title={receivingMode ? 'Import at Receiving' : 'Import roster'}
+        subtitle={
+          receivingMode
+            ? 'Bulk import into Support/Receiving custody with default checklist.'
+            : 'Use camera, photos, Excel (.xlsx/.xls/.csv), or PDF — review, then import.'
+        }
       />
 
       <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
@@ -353,7 +416,24 @@ export default function RecruitImportScreen() {
       </View>
 
       <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
-        <Input label="Default platoon" value={platoon} onChangeText={setPlatoon} placeholder="e.g. 2001" keyboardType="number-pad" />
+        {receivingMode ? (
+          <Text style={[styles.tip, { color: theme.colors.textSecondary }]}>
+            Org locked to Support / Receiving (platoon {RECEIVING_PLATOON}). Recruits enter receiving custody.
+          </Text>
+        ) : (
+          <>
+            <Input label="Default platoon" value={platoon} onChangeText={setPlatoon} placeholder="e.g. 2001" keyboardType="number-pad" />
+            {showDefaultCompany ? (
+              <Select
+                label="Default company"
+                value={defaultCompany}
+                onChange={(value) => setDefaultCompany(value as Company)}
+                options={companyOptions}
+                placeholder="Select company for this roster"
+              />
+            ) : null}
+          </>
+        )}
         <Select
           label="Default rank"
           value={defaultRank}
@@ -439,7 +519,7 @@ export default function RecruitImportScreen() {
               textColor={theme.colors.text}
               textSecondary={theme.colors.textSecondary}
               surface={theme.colors.surface}
-              borderColor={theme.scheme === 'dark' ? '#374151' : '#d1d5db'}
+              borderColor={theme.colors.border}
               errorColor={theme.colors.error}
               successColor={theme.colors.primary}
             />

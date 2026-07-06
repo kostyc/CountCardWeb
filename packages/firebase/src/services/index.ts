@@ -15,4 +15,5 @@ export * from './adminLogs';
 export * from './logos';
 export * from './transferBatches';
 export * from './recruitProgress';
+export * from './recruitWeight';
 export * from './diLeadershipCards';

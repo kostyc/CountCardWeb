@@ -12,12 +12,20 @@
     "./permissions": "./src/permissions/index.ts",
     "./permissions/*": "./src/permissions/*",
     "./constants/*": "./src/constants/*",
+    "./constants/rtrPlatoonNumbering": "./src/constants/rtrPlatoonNumbering.ts",
     "./logger": "./src/logger.ts",
     "./featureDetection": "./src/featureDetection.ts",
     "./profileCompletion": "./src/profileCompletion.ts",
     "./import/recruitExcelImport": "./src/import/recruitExcelImport.ts",
+    "./import/receivingImport": "./src/import/receivingImport.ts",
     "./import/recruitTextTable": "./src/import/recruitTextTable.ts",
-    "./utils/recruitEdipi": "./src/utils/recruitEdipi.ts"
+    "./utils/recruitEdipi": "./src/utils/recruitEdipi.ts",
+    "./utils/recruitSearch": "./src/utils/recruitSearch.ts",
+    "./utils/recruitCompanyGrouping": "./src/utils/recruitCompanyGrouping.ts",
+    "./utils/recruitAssignment": "./src/utils/recruitAssignment.ts",
+    "./utils/recruitListColumns": "./src/utils/recruitListColumns.ts",
+    "./utils/recruitProgressSummary": "./src/utils/recruitProgressSummary.ts",
+    "./utils/recruitWeightAnalytics": "./src/utils/recruitWeightAnalytics.ts"
   },
   "dependencies": {
     "zod": "^4.3.5"

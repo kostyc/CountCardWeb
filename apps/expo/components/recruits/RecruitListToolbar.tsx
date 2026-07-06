@@ -1,8 +1,9 @@
 import { Pressable, Text, View, StyleSheet } from 'react-native';
-import { Select } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { RecruitSortField, RecruitSortOrder } from '@countcard/core/permissions/recruits';
-import { spacing, typography } from '@/constants/theme';
+import type { RecruitListViewStyle } from '@/hooks/useRecruitListColumns';
+import { spacing, typography, radius } from '@/constants/theme';
 
 const SORT_OPTIONS: { value: RecruitSortField; label: string }[] = [
   { value: 'name', label: 'Name' },
@@ -15,19 +16,29 @@ const SORT_OPTIONS: { value: RecruitSortField; label: string }[] = [
 ];
 
 interface RecruitListToolbarProps {
+  searchTerm: string;
+  onSearchChange: (term: string) => void;
   sortField: RecruitSortField;
   sortOrder: RecruitSortOrder;
   onSortFieldChange: (field: RecruitSortField) => void;
   onSortOrderToggle: () => void;
   scopeLabel?: string | null;
+  viewStyle: RecruitListViewStyle;
+  onViewStyleChange: (style: RecruitListViewStyle) => void;
+  onCustomizeColumns?: () => void;
 }
 
 export function RecruitListToolbar({
+  searchTerm,
+  onSearchChange,
   sortField,
   sortOrder,
   onSortFieldChange,
   onSortOrderToggle,
   scopeLabel,
+  viewStyle,
+  onViewStyleChange,
+  onCustomizeColumns,
 }: RecruitListToolbarProps) {
   const theme = useAppTheme();
 
@@ -38,6 +49,54 @@ export function RecruitListToolbar({
           Viewing: <Text style={{ color: theme.colors.text, fontWeight: '600' }}>{scopeLabel}</Text>
         </Text>
       ) : null}
+      <Input
+        label="Search"
+        placeholder="Name or EDIPI"
+        value={searchTerm}
+        onChangeText={onSearchChange}
+        autoCapitalize="none"
+        autoCorrect={false}
+        clearButtonMode="while-editing"
+        returnKeyType="search"
+        style={styles.searchInput}
+      />
+      <View style={styles.viewRow}>
+        <Text style={[styles.viewLabel, { color: theme.colors.textMuted }]}>Layout</Text>
+        <View style={styles.viewToggle}>
+          {(['list', 'grid'] as const).map((style) => (
+            <Pressable
+              key={style}
+              accessibilityRole="button"
+              onPress={() => onViewStyleChange(style)}
+              style={[
+                styles.viewChip,
+                {
+                  backgroundColor: viewStyle === style ? theme.colors.primary : theme.colors.surface,
+                  borderColor: theme.colors.border,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.viewChipText,
+                  { color: viewStyle === style ? theme.colors.onPrimary : theme.colors.text },
+                ]}
+              >
+                {style === 'list' ? 'List' : 'Spreadsheet'}
+              </Text>
+            </Pressable>
+          ))}
+          {viewStyle === 'grid' && onCustomizeColumns ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={onCustomizeColumns}
+              style={[styles.viewChip, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+            >
+              <Text style={[styles.viewChipText, { color: theme.colors.primary }]}>Columns</Text>
+            </Pressable>
+          ) : null}
+        </View>
+      </View>
       <View style={styles.row}>
         <View style={styles.sortField}>
           <Select
@@ -72,6 +131,34 @@ const styles = StyleSheet.create({
   },
   scope: {
     ...typography.caption,
+  },
+  searchInput: {
+    marginBottom: 0,
+    minHeight: 44,
+    paddingVertical: 10,
+  },
+  viewRow: {
+    gap: spacing.xs,
+  },
+  viewLabel: {
+    ...typography.caption,
+  },
+  viewToggle: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  viewChip: {
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  viewChipText: {
+    ...typography.headline,
+    fontSize: 14,
   },
   row: {
     flexDirection: 'row',

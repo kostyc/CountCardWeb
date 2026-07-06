@@ -15,7 +15,10 @@
     }
   ],
   "hosting": {
-    "public": "hosting-public",
+    "public": "apps/expo/dist",
+    "predeploy": [
+      "npm run build:expo"
+    ],
     "ignore": [
       "firebase.json",
       "**/.*",

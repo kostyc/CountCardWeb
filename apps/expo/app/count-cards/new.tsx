@@ -226,7 +226,7 @@ export default function NewCountCardScreen() {
       ) : (
         <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
           {entries.map((entry) => (
-            <View key={entry.recruitId} style={styles.recruitRow}>
+            <View key={entry.recruitId} style={[styles.recruitRow, { borderBottomColor: theme.colors.border }]}>
               <View style={styles.recruitInfo}>
                 <Text style={[styles.recruitName, { color: theme.colors.text }]}>
                   {entry.recruit.rank} {entry.recruit.lastName}, {entry.recruit.firstName}
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.base,
     gap: 16,
   },
-  recruitRow: { gap: 10, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#ccc' },
+  recruitRow: { gap: 10, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth },
   recruitInfo: { gap: 2 },
   recruitName: { ...typography.body, fontWeight: '600' },
   recruitId: { ...typography.caption },

@@ -11,6 +11,7 @@ import {
 } from '@countcard/core/import/recruitExcelImport';
 import { Button, Select } from '@/components/ui';
 import { spacing, typography, radius } from '@/constants/theme';
+import { colors } from '@countcard/ui/tokens';
 
 type GridColumn = 'platoon' | 'rank' | 'lastName' | 'firstName' | 'edipi' | 'mos' | 'gtScore';
 
@@ -270,7 +271,11 @@ export function RecruitImportGrid({
                   styles.dataRow,
                   {
                     borderColor,
-                    backgroundColor: isSelected ? '#e8f4fa' : incomplete ? '#fff8eb' : surface,
+                    backgroundColor: isSelected
+                      ? colors.state.selectedHighlight
+                      : incomplete
+                        ? colors.state.incompleteHighlight
+                        : surface,
                   },
                 ]}
               >

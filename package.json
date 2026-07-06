@@ -8,12 +8,19 @@
     "functions"
   ],
   "scripts": {
-    "dev:web": "npm run dev -w countcard-web",
     "dev:expo": "npm run start -w countcard-expo",
-    "build:web": "npm run build -w countcard-web",
+    "dev:web": "npm run web -w countcard-expo",
+    "dev:functions": "npm run serve -w countcard-functions",
     "build:expo": "npm run build -w countcard-expo",
-    "lint": "npm run lint -w countcard-web",
-    "build": "npm run build:web"
+    "build": "npm run build:expo",
+    "clean": "rm -rf archive/apps-web/.next archive/apps-web/out apps/expo/.expo apps/expo/web-build apps/expo/dist functions/lib .firebase .turbo tsconfig.tsbuildinfo archive/apps-web/tsconfig.tsbuildinfo",
+    "lint": "npm run typecheck -w countcard-functions",
+    "lint:archive": "npm run lint --prefix archive/apps-web",
+    "e2e:kilo": "node scripts/kilo-receiving-e2e.mjs",
+    "e2e:kilo-expo": "npx tsx scripts/kilo-expo-import-verify.mjs",
+    "e2e:sprint27": "node scripts/sprint27-e2e.mjs",
+    "e2e:sprint27-client": "node scripts/sprint27-client-e2e.mjs",
+    "e2e:sprint27-gaps": "node scripts/sprint27-client-gaps.mjs"
   },
   "devDependencies": {
     "turbo": "^2.5.4"

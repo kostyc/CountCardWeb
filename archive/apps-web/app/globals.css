@@ -1,0 +1,243 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Colossalis — drop Colossalis.woff2 / .woff into apps/web/public/fonts/ */
+@font-face {
+  font-family: 'Colossalis';
+  src:
+    url('/fonts/Colossalis.woff2') format('woff2'),
+    url('/fonts/Colossalis.woff') format('woff');
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    /* Primary Marine Corps Colors */
+    --marine-red: #940000;
+    --marine-red-dark: #660000;
+    --navy-blue: #001e2e;
+    --navy-blue-dark: #002a3f;
+    --navy-blue-light: #003a56;
+    --tan: #84754E;
+    --tan-dark: #6B5F3F;
+    --tan-light: #B8A082;
+
+    /* Light Mode Colors */
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #F5F5F5;
+    --bg-tertiary: #E8E8E8;
+    --bg-header: #001e2e;
+    --bg-card: #FFFFFF;
+    --bg-input: #FFFFFF;
+
+    --text-primary: #000000;
+    --text-secondary: #4A5568;
+    --text-heading: #940000;
+    --text-link: #940000;
+    --text-link-hover: #660000;
+
+    --border-primary: #CBD5E0;
+    --border-secondary: #E2E8F0;
+    --border-focus: #940000;
+    --border-error: #940000;
+
+    --button-primary-bg: #940000;
+    --button-primary-hover: #660000;
+    --button-secondary-bg: #001e2e;
+    --button-secondary-hover: #002a3f;
+    --button-tertiary-bg: #84754E;
+    --button-tertiary-hover: #6B5F3F;
+    --button-text: #FFFFFF;
+
+    /* Design Tokens - Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-base: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-2xl: 48px;
+    --spacing-3xl: 64px;
+    --spacing-4xl: 96px;
+
+    /* Design Tokens - Typography */
+    --font-size-xs: 12px;
+    --font-size-sm: 14px;
+    --font-size-base: 16px;
+    --font-size-lg: 18px;
+    --font-size-xl: 20px;
+    --font-size-2xl: 24px;
+    --font-size-3xl: 30px;
+    --font-size-4xl: 36px;
+    --font-size-5xl: 48px;
+    --font-size-6xl: 80px;
+    --line-height-tight: 1.2;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+    --line-height-loose: 2;
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+    --letter-spacing-tighter: -0.05em;
+    --letter-spacing-tight: -0.025em;
+    --letter-spacing-normal: 0em;
+    --letter-spacing-wide: 0.025em;
+    --letter-spacing-wider: 0.05em;
+    --letter-spacing-widest: 0.1em;
+
+    /* Design Tokens - Border Radius */
+    --radius-none: 0px;
+    --radius-sm: 4px;
+    --radius-base: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-2xl: 32px;
+    --radius-full: 9999px;
+
+    /* Design Tokens - Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+
+    /* Design Tokens - Animation */
+    --animation-duration-fast: 150ms;
+    --animation-duration-base: 200ms;
+    --animation-duration-slow: 300ms;
+    --animation-duration-slower: 500ms;
+    --animation-duration-slowest: 1000ms;
+    --animation-timing-linear: linear;
+    --animation-timing-ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --animation-timing-ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --animation-timing-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --animation-timing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --animation-delay-none: 0ms;
+    --animation-delay-fast: 50ms;
+    --animation-delay-base: 100ms;
+    --animation-delay-slow: 200ms;
+
+    /* Design Tokens - Z-Index */
+    --z-base: 0;
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+    --z-notification: 1080;
+
+    /* Design Tokens - Breakpoints */
+    --breakpoint-sm: 640px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1280px;
+    --breakpoint-2xl: 1536px;
+  }
+
+  .dark {
+    /* Dark Mode Colors */
+    --bg-primary: #001e2e;
+    --bg-secondary: #002a3f;
+    --bg-tertiary: #003a56;
+    --bg-header: #000000;
+    --bg-card: #002a3f;
+    --bg-input: #003a56;
+
+    --text-primary: #FFFFFF;
+    --text-secondary: #CBD5E0;
+    --text-heading: #FF8E8E;
+    --text-link: #FF8E8E;
+    --text-link-hover: #FFB3B3;
+
+    --border-primary: #4A5568;
+    --border-secondary: #2D3748;
+    --border-focus: #FF8E8E;
+    --border-error: #FF8E8E;
+
+    --button-primary-bg: #940000;
+    --button-primary-hover: #FF8E8E;
+    --button-secondary-bg: #4A9EFF;
+    --button-secondary-hover: #6BB6FF;
+    --button-tertiary-bg: #B8A082;
+    --button-tertiary-hover: #C9B59A;
+    --button-text: #FFFFFF;
+  }
+
+  /* Base styles */
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  .dark body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  h1, h2, h3, h4, h5 {
+    font-family: 'Colossalis', Georgia, serif;
+    color: var(--text-heading);
+  }
+
+  h1 {
+    font-size: 80px;
+  }
+
+  h2 {
+    font-size: 48px;
+  }
+
+  h3 {
+    font-size: 36px;
+  }
+
+  h4 {
+    font-size: 30px;
+  }
+
+  h5 {
+    font-size: 24px;
+  }
+
+  h6 {
+    font-size: 18px;
+    font-family: Arial, sans-serif;
+    color: var(--text-primary);
+  }
+
+  a {
+    color: var(--text-link);
+  }
+
+  a:hover {
+    color: var(--text-link-hover);
+  }
+}
+
+@layer utilities {
+  /* Shimmer animation for progress bars and skeletons */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+}

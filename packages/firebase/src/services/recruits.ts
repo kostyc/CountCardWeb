@@ -416,15 +416,16 @@ export async function searchRecruits(
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data() as Omit<RecruitProfile, 'id'>;
       const lastName = (data.lastName || '').toLowerCase();
-      const firstName = (data.firstName || '').toLowerCase();
-      const fullName = `${firstName} ${lastName}`;
+      const edipiDigits = (data.edipi || '').replace(/\D/g, '');
+      const docEdipiDigits = docSnap.id.startsWith('edipi-') ? docSnap.id.slice(5) : '';
+      const searchDigits = searchTerm.replace(/\D/g, '');
 
-      // Check if search term matches lastName prefix, firstName prefix, or full name
-      if (
-        lastName.startsWith(searchLower) ||
-        firstName.startsWith(searchLower) ||
-        fullName.includes(searchLower)
-      ) {
+      const matchesLastName = lastName.startsWith(searchLower);
+      const matchesEdipi =
+        searchDigits.length > 0 &&
+        (edipiDigits.startsWith(searchDigits) || docEdipiDigits.startsWith(searchDigits));
+
+      if (matchesLastName || matchesEdipi) {
         items.push({
           id: docSnap.id,
           ...data,

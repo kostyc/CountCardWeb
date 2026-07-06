@@ -32,7 +32,6 @@ function loadEnvFile(path) {
 }
 
 loadEnvFile(resolve(root, '.env.local'));
-loadEnvFile(resolve(root, 'apps/web/.env.local'));
 
 const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
 if (!apiKey) {
@@ -98,13 +97,12 @@ function upsertBootstrapEmail(envPath) {
 }
 
 const updatedRoot = upsertBootstrapEmail(resolve(root, '.env.local'));
-const updatedWeb = upsertBootstrapEmail(resolve(root, 'apps/web/.env.local'));
 
 console.log('\nE2E credentials:');
 console.log(`  Email:    ${E2E_EMAIL}`);
 console.log(`  Password: ${E2E_PASSWORD}`);
 console.log(`  UID:      ${uid}`);
 console.log(
-  `\nBOOTSTRAP_ADMIN_EMAILS updated: ${updatedRoot ? '.env.local' : ''}${updatedRoot && updatedWeb ? ', ' : ''}${updatedWeb ? 'apps/web/.env.local' : ''}`
+  `\nBOOTSTRAP_ADMIN_EMAILS updated: ${updatedRoot ? '.env.local' : '(not found)'}`
 );
-console.log('\nRestart npm run dev:web so the server picks up BOOTSTRAP_ADMIN_EMAILS, then sign in with email/password.');
+console.log('\nRestart npm run dev:functions if API E2E needs fresh env, then sign in with email/password.');

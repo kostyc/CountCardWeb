@@ -5,9 +5,115 @@ All notable changes to CountCard Web are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.5.32...HEAD)
+## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.5.39...HEAD)
 
-- (Nothing yet.)
+### Added
+
+- Recruit **weight tracking** — append-only weigh-ins with history, trend chart, and analytics (latest, change, min/max) on each recruit profile.
+- Recruit **Middle Initial** field — spreadsheet column (default visible), edit screen, and profile detail.
+- Expo recruits **Spreadsheet** layout — column/row grid (Last Name, First Name, EDIPI, platoon, rank, status, and more) with customizable visible columns saved on device.
+- Recruit list **mass edit** — select rows (or all editable recruits) and apply a value to platoon, rank, status, and other editable columns.
+- Recruit detail **Fitness & progress** — Initial PFT/CFT from profile, progress timeline, and record Final PFT / CFT / drill events on mobile.
+
+### Changed
+
+- Recruit progress **event type** picker on mobile — tappable chips replace the dropdown for faster selection on narrow screens.
+- PFT/CFT/IST fitness scores show **per-event breakdown** (pull-ups, plank, run, crunches, total) on recruit detail, progress timeline, and spreadsheet columns.
+- Expo recruit spreadsheet columns stay aligned with headers; Rank/Status selects constrained to cell width.
+- Expo recruit spreadsheet columns auto-size to cell text (single line); **Comments** column wraps and is available in column picker.
+- Unassigned recruits (missing company or platoon) sort to the **top** of the list and appear first in battalion company-column view.
+
+## [2026.0.5.39] - 2026-07-06 — Web deprecation Phase 7 — Expo-only client
+
+### Changed
+
+- Archived Next.js client: `apps/web` → `archive/apps-web` (read-only reference).
+- Firebase Hosting serves Expo web export (`apps/expo/dist`) with `build:expo` predeploy; `/api/**` rewrites to Cloud Functions.
+- Root `npm run lint` runs Functions typecheck only; legacy web lint via `npm run lint:archive`.
+- Workspace `npm install` refreshed after removing `apps/web` from active workspaces.
+
+### Fixed
+
+- `functions/src/routes/recruitImport.ts` — `Buffer` → `ArrayBuffer` cast (TS2322) for lint.
+
+## [2026.0.5.38] - 2026-07-06 — Web deprecation Phase 5 — Expo UI parity
+
+### Added
+
+- Expo `/di-leadership-cards` — create, sign, and recommend on DI leadership cards.
+- Expo `/profile/encryption` — full encryption key management UI (`EncryptionKeyManagement`).
+- Expo `/receiving/import` — receiving-gated route to roster import.
+- Messages tab org-channel create — platoon, company, and battalion broadcast channels.
+- Cloud Functions `POST /api/encryption/wrap-dek` — E2E message key wrapping.
+- Cloud Functions `POST /api/recruits/import/parse-image` and `parse-document` — photo/PDF roster OCR.
+- `archive/apps-web/MIGRATION-CHECKLIST.md` — Phase 7 archive prep (Phase 6).
+
+### Changed
+
+- Web deprecation plan and `EXPO-WEB-PARITY.md` — Phase 5 UI/API gaps closed; E2E client scripts 14/14 and 30/30.
+- Removed root `dev:web` and `build:web` scripts; legacy Next.js via `cd apps/web && npm run dev` only.
+
+### Added (Phase 4 carry-over)
+
+- Cloud Functions transfer-batch API (`/api/transfer-batches/*`) — create, list, publish, initiate, staged reviews, accept, reject, export.
+- Expo `/receiving/checklist/[id]` screen with receiving medical checklist form.
+- `npm run dev:functions` and `scripts/e2e-api-base.mjs` — E2E scripts default to Functions emulator.
+- `apps/web/DEPRECATED.md` and `npm run lint:web` alias documenting Next.js client retirement.
+
+### Changed (Phase 4 carry-over)
+
+- Default `npm run build` targets Expo; Next.js web is deprecated.
+- Removed unused Expo `transferBatchApi.ts` (receiving uses Firestore services directly).
+
+## [2026.0.5.37] - 2026-07-06 — Kilo receiving ingestion workflow
+
+### Added
+
+- Receiving-mode bulk import: `custodyPhase: receiving`, Support/Receiving org lock, default intake checklist.
+- Staged transfer batch review: `first_sgt_review` → `cdi_review` → `sdi_accept` (role-gated, `workflowHistory`).
+- `scripts/kilo-receiving-e2e.mjs` and `npm run e2e:kilo` — 5 recruits (3 Lead/3001, 2 Follow/3003), full Receiving → publish → initiate → staged reviews → training.
+
+### Fixed
+
+- Bulk import API omits undefined optional fields (e.g. `weaponsSerialNumber`) so Firestore writes succeed.
+- Receiving import UI gates on `canReceivingWorkflow` instead of generic recruit-create permission.
+- Sprint 27 E2E Receiving platoon aligned to canonical `0000`.
+
+## [2026.0.5.36] - 2026-07-06 — Shared design tokens
+
+### Added
+
+- `@countcard/ui/tokens`: canonical colors, font families, spacing, and border-radius for web and Expo.
+- Font setup docs and `@font-face` hook for Colossalis in `apps/web/public/fonts/`.
+
+### Changed
+
+- Expo theme imports palette and semantic colors from `@countcard/ui`; spacing/radius aligned with web scale.
+- Expo screens use theme tokens instead of hardcoded hex for borders, highlights, and on-primary text.
+- Expo splash/adaptive icon background uses Marine Corps navy (`#001e2e`).
+- Shared `@countcard/ui` Button uses Marine Corps palette.
+
+
+### Fixed
+
+- Expo recruits list: battalion column view now shows recruits without a company under **Unassigned** (imports were saved but hidden).
+- Recruit search matches first name as well as last name and EDIPI.
+
+### Changed
+
+- Roster import on mobile: battalion staff can set a **Default company** so new imports get the correct company assignment.
+
+## [2026.0.5.34] - 2026-07-06 — Recruit search by last name or EDIPI
+
+### Added
+
+- Recruits tab search on mobile (Expo) and web — filter by last name prefix or EDIPI digits.
+
+## [2026.0.5.33] - 2026-07-06 — Recruits list Firestore indexes
+
+### Fixed
+
+- Recruits list failing with “query requires an index” for battalion-scoped users — added composite indexes for org scope + `lastName`/`firstName` sort and deployed to Firestore.
 
 ## [2026.0.5.32] - 2026-07-06 — Sprint 27 API E2E via ADC
 

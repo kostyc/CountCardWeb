@@ -1,43 +1,141 @@
 /**
  * Design Tokens
- * 
- * Centralized design tokens for the CountCard application.
- * These tokens define spacing, typography, colors, shadows, animations, and z-index scales
- * that are used consistently throughout the application.
+ *
+ * Canonical design tokens for CountCard (web + Expo).
+ * See docs/DESIGN-SYSTEM.md for usage guidelines.
  */
 
 /**
- * Spacing Scale
- * Based on 4px base unit for consistent spacing
+ * Brand palette and semantic colors (aligned with archive/apps-web app globals (legacy))
+ */
+export const colors = {
+  palette: {
+    marineRed: '#940000',
+    marineRedDark: '#660000',
+    marineRedLight: '#b81818',
+    navy: '#001e2e',
+    navyDark: '#002a3f',
+    navyLight: '#003a56',
+    tan: '#84754E',
+    tanDark: '#6B5F3F',
+    tanLight: '#B8A082',
+    white: '#ffffff',
+    black: '#000000',
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    onPrimary: '#ffffff',
+  },
+  state: {
+    selectedHighlight: '#e8f4fa',
+    incompleteHighlight: '#fff8eb',
+  },
+  semantic: {
+    light: {
+      bgPrimary: '#FFFFFF',
+      bgSecondary: '#F5F5F5',
+      bgTertiary: '#E8E8E8',
+      bgHeader: '#001e2e',
+      bgCard: '#FFFFFF',
+      bgInput: '#FFFFFF',
+      textPrimary: '#000000',
+      textSecondary: '#4A5568',
+      textMuted: '#64748b',
+      textHeading: '#940000',
+      textLink: '#940000',
+      textLinkHover: '#660000',
+      borderPrimary: '#CBD5E0',
+      borderSecondary: '#E2E8F0',
+      borderFocus: '#940000',
+      primaryMuted: '#fce8e8',
+      tabBar: '#ffffff',
+      tabBarBorder: '#E2E8F0',
+      overlay: 'rgba(0, 30, 46, 0.04)',
+    },
+    dark: {
+      bgPrimary: '#001e2e',
+      bgSecondary: '#002a3f',
+      bgTertiary: '#003a56',
+      bgHeader: '#000000',
+      bgCard: '#002a3f',
+      bgInput: '#003a56',
+      textPrimary: '#FFFFFF',
+      textSecondary: '#CBD5E0',
+      textMuted: '#94a3b8',
+      textHeading: '#FF8E8E',
+      textLink: '#FF8E8E',
+      textLinkHover: '#FFB3B3',
+      borderPrimary: '#4A5568',
+      borderSecondary: '#2D3748',
+      borderFocus: '#FF8E8E',
+      primaryMuted: 'rgba(148, 0, 0, 0.25)',
+      tabBar: '#002a3f',
+      tabBarBorder: '#1e3a4d',
+      overlay: 'rgba(255, 255, 255, 0.06)',
+      error: '#f87171',
+      success: '#34d399',
+      warning: '#fbbf24',
+    },
+  },
+} as const;
+
+/** @deprecated Use colors.palette */
+export const palette = colors.palette;
+
+/**
+ * Font families — web CSS stacks and React Native fallbacks
+ */
+export const fontFamilies = {
+  heading: "Colossalis, Georgia, serif",
+  body: 'Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  /** Until Colossalis is bundled in apps/expo/assets/fonts/ */
+  headingNative: 'Georgia',
+  bodyNative: 'System',
+} as const;
+
+/**
+ * Spacing Scale — 4px base unit
  */
 export const spacing = {
-  xs: '4px',    // 0.25rem
-  sm: '8px',    // 0.5rem
-  md: '12px',   // 0.75rem
-  base: '16px', // 1rem
-  lg: '24px',   // 1.5rem
-  xl: '32px',   // 2rem
-  '2xl': '48px', // 3rem
-  '3xl': '64px', // 4rem
-  '4xl': '96px', // 6rem
+  xs: '4px',
+  sm: '8px',
+  md: '12px',
+  base: '16px',
+  lg: '24px',
+  xl: '32px',
+  '2xl': '48px',
+  '3xl': '64px',
+  '4xl': '96px',
+} as const;
+
+/** Spacing as numbers for React Native */
+export const spacingNative = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  base: 16,
+  lg: 24,
+  xl: 32,
+  '2xl': 48,
+  '3xl': 64,
+  '4xl': 96,
 } as const;
 
 /**
  * Typography Scale
- * Font sizes, line heights, and font weights
  */
 export const typography = {
   fontSizes: {
-    xs: '12px',      // 0.75rem - Caption
-    sm: '14px',      // 0.875rem - Small
-    base: '16px',    // 1rem - Body
-    lg: '18px',     // 1.125rem - Body Large
-    xl: '20px',     // 1.25rem
-    '2xl': '24px',  // 1.5rem - H5
-    '3xl': '30px',  // 1.875rem - H4
-    '4xl': '36px',  // 2.25rem - H3
-    '5xl': '48px',  // 3rem - H2
-    '6xl': '80px',  // 5rem - H1
+    xs: '12px',
+    sm: '14px',
+    base: '16px',
+    lg: '18px',
+    xl: '20px',
+    '2xl': '24px',
+    '3xl': '30px',
+    '4xl': '36px',
+    '5xl': '48px',
+    '6xl': '80px',
   },
   lineHeights: {
     tight: 1.2,
@@ -65,22 +163,32 @@ export const typography = {
 
 /**
  * Border Radius Scale
- * Rounded corners for components
  */
 export const borderRadius = {
   none: '0px',
-  sm: '4px',    // 0.25rem
-  base: '8px',  // 0.5rem
-  md: '12px',   // 0.75rem
-  lg: '16px',   // 1rem
-  xl: '24px',   // 1.5rem
-  '2xl': '32px', // 2rem
-  full: '9999px', // Fully rounded
+  sm: '4px',
+  base: '8px',
+  md: '12px',
+  lg: '16px',
+  xl: '24px',
+  '2xl': '32px',
+  full: '9999px',
+} as const;
+
+/** Border radius as numbers for React Native */
+export const borderRadiusNative = {
+  none: 0,
+  sm: 4,
+  base: 8,
+  md: 12,
+  lg: 16,
+  xl: 24,
+  '2xl': 32,
+  full: 9999,
 } as const;
 
 /**
  * Shadow/Elevation Scale
- * Box shadows for depth and elevation
  */
 export const shadows = {
   none: 'none',
@@ -93,10 +201,6 @@ export const shadows = {
   inner: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
 } as const;
 
-/**
- * Animation Timing Functions
- * Easing functions for smooth animations
- */
 export const animation = {
   duration: {
     fast: '150ms',
@@ -120,10 +224,6 @@ export const animation = {
   },
 } as const;
 
-/**
- * Z-Index Scale
- * Layering system for components
- */
 export const zIndex = {
   base: 0,
   dropdown: 1000,
@@ -136,10 +236,6 @@ export const zIndex = {
   notification: 1080,
 } as const;
 
-/**
- * Breakpoints
- * Responsive design breakpoints
- */
 export const breakpoints = {
   sm: '640px',
   md: '768px',
@@ -148,23 +244,22 @@ export const breakpoints = {
   '2xl': '1536px',
 } as const;
 
-/**
- * Design Token Export
- * All design tokens in a single object for easy access
- */
 export const designTokens = {
+  colors,
+  fontFamilies,
   spacing,
+  spacingNative,
   typography,
   borderRadius,
+  borderRadiusNative,
   shadows,
   animation,
   zIndex,
   breakpoints,
 } as const;
 
-/**
- * Type exports for design tokens
- */
+export type Colors = typeof colors;
+export type FontFamilies = typeof fontFamilies;
 export type Spacing = typeof spacing;
 export type Typography = typeof typography;
 export type BorderRadius = typeof borderRadius;

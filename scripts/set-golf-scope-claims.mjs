@@ -54,7 +54,6 @@ function loadEnvFile(path) {
 }
 
 loadEnvFile(resolve(root, '.env.local'));
-loadEnvFile(resolve(root, 'apps/web/.env.local'));
 
 const projectId =
   process.env.FIREBASE_ADMIN_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'countcard-94c5b';

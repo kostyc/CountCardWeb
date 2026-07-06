@@ -1,48 +1,53 @@
 import { Platform, TextStyle, ViewStyle } from 'react-native';
+import {
+  colors,
+  fontFamilies,
+  spacingNative,
+  borderRadiusNative,
+} from '@countcard/ui/tokens';
 
-/** CountCard design tokens — aligned with docs/DESIGN-SYSTEM.md */
-export const palette = {
-  marineRed: '#940000',
-  marineRedDark: '#660000',
-  marineRedLight: '#b81818',
-  navy: '#001e2e',
-  navyLight: '#002a3f',
-  navyMuted: '#003a56',
-  tan: '#84754E',
-  tanLight: '#B8A082',
-  white: '#ffffff',
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
-} as const;
+/** Re-export canonical palette from @countcard/ui */
+export const palette = colors.palette;
 
-export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  base: 16,
-  lg: 20,
-  xl: 24,
-  '2xl': 32,
-  '3xl': 40,
-} as const;
-
-export const radius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  full: 9999,
-} as const;
+/** Spacing and radius aligned with web design tokens */
+export const spacing = spacingNative;
+export const radius = borderRadiusNative;
 
 export const typography = {
-  hero: { fontSize: 32, fontWeight: '700' as TextStyle['fontWeight'], letterSpacing: -0.5 },
-  title: { fontSize: 22, fontWeight: '700' as TextStyle['fontWeight'], letterSpacing: -0.3 },
-  headline: { fontSize: 18, fontWeight: '600' as TextStyle['fontWeight'] },
-  body: { fontSize: 16, fontWeight: '400' as TextStyle['fontWeight'] },
-  callout: { fontSize: 15, fontWeight: '500' as TextStyle['fontWeight'] },
-  caption: { fontSize: 13, fontWeight: '400' as TextStyle['fontWeight'] },
+  hero: {
+    fontFamily: fontFamilies.headingNative,
+    fontSize: 32,
+    fontWeight: '700' as TextStyle['fontWeight'],
+    letterSpacing: -0.5,
+  },
+  title: {
+    fontFamily: fontFamilies.headingNative,
+    fontSize: 22,
+    fontWeight: '700' as TextStyle['fontWeight'],
+    letterSpacing: -0.3,
+  },
+  headline: {
+    fontFamily: fontFamilies.bodyNative,
+    fontSize: 18,
+    fontWeight: '600' as TextStyle['fontWeight'],
+  },
+  body: {
+    fontFamily: fontFamilies.bodyNative,
+    fontSize: 16,
+    fontWeight: '400' as TextStyle['fontWeight'],
+  },
+  callout: {
+    fontFamily: fontFamilies.bodyNative,
+    fontSize: 15,
+    fontWeight: '500' as TextStyle['fontWeight'],
+  },
+  caption: {
+    fontFamily: fontFamilies.bodyNative,
+    fontSize: 13,
+    fontWeight: '400' as TextStyle['fontWeight'],
+  },
   overline: {
+    fontFamily: fontFamilies.bodyNative,
     fontSize: 11,
     fontWeight: '600' as TextStyle['fontWeight'],
     letterSpacing: 0.8,
@@ -75,58 +80,71 @@ export interface AppTheme {
     success: string;
     warning: string;
     overlay: string;
+    onPrimary: string;
+    selectedHighlight: string;
+    incompleteHighlight: string;
   };
 }
+
+const light = colors.semantic.light;
 
 export const lightTheme: AppTheme = {
   scheme: 'light',
   colors: {
-    background: '#f0f2f5',
-    backgroundSecondary: '#e8ecf0',
-    surface: '#ffffff',
-    surfaceElevated: '#ffffff',
-    text: palette.navy,
-    textSecondary: '#334155',
-    textMuted: '#64748b',
+    background: light.bgPrimary,
+    backgroundSecondary: light.bgSecondary,
+    surface: light.bgCard,
+    surfaceElevated: light.bgCard,
+    text: light.textPrimary,
+    textSecondary: light.textSecondary,
+    textMuted: light.textMuted,
     primary: palette.marineRed,
-    primaryMuted: '#fce8e8',
+    primaryMuted: light.primaryMuted,
     accent: palette.tan,
-    border: '#e2e8f0',
-    borderSubtle: '#f1f5f9',
-    tabBar: '#ffffff',
-    tabBarBorder: '#e2e8f0',
-    header: palette.navy,
+    border: light.borderSecondary,
+    borderSubtle: light.borderPrimary,
+    tabBar: light.tabBar,
+    tabBarBorder: light.tabBarBorder,
+    header: light.bgHeader,
     headerText: palette.white,
     error: palette.error,
     success: palette.success,
     warning: palette.warning,
-    overlay: 'rgba(0, 30, 46, 0.04)',
+    overlay: light.overlay,
+    onPrimary: palette.onPrimary,
+    selectedHighlight: colors.state.selectedHighlight,
+    incompleteHighlight: colors.state.incompleteHighlight,
   },
 };
+
+const dark = colors.semantic.dark;
 
 export const darkTheme: AppTheme = {
   scheme: 'dark',
   colors: {
-    background: palette.navy,
-    backgroundSecondary: palette.navyLight,
-    surface: palette.navyLight,
-    surfaceElevated: palette.navyMuted,
-    text: '#f8fafc',
-    textSecondary: '#cbd5e1',
-    textMuted: '#94a3b8',
+    background: dark.bgPrimary,
+    backgroundSecondary: dark.bgSecondary,
+    surface: dark.bgCard,
+    surfaceElevated: dark.bgTertiary,
+    text: dark.textPrimary,
+    textSecondary: dark.textSecondary,
+    textMuted: dark.textMuted,
     primary: palette.marineRedLight,
-    primaryMuted: 'rgba(148, 0, 0, 0.25)',
+    primaryMuted: dark.primaryMuted,
     accent: palette.tanLight,
-    border: '#1e3a4d',
-    borderSubtle: '#163040',
-    tabBar: palette.navyLight,
-    tabBarBorder: '#1e3a4d',
-    header: palette.navyLight,
-    headerText: '#f8fafc',
-    error: '#f87171',
-    success: '#34d399',
-    warning: '#fbbf24',
-    overlay: 'rgba(255, 255, 255, 0.06)',
+    border: dark.tabBarBorder,
+    borderSubtle: dark.borderSecondary,
+    tabBar: dark.tabBar,
+    tabBarBorder: dark.tabBarBorder,
+    header: dark.bgSecondary,
+    headerText: dark.textPrimary,
+    error: dark.error,
+    success: dark.success,
+    warning: dark.warning,
+    overlay: dark.overlay,
+    onPrimary: palette.onPrimary,
+    selectedHighlight: colors.state.selectedHighlight,
+    incompleteHighlight: colors.state.incompleteHighlight,
   },
 };
 

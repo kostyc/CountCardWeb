@@ -38,7 +38,6 @@ function loadEnvFile(path) {
 }
 
 loadEnvFile(resolve(root, '.env.local'));
-loadEnvFile(resolve(root, 'apps/web/.env.local'));
 
 const projectId =
   process.env.FIREBASE_ADMIN_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'countcard-94c5b';
@@ -115,12 +114,11 @@ function upsertAdminUserIds(envPath) {
 }
 
 const updatedRoot = upsertAdminUserIds(resolve(root, '.env.local'));
-const updatedWeb = upsertAdminUserIds(resolve(root, 'apps/web/.env.local'));
 
 console.log(`Granted admin to ${email}`);
 console.log(`UID: ${uid}`);
 console.log(`Custom claims: admin=true, role=${newClaims.role}`);
 console.log(
-  `ADMIN_USER_IDS updated: ${updatedRoot ? '.env.local' : ''}${updatedRoot && updatedWeb ? ', ' : ''}${updatedWeb ? 'apps/web/.env.local' : ''}`
+  `ADMIN_USER_IDS updated: ${updatedRoot ? '.env.local' : '(not found)'}`
 );
 console.log('Sign out and sign back in so the new token picks up custom claims.');

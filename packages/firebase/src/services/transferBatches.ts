@@ -184,7 +184,7 @@ export async function initiateTransferBatch(batchId: string, userId: string): Pr
 
     const batchWrite = writeBatch(getDb());
     batchWrite.update(batchRef(batchId), {
-      status: 'in_transit',
+      status: 'first_sgt_review',
       initiatedAt: Timestamp.now(),
       initiatedBy: userId,
       workflowHistory: arrayUnion(historyEntry('initiated', userId)),
@@ -205,11 +205,59 @@ export async function initiateTransferBatch(batchId: string, userId: string): Pr
   }
 }
 
+export async function advanceFirstSgtReview(batchId: string, userId: string): Promise<void> {
+  try {
+    const batch = await getTransferBatchById(batchId);
+    if (!batch) throw new Error('Transfer batch not found');
+    if (batch.status !== 'first_sgt_review') {
+      throw new Error('Only batches in first_sgt_review can be advanced by 1st Sgt');
+    }
+
+    const batchWrite = writeBatch(getDb());
+    batchWrite.update(batchRef(batchId), {
+      status: 'cdi_review',
+      firstSgtReviewedAt: Timestamp.now(),
+      firstSgtReviewedBy: userId,
+      workflowHistory: arrayUnion(historyEntry('first_sgt_review', userId)),
+      updatedBy: userId,
+      updatedAt: Timestamp.now(),
+    });
+    await batchWrite.commit();
+  } catch (error) {
+    throw handleFirestoreError(error, 'Failed to advance 1st Sgt review');
+  }
+}
+
+export async function advanceCdiReview(batchId: string, userId: string): Promise<void> {
+  try {
+    const batch = await getTransferBatchById(batchId);
+    if (!batch) throw new Error('Transfer batch not found');
+    if (batch.status !== 'cdi_review') {
+      throw new Error('Only batches in cdi_review can be advanced by CDI');
+    }
+
+    const batchWrite = writeBatch(getDb());
+    batchWrite.update(batchRef(batchId), {
+      status: 'sdi_accept',
+      cdiReviewedAt: Timestamp.now(),
+      cdiReviewedBy: userId,
+      workflowHistory: arrayUnion(historyEntry('cdi_review', userId)),
+      updatedBy: userId,
+      updatedAt: Timestamp.now(),
+    });
+    await batchWrite.commit();
+  } catch (error) {
+    throw handleFirestoreError(error, 'Failed to advance CDI review');
+  }
+}
+
 export async function acceptTransferBatch(batchId: string, userId: string): Promise<void> {
   try {
     const batch = await getTransferBatchById(batchId);
     if (!batch) throw new Error('Transfer batch not found');
-    if (batch.status !== 'in_transit') throw new Error('Only in-transit batches can be accepted');
+    if (batch.status !== 'sdi_accept') {
+      throw new Error('Only batches awaiting SDI accept can be accepted');
+    }
 
     const dest = batch.destinationAssignment;
     const batchWrite = writeBatch(getDb());
@@ -218,7 +266,7 @@ export async function acceptTransferBatch(batchId: string, userId: string): Prom
       status: 'completed',
       completedAt: Timestamp.now(),
       completedBy: userId,
-      workflowHistory: arrayUnion(historyEntry('accepted', userId)),
+      workflowHistory: arrayUnion(historyEntry('sdi_accept', userId)),
       updatedBy: userId,
       updatedAt: Timestamp.now(),
     });
@@ -268,8 +316,14 @@ export async function rejectTransferBatch(
   try {
     const batch = await getTransferBatchById(batchId);
     if (!batch) throw new Error('Transfer batch not found');
-    if (batch.status !== 'in_transit' && batch.status !== 'published') {
-      throw new Error('Only published or in-transit batches can be rejected');
+    if (
+      batch.status !== 'in_transit' &&
+      batch.status !== 'published' &&
+      batch.status !== 'first_sgt_review' &&
+      batch.status !== 'cdi_review' &&
+      batch.status !== 'sdi_accept'
+    ) {
+      throw new Error('Only published or in-review batches can be rejected');
     }
 
     const batchWrite = writeBatch(getDb());

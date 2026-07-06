@@ -36,7 +36,7 @@ export function Button({
 
   const textColor =
     variant === 'primary' || variant === 'danger'
-      ? '#fff'
+      ? theme.colors.onPrimary
       : variant === 'secondary'
         ? theme.colors.text
         : theme.colors.primary;

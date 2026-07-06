@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet } from 'react-native';
+import { colors } from './tokens';
 
 export interface ButtonProps {
   title: string;
@@ -8,15 +9,15 @@ export interface ButtonProps {
   disabled?: boolean;
 }
 
-const palette = {
-  primary: '#1a365d',
-  surface: '#64748b',
-  error: '#dc2626',
-};
+const { palette } = colors;
 
 export function Button({ title, onPress, variant = 'primary', disabled }: ButtonProps) {
   const bg =
-    variant === 'danger' ? palette.error : variant === 'secondary' ? palette.surface : palette.primary;
+    variant === 'danger'
+      ? palette.error
+      : variant === 'secondary'
+        ? palette.navy
+        : palette.marineRed;
 
   return (
     <Pressable
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   text: {
-    color: '#fff',
+    color: palette.onPrimary,
     fontSize: 16,
     fontWeight: '600',
   },

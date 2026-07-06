@@ -507,6 +507,8 @@ export const recruitImportCommitRowSchema = z.object({
 export const recruitImportCommitRequestSchema = z.object({
   rows: z.array(recruitImportCommitRowSchema).min(1).max(500),
   dryRun: z.boolean().optional(),
+  /** When true, recruits are created at Support/Receiving with custodyPhase receiving + default checklist. */
+  receivingMode: z.boolean().optional(),
 });
 
 export type RecruitImportCommitRow = z.infer<typeof recruitImportCommitRowSchema>;

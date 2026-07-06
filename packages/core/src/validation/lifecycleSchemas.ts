@@ -72,6 +72,9 @@ export const transferBatchStatusSchema = z.enum([
   'draft',
   'published',
   'in_transit',
+  'first_sgt_review',
+  'cdi_review',
+  'sdi_accept',
   'completed',
   'cancelled',
   'rejected',
@@ -106,6 +109,11 @@ export const progressEventTypeSchema = z.enum([
   'hike',
   'general_comment',
 ]);
+
+export const weightEntryInputSchema = z.object({
+  weightPounds: z.number().int().min(80, 'Weight must be at least 80 lbs').max(400, 'Weight must be at most 400 lbs'),
+  notes: z.string().max(500).optional(),
+});
 
 export const progressEventInputSchema = z.object({
   type: progressEventTypeSchema,

@@ -5,7 +5,7 @@ import { canPerformReceivingWorkflow, canPerformIncomingCustodyWorkflow } from '
 import { useAppUser } from '@/hooks/useAppUser';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Screen, QuickActionCard, SectionHeader } from '@/components/ui';
-import { spacing, typography, radius } from '@/constants/theme';
+import { palette, spacing, typography, radius } from '@/constants/theme';
 
 function getInitials(email?: string | null): string {
   if (!email) return '?';
@@ -59,6 +59,12 @@ export default function DashboardScreen() {
           onPress={() => router.push('/(tabs)/messages')}
         />
         <QuickActionCard
+          title="DI Cards"
+          description="Leadership forms & signatures"
+          icon="doc.text.fill"
+          onPress={() => router.push('/di-leadership-cards')}
+        />
+        <QuickActionCard
           title="Profile"
           description="Keys & security settings"
           icon="lock.shield.fill"
@@ -98,7 +104,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   heroShadow: {
-    shadowColor: '#001e2e',
+    shadowColor: palette.navy,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 16,
@@ -112,10 +118,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  avatarText: { color: palette.onPrimary, fontSize: 18, fontWeight: '700' },
   heroText: { flex: 1 },
   heroGreeting: { ...typography.caption, color: 'rgba(255,255,255,0.7)', marginBottom: 2 },
-  heroEmail: { ...typography.headline, color: '#fff' },
+  heroEmail: { ...typography.headline, color: palette.onPrimary },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

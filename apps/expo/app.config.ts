@@ -3,6 +3,9 @@ import fs from 'fs';
 import { config as loadEnv } from 'dotenv';
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
+/** Match packages/ui/src/tokens palette.navy — inlined so Expo config loader can require this file. */
+const NAVY = '#001e2e';
+
 loadEnv({ path: path.resolve(__dirname, '../../.env.local') });
 
 function env(primary: string | undefined, fallback: string | undefined): string {
@@ -43,7 +46,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     package: 'com.countcard.app',
     googleServicesFile: './google-services.json',
     adaptiveIcon: {
-      backgroundColor: '#1a365d',
+      backgroundColor: NAVY,
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundImage: './assets/images/android-icon-background.png',
     },
@@ -76,7 +79,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         image: './assets/images/splash-icon.png',
         resizeMode: 'contain',
-        backgroundColor: '#1a365d',
+        backgroundColor: NAVY,
       },
     ],
   ],

@@ -16,7 +16,12 @@ import {
   normalizeRecruitImportSheetRows,
 } from '@countcard/core/import/recruitTextTable';
 import { canCreateRecruit } from '@countcard/core/permissions/recruits';
+import { canPerformReceivingWorkflow } from '@countcard/core/permissions/adminAccess';
 import { isAdminRole } from '@countcard/core/permissions/roles';
+import {
+  applyReceivingImportOrg,
+  buildReceivingCustodyFields,
+} from '@countcard/core/import/receivingImport';
 import type { AppUser, OrganizationalAssignment } from '@countcard/core/types/auth';
 import type { RecruitRank } from '@countcard/core/constants/recruitRanks';
 import { DEFAULT_RECRUIT_RANK } from '@countcard/core/constants/recruitRanks';
@@ -159,8 +164,10 @@ export async function commitRecruitImportLocal(
   rows: ParsedRecruitImportRow[],
   dryRun: boolean,
   userId: string,
-  appUser: AppUser | null
+  appUser: AppUser | null,
+  options?: { receivingMode?: boolean }
 ): Promise<ImportCommitResult> {
+  const receivingMode = options?.receivingMode ?? false;
   const incomplete = rows.filter((row) => !isImportRowReadyForCommit(row));
   if (incomplete.length > 0) {
     throw new Error(`Fill in missing fields for ${incomplete.length} recruit(s) before importing.`);
@@ -174,10 +181,20 @@ export async function commitRecruitImportLocal(
   let skipped = 0;
   let failed = 0;
 
-  for (const row of normalizedRows) {
-    const targetOrg = toOrganizationalAssignment(row);
+  const regiment =
+    appUser?.customClaims?.organizationalAssignment?.regiment ??
+    appUser?.profile?.organizationalAssignment?.regiment ??
+    'West';
 
-    if (!userIsAdmin) {
+  if (receivingMode && !canPerformReceivingWorkflow(appUser) && !userIsAdmin) {
+    throw new Error('Receiving workflow access required for receiving-mode import');
+  }
+
+  for (const row of normalizedRows) {
+    const receivingRow = receivingMode ? applyReceivingImportOrg(row, regiment) : row;
+    const targetOrg = toOrganizationalAssignment(receivingRow);
+
+    if (!userIsAdmin && !receivingMode) {
       const permission = canCreateRecruit(appUser, targetOrg);
       if (!permission.allowed) {
         failed += 1;
@@ -191,12 +208,12 @@ export async function commitRecruitImportLocal(
       }
     }
 
-    const existing = await getRecruitProfileById(row.recruitId);
+    const existing = await getRecruitProfileById(receivingRow.recruitId);
     if (existing) {
       skipped += 1;
       results.push({
-        rowNumber: row.rowNumber,
-        recruitId: row.recruitId,
+        rowNumber: receivingRow.rowNumber,
+        recruitId: receivingRow.recruitId,
         status: 'skipped',
         message: 'Recruit already exists',
       });
@@ -206,8 +223,8 @@ export async function commitRecruitImportLocal(
     if (dryRun) {
       created += 1;
       results.push({
-        rowNumber: row.rowNumber,
-        recruitId: row.recruitId,
+        rowNumber: receivingRow.rowNumber,
+        recruitId: receivingRow.recruitId,
         status: 'created',
         message: 'Validated (dry run)',
       });
@@ -216,31 +233,32 @@ export async function commitRecruitImportLocal(
 
     try {
       await createRecruitProfile(
-        row.recruitId,
+        receivingRow.recruitId,
         {
-          recruitId: row.recruitId,
-          edipi: row.edipi || undefined,
-          weaponsSerialNumber: row.weaponsSerialNumber,
-          rcoSerialNumber: row.rcoSerialNumber,
-          firstName: row.firstName,
-          lastName: row.lastName,
-          rank: row.rank ?? DEFAULT_RECRUIT_RANK,
-          status: row.status,
-          regiment: row.regiment,
-          battalion: row.battalion,
-          company: row.company,
-          series: row.series,
-          platoon: row.platoon,
-          medicalNotes: row.medicalNotes,
-          extendedNotes: row.extendedNotes,
+          recruitId: receivingRow.recruitId,
+          edipi: receivingRow.edipi || undefined,
+          weaponsSerialNumber: receivingRow.weaponsSerialNumber,
+          rcoSerialNumber: receivingRow.rcoSerialNumber,
+          firstName: receivingRow.firstName,
+          lastName: receivingRow.lastName,
+          rank: receivingRow.rank ?? DEFAULT_RECRUIT_RANK,
+          status: receivingRow.status,
+          regiment: receivingRow.regiment,
+          battalion: receivingRow.battalion,
+          company: receivingRow.company,
+          series: receivingRow.series,
+          platoon: receivingRow.platoon,
+          medicalNotes: receivingRow.medicalNotes,
+          extendedNotes: receivingRow.extendedNotes,
+          ...(receivingMode ? buildReceivingCustodyFields() : {}),
           createdBy: userId,
         },
         userId
       );
       created += 1;
       results.push({
-        rowNumber: row.rowNumber,
-        recruitId: row.recruitId,
+        rowNumber: receivingRow.rowNumber,
+        recruitId: receivingRow.recruitId,
         status: 'created',
       });
     } catch (writeError) {

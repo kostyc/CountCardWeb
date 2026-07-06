@@ -16,7 +16,7 @@ import { sendMessage } from '@countcard/firebase/services/conversations';
 import { useAuth } from '@/context/AuthContext';
 import { Screen } from '@/components/ui';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { spacing, typography, radius } from '@/constants/theme';
+import { spacing, typography, radius, palette } from '@/constants/theme';
 
 export default function ConversationDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -82,7 +82,7 @@ export default function ConversationDetailScreen() {
                   },
                 ]}
               >
-                <Text style={{ color: mine ? '#fff' : theme.colors.text }}>{item.content}</Text>
+                <Text style={{ color: mine ? theme.colors.onPrimary : theme.colors.text }}>{item.content}</Text>
               </View>
             );
           }}
@@ -147,5 +147,5 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     justifyContent: 'center',
   },
-  sendLabel: { color: '#fff', fontWeight: '600' },
+  sendLabel: { color: palette.onPrimary, fontWeight: '600' },
 });

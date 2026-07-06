@@ -46,7 +46,6 @@ function loadEnvFile(path) {
 }
 
 loadEnvFile(resolve(root, '.env.local'));
-loadEnvFile(resolve(root, 'apps/web/.env.local'));
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -127,14 +126,28 @@ try {
   pass('Published batch');
 
   await updateDoc(doc(db, 'transferBatches', batchId), {
-    status: 'in_transit',
+    status: 'first_sgt_review',
     initiatedAt: serverTimestamp(),
     initiatedBy: auth.currentUser.uid,
     workflowHistory: arrayUnion({ action: 'initiated', timestamp: new Date(), userId: auth.currentUser.uid }),
     updatedAt: serverTimestamp(),
   });
   await updateDoc(recruitRef, { custodyPhase: 'in_transit', updatedAt: serverTimestamp() });
-  pass('Initiated batch (in_transit)');
+  pass('Initiated batch (first_sgt_review)');
+
+  await updateDoc(doc(db, 'transferBatches', batchId), {
+    status: 'cdi_review',
+    workflowHistory: arrayUnion({ action: 'first_sgt_review', timestamp: new Date(), userId: auth.currentUser.uid }),
+    updatedAt: serverTimestamp(),
+  });
+  pass('1st Sgt review (cdi_review)');
+
+  await updateDoc(doc(db, 'transferBatches', batchId), {
+    status: 'sdi_accept',
+    workflowHistory: arrayUnion({ action: 'cdi_review', timestamp: new Date(), userId: auth.currentUser.uid }),
+    updatedAt: serverTimestamp(),
+  });
+  pass('CDI review (sdi_accept)');
 
   const transferEntry = {
     fromAssignment: Object.fromEntries(
@@ -155,7 +168,7 @@ try {
     status: 'completed',
     completedAt: serverTimestamp(),
     completedBy: auth.currentUser.uid,
-    workflowHistory: arrayUnion({ action: 'accepted', timestamp: new Date(), userId: auth.currentUser.uid }),
+    workflowHistory: arrayUnion({ action: 'sdi_accept', timestamp: new Date(), userId: auth.currentUser.uid }),
     updatedAt: serverTimestamp(),
   });
   await updateDoc(recruitRef, {
@@ -236,7 +249,7 @@ try {
   pass('Created company channel conversation');
 
   console.log(`\nBatch ID: ${batchId}`);
-  console.log(`Recruit: http://localhost:3000/recruits/${RECRUIT_ID}`);
+  console.log(`Recruit: http://localhost:8081/recruits/${RECRUIT_ID}`);
 } catch (err) {
   fail('Unexpected', err.message);
 }

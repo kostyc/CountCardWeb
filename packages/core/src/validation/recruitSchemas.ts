@@ -33,6 +33,13 @@ export const recruitStatusSchema = z.enum([
 /**
  * Recruit name validation
  */
+export const middleInitialSchema = z
+  .string()
+  .max(2, 'Middle initial must be 2 characters or less')
+  .regex(/^[a-zA-Z.]+$/, 'Middle initial can only contain letters')
+  .trim()
+  .optional();
+
 export const recruitNameSchema = z
   .string()
   .min(1, 'Name is required')
@@ -142,6 +149,7 @@ export const recruitCreateSchema = z.object({
   rcoSerialNumber: equipmentSerialNumberSchema,
   firstName: recruitNameSchema,
   lastName: recruitNameSchema,
+  middleInitial: middleInitialSchema,
   rank: recruitRankSchema,
   status: recruitStatusSchema,
   regiment: regimentSchema.optional(),
@@ -179,6 +187,7 @@ export const recruitUpdateSchema = z.object({
   rcoSerialNumber: equipmentSerialNumberSchema,
   firstName: recruitNameSchema.optional(),
   lastName: recruitNameSchema.optional(),
+  middleInitial: middleInitialSchema.optional(),
   rank: recruitRankSchema.optional(),
   status: recruitStatusSchema.optional(),
   regiment: regimentSchema.optional(),

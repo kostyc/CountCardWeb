@@ -1,16 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { getRecruitProfileById } from '@countcard/firebase/services/recruits';
 import type { RecruitProfile } from '@countcard/core/types/models';
 import { formatEdipiForDisplay } from '@countcard/core/utils/recruitEdipi';
-import { canEditRecruit } from '@countcard/core/permissions/recruits';
+import { canEditRecruit, canSeeFullRecruitProfile } from '@countcard/core/permissions/recruits';
+import { canPerformReceivingWorkflow } from '@countcard/core/permissions/adminAccess';
 import { CUSTODY_PHASE_METADATA, isTrainingCustodyPhase } from '@countcard/core/constants/custodyPhase';
-import {
-  listRecruitProgressEvents,
-  listRecruitComments,
-} from '@countcard/firebase/services/recruitProgress';
-import type { RecruitProgressEvent, RecruitComment } from '@countcard/core/types/models';
+import { RecruitProgressSection } from '@/components/recruits/RecruitProgressSection';
+import { RecruitWeightSection } from '@/components/recruits/RecruitWeightSection';
 import { useAuth } from '@/context/AuthContext';
 import { useAppUser } from '@/hooks/useAppUser';
 import { Screen, StatusBadge, SectionHeader, Button } from '@/components/ui';
@@ -27,6 +25,13 @@ function DetailField({ label, value }: { label: string; value?: string | null })
   );
 }
 
+function formatIntendedAssignment(recruit: RecruitProfile): string | undefined {
+  const a = recruit.intendedAssignment;
+  if (!a) return undefined;
+  const parts = [a.regiment, a.battalion, a.company, a.series, a.platoon].filter(Boolean);
+  return parts.length > 0 ? parts.join(' / ') : undefined;
+}
+
 export default function RecruitDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -35,12 +40,16 @@ export default function RecruitDetailScreen() {
   const theme = useAppTheme();
   const [recruit, setRecruit] = useState<RecruitProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [progressEvents, setProgressEvents] = useState<RecruitProgressEvent[]>([]);
-  const [comments, setComments] = useState<RecruitComment[]>([]);
 
   const canModify = useMemo(() => {
     if (!appUser || !recruit) return false;
     return canEditRecruit(appUser, recruit).allowed;
+  }, [appUser, recruit]);
+
+  const showReceivingChecklist = useMemo(() => {
+    if (!appUser || !recruit) return false;
+    if (!canPerformReceivingWorkflow(appUser)) return false;
+    return recruit.custodyPhase === 'receiving' || recruit.custodyPhase === 'receiving_ready';
   }, [appUser, recruit]);
 
   const canTransfer = useMemo(() => {
@@ -48,27 +57,27 @@ export default function RecruitDetailScreen() {
     return recruit.custodyPhase == null || isTrainingCustodyPhase(recruit.custodyPhase);
   }, [canModify, recruit]);
 
-  const showProgress = recruit?.custodyPhase === 'training';
+  const canSeeExtended = useMemo(() => {
+    if (!appUser || !recruit) return false;
+    return canSeeFullRecruitProfile(appUser, recruit);
+  }, [appUser, recruit]);
+
+  const hasExtendedInfo = useMemo(() => {
+    if (!recruit) return false;
+    return Boolean(
+      recruit.medicalNotes ||
+        recruit.dietaryRestrictions ||
+        recruit.preferredContactMethod ||
+        recruit.extendedNotes
+    );
+  }, [recruit]);
 
   useFocusEffect(
     useCallback(() => {
       if (!id) return;
       setLoading(true);
       getRecruitProfileById(id)
-        .then(async (data) => {
-          setRecruit(data);
-          if (data?.custodyPhase === 'training') {
-            const [ev, cm] = await Promise.all([
-              listRecruitProgressEvents(id),
-              listRecruitComments(id),
-            ]);
-            setProgressEvents(ev);
-            setComments(cm);
-          } else {
-            setProgressEvents([]);
-            setComments([]);
-          }
-        })
+        .then((data) => setRecruit(data))
         .finally(() => setLoading(false));
     }, [id])
   );
@@ -110,6 +119,15 @@ export default function RecruitDetailScreen() {
           ) : null}
         </View>
       ) : null}
+      {showReceivingChecklist ? (
+        <View style={styles.actions}>
+          <Button
+            title="Receiving checklist"
+            variant="secondary"
+            onPress={() => router.push(`/receiving/checklist/${id}`)}
+          />
+        </View>
+      ) : null}
 
       {recruit.custodyPhase ? (
         <>
@@ -119,12 +137,18 @@ export default function RecruitDetailScreen() {
               label="Phase"
               value={CUSTODY_PHASE_METADATA[recruit.custodyPhase]?.label ?? recruit.custodyPhase}
             />
+            <DetailField label="Intended destination" value={formatIntendedAssignment(recruit)} />
           </View>
         </>
       ) : null}
 
       <SectionHeader title="Identification" />
       <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
+        <DetailField label="First name" value={recruit.firstName} />
+        <DetailField label="Middle initial" value={recruit.middleInitial} />
+        <DetailField label="Last name" value={recruit.lastName} />
+        <DetailField label="Rank" value={recruit.rank} />
+        <DetailField label="Status" value={recruit.status} />
         <DetailField label="EDIPI" value={formatEdipiForDisplay(recruit)} />
       </View>
 
@@ -136,39 +160,55 @@ export default function RecruitDetailScreen() {
 
       <SectionHeader title="Assignment" />
       <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
-        <DetailField label="Platoon" value={recruit.platoon} />
-        <DetailField label="Squad" value={recruit.squad} />
+        <DetailField label="Regiment" value={recruit.regiment} />
+        <DetailField label="Battalion" value={recruit.battalion} />
+        <DetailField label="Company" value={recruit.company} />
         <DetailField label="Series" value={recruit.series} />
+        <DetailField label="Platoon" value={recruit.platoon} />
       </View>
 
-      {showProgress ? (
+      <SectionHeader title="Physical" />
+      <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
+        <DetailField
+          label="Height (in)"
+          value={recruit.heightInches != null ? String(recruit.heightInches) : undefined}
+        />
+        <DetailField
+          label="Weight at intake (lbs)"
+          value={recruit.weightPounds != null ? String(recruit.weightPounds) : undefined}
+        />
+      </View>
+
+      {canSeeExtended && hasExtendedInfo ? (
         <>
-          <SectionHeader title="Training progress" subtitle="Read-only on mobile; add events on web" />
+          <SectionHeader title="Extended information" />
           <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
-            {progressEvents.length === 0 ? (
-              <Text style={{ color: theme.colors.textMuted }}>No progress events yet.</Text>
-            ) : (
-              progressEvents.slice(0, 8).map((ev) => (
-                <Text key={ev.eventId} style={{ color: theme.colors.text, marginBottom: 6 }}>
-                  {ev.type.replace(/_/g, ' ')}
-                  {ev.notes ? ` — ${ev.notes}` : ''}
-                </Text>
-              ))
-            )}
+            {recruit.medicalNotes ? (
+              <DetailField label="Medical notes" value={recruit.medicalNotes} />
+            ) : null}
+            {recruit.dietaryRestrictions ? (
+              <DetailField label="Dietary restrictions" value={recruit.dietaryRestrictions} />
+            ) : null}
+            {recruit.preferredContactMethod ? (
+              <DetailField
+                label="Preferred contact"
+                value={recruit.preferredContactMethod === 'phone' ? 'Phone' : 'Email'}
+              />
+            ) : null}
+            {recruit.extendedNotes ? (
+              <DetailField label="Notes" value={recruit.extendedNotes} />
+            ) : null}
           </View>
-          {comments.length > 0 ? (
-            <>
-              <SectionHeader title="Comments" />
-              <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
-                {comments.slice(0, 5).map((c) => (
-                  <Text key={c.commentId} style={{ color: theme.colors.text, marginBottom: 8 }}>
-                    {c.body}
-                  </Text>
-                ))}
-              </View>
-            </>
-          ) : null}
         </>
+      ) : null}
+
+
+      {user ? (
+        <RecruitWeightSection recruit={recruit} appUser={appUser} userId={user.uid} />
+      ) : null}
+
+      {user ? (
+        <RecruitProgressSection recruit={recruit} appUser={appUser} userId={user.uid} />
       ) : null}
     </Screen>
   );

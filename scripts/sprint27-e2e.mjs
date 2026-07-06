@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /**
- * Sprint 27 custody lifecycle E2E — uses Firebase Admin + localhost API tokens.
+ * Sprint 27 custody lifecycle E2E — uses Firebase Admin + Functions emulator API tokens.
  * Usage: node scripts/sprint27-e2e.mjs [--keep]
+ *
+ * Prerequisite: ./scripts/verify-countcard-auth.sh && npm run dev:functions
  */
 
 import { readFileSync, existsSync } from 'fs';
@@ -10,11 +12,12 @@ import { fileURLToPath } from 'url';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { resolveE2eApiBase, isLegacyWebApiBase } from './e2e-api-base.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 const keep = process.argv.includes('--keep');
-const API_BASE = process.env.E2E_API_BASE || 'http://localhost:3000';
+const API_BASE = resolveE2eApiBase();
 const runId = Date.now().toString(36);
 
 const results = [];
@@ -44,7 +47,6 @@ function loadEnvFile(path) {
 }
 
 loadEnvFile(resolve(root, '.env.local'));
-loadEnvFile(resolve(root, 'apps/web/.env.local'));
 
 const projectId =
   process.env.FIREBASE_ADMIN_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'countcard-94c5b';
@@ -91,7 +93,7 @@ const RECEIVING_ORG = {
   regiment: 'West',
   battalion: 'Support',
   company: 'Receiving',
-  platoon: '001',
+  platoon: '0000',
 };
 
 const testUsers = {
@@ -107,6 +109,20 @@ const testUsers = {
     claims: {
       role: 'senior_drill_instructor',
       organizationalAssignment: DEST,
+    },
+  },
+  firstSgt: {
+    email: `s27-1stsgt-${runId}@e2e.countcard.test`,
+    claims: {
+      role: 'company_first_sgt',
+      organizationalAssignment: { regiment: 'West', battalion: '2nd', company: 'Golf' },
+    },
+  },
+  cdi: {
+    email: `s27-cdi-${runId}@e2e.countcard.test`,
+    claims: {
+      role: 'chief_drill_instructor',
+      organizationalAssignment: { regiment: 'West', battalion: '2nd', company: 'Golf' },
     },
   },
   unauthorized: {
@@ -225,7 +241,7 @@ async function createRecruit(suffix) {
       regiment: 'West',
       battalion: 'Support',
       company: 'Receiving',
-      platoon: '001',
+      platoon: '0000',
       custodyPhase: 'receiving',
       receivingChecklist: defaultChecklist(false),
       createdAt: now.toDate(),
@@ -278,6 +294,8 @@ try {
 
   const receivingToken = await idTokenFor('receiving');
   const sdiToken = await idTokenFor('sdi');
+  const firstSgtToken = await idTokenFor('firstSgt');
+  const cdiToken = await idTokenFor('cdi');
   const unauthToken = await idTokenFor('unauthorized');
   pass('ID tokens exchanged');
 
@@ -328,12 +346,24 @@ try {
   } else fail('Export CSV', `${exportRes.status} ${exportRes.text?.slice(0, 120)}`);
 
   const initRes = await api('POST', `/api/transfer-batches/${batchId}/initiate`, receivingToken);
-  if (initRes.status === 200) pass('Initiate: batch in_transit, recruits in_transit');
+  if (initRes.status === 200) pass('Initiate: batch first_sgt_review, recruits in_transit');
   else fail('Initiate batch', `${initRes.status} ${JSON.stringify(initRes.json)}`);
+
+  const batchReview = (await db.collection('transferBatches').doc(batchId).get()).data();
+  if (batchReview?.status === 'first_sgt_review') pass('Batch status is first_sgt_review after initiate');
+  else fail('Batch review status', batchReview?.status);
 
   const recruitInTransit = (await db.collection('recruits').doc(recruitA).get()).data();
   if (recruitInTransit?.custodyPhase === 'in_transit') pass('Recruit custodyPhase in_transit after initiate');
   else fail('Recruit in_transit', recruitInTransit?.custodyPhase);
+
+  const sgtRes = await api('POST', `/api/transfer-batches/${batchId}/first-sgt-review`, firstSgtToken);
+  if (sgtRes.status === 200) pass('1st Sgt review → cdi_review');
+  else fail('1st Sgt review', `${sgtRes.status} ${JSON.stringify(sgtRes.json)}`);
+
+  const cdiRes = await api('POST', `/api/transfer-batches/${batchId}/cdi-review`, cdiToken);
+  if (cdiRes.status === 200) pass('CDI review → sdi_accept');
+  else fail('CDI review', `${cdiRes.status} ${JSON.stringify(cdiRes.json)}`);
 
   const acceptRes = await api('POST', `/api/transfer-batches/${batchId}/accept`, sdiToken);
   if (acceptRes.status === 200) pass('Destination SDI accept: training custody, active status');
@@ -473,8 +503,12 @@ try {
   }
 
   const convPage = await fetch(`${API_BASE}/conversations`);
-  if (convPage.status === 200) pass('Web /conversations route returns 200');
-  else fail('/conversations page', convPage.status);
+  if (isLegacyWebApiBase(API_BASE)) {
+    if (convPage.status === 200) pass('Web /conversations route returns 200');
+    else fail('/conversations page', convPage.status);
+  } else {
+    pass('Web /conversations route skipped — Functions emulator (Expo-only client)');
+  }
 
   // Phase 5 — Parity & routes
   console.log('\nPhase 5 — Firebase & Parity');
@@ -483,7 +517,7 @@ try {
   for (const [label, url, optional] of [
     ['Expo receiving/transfers', 'http://localhost:8081/receiving/transfers', true],
     ['Expo incoming-recruits', 'http://localhost:8081/company/incoming-recruits', true],
-    ['Web recruit detail route', `${API_BASE}/recruits/${recruitA}`, false],
+    ['Web recruit detail route', `${API_BASE}/recruits/${recruitA}`, !isLegacyWebApiBase(API_BASE)],
   ]) {
     try {
       const r = await fetch(url);

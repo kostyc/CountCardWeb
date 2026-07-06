@@ -3,11 +3,13 @@ import { adminDb } from '../admin';
 import { verifyAuthToken } from '../auth';
 import {
   decryptStoredEncryptionKey,
+  encrypt,
   encodeBase64,
   generateUserKey,
   prepareEncryptionKeyForStorage,
   type StoredEncryptionKey,
 } from '@countcard/encryption';
+import { apiWrapDekSchema } from '@countcard/core/validation/apiRouteSchemas';
 
 const router = Router();
 
@@ -105,6 +107,39 @@ router.post('/recover-key', async (req, res) => {
     res.status(501).json({ error: 'Key recovery requires client-side verification flow' });
   } catch {
     res.status(500).json({ error: 'Failed to recover encryption key' });
+  }
+});
+
+
+router.post('/wrap-dek', async (req, res) => {
+  try {
+    const token = await verifyAuthToken(req);
+    if (!token) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const parsed = apiWrapDekSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Invalid payload' });
+      return;
+    }
+
+    const { recipientUserId, dekBase64 } = parsed.data;
+    const keySnap = await adminDb.collection('encryptionKeys').doc(recipientUserId).get();
+    if (!keySnap.exists) {
+      res.status(404).json({ error: 'Recipient encryption key not found' });
+      return;
+    }
+
+    const storedKey = keySnap.data() as StoredEncryptionKey;
+    storedKey.userId = recipientUserId;
+    const recipientKey = await decryptStoredEncryptionKey(storedKey);
+    const wrap = await encrypt(dekBase64, recipientKey);
+
+    res.json({ wrap });
+  } catch {
+    res.status(500).json({ error: 'Failed to wrap DEK' });
   }
 });
 

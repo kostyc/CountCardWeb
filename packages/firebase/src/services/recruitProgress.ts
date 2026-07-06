@@ -24,6 +24,8 @@ import type {
 } from '@countcard/core/validation/lifecycleSchemas';
 import { isReceivingChecklistComplete } from '@countcard/core/constants/receivingChecklist';
 import { updateRecruitProfile, getRecruitProfileById } from './recruits';
+import { summarizeProgressEvents } from '@countcard/core/utils/recruitProgressSummary';
+import type { RecruitProgressSummary } from '@countcard/core/utils/recruitProgressSummary';
 
 export async function addRecruitProgressEvent(
   recruitId: string,
@@ -138,4 +140,41 @@ export async function updateReceivingChecklist(
     },
     updatedBy
   );
+}
+
+export function progressColumnNeedsFetch(columnIds: string[]): boolean {
+  return columnIds.some((id) => {
+    if (id === 'finalPft') return true;
+    if (id === 'finalCft') return true;
+    if (id === 'finalDrill') return true;
+    if (id === 'finalInspection') return true;
+    if (id === 'comments') return true;
+    return false;
+  });
+}
+
+export async function loadProgressSummariesForRecruits(
+  recruitIds: string[],
+  options?: { concurrency?: number }
+): Promise<Record<string, RecruitProgressSummary>> {
+  const concurrency = options?.concurrency ?? 8;
+  const summaries: Record<string, RecruitProgressSummary> = {};
+  const queue = [...recruitIds];
+
+  async function worker() {
+    while (queue.length > 0) {
+      const recruitId = queue.shift();
+      if (!recruitId) return;
+      try {
+        const events = await listRecruitProgressEvents(recruitId);
+        summaries[recruitId] = summarizeProgressEvents(events);
+      } catch {
+        summaries[recruitId] = {};
+      }
+    }
+  }
+
+  const workers = Array.from({ length: Math.min(concurrency, recruitIds.length || 1) }, () => worker());
+  await Promise.all(workers);
+  return summaries;
 }

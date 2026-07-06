@@ -1,17 +1,17 @@
-# CountCard Web Application
+# CountCard Application
 
 ## Project Overview
 
-CountCard is a web-based Marine Corps Drill Instructor accountability application for tracking and managing recruits. The application is built with Next.js, Firebase (Firestore), and implements end-to-end encryption with GDPR compliance.
+CountCard is a Marine Corps Drill Instructor accountability application for tracking and managing recruits. **Primary client: Expo (iOS/Android via EAS).** Legacy Next.js web is archived at `archive/apps-web` (read-only reference). Firebase (Firestore) backend with end-to-end encryption and GDPR compliance.
 
 ## Technology Stack
 
-- **Monorepo**: npm workspaces — `apps/web` (Next.js 16), `apps/expo` (Expo SDK 57 + Expo Router), `packages/*`, `functions/`
+- **Monorepo**: npm workspaces — `apps/expo` (Expo SDK 57 + Expo Router, **primary**), `packages/*`, `functions/`
 - **Language**: TypeScript
 - **Database**: Firebase Firestore (project: `countcard-94c5b`)
 - **Authentication**: Firebase Authentication (multi-provider)
 - **Encryption**: `@countcard/encryption` — sodium-plus (web), native adapter (iOS/Android)
-- **Styling**: Tailwind CSS 4+ (web), React Native StyleSheet / NativeWind (Expo)
+- **Styling**: React Native StyleSheet / NativeWind (Expo)
 - **Validation**: Zod (`@countcard/core`)
 
 ## Core Principles

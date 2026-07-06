@@ -79,6 +79,118 @@
       ]
     },
     {
+      "collectionGroup": "recruits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "battalion",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "regiment",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastName",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "firstName",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "recruits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "battalion",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "regiment",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "company",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastName",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "firstName",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "recruits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "battalion",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "regiment",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "company",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "series",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastName",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "firstName",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "recruits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "battalion",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "regiment",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "company",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "series",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "platoon",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastName",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "firstName",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "countCards",
       "queryScope": "COLLECTION",
       "fields": [

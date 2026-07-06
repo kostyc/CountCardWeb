@@ -132,7 +132,8 @@ export async function commitRecruitImport(
   rows: ParsedRecruitImportRow[],
   dryRun: boolean,
   userId: string,
-  appUser: AppUser | null
+  appUser: AppUser | null,
+  options?: { receivingMode?: boolean }
 ): Promise<ImportCommitResult> {
-  return commitRecruitImportLocal(rows, dryRun, userId, appUser);
+  return commitRecruitImportLocal(rows, dryRun, userId, appUser, options);
 }

@@ -65,6 +65,7 @@ export default function ModifyRecruitScreen() {
   const [weaponsSerialNumber, setWeaponsSerialNumber] = useState('');
   const [rcoSerialNumber, setRcoSerialNumber] = useState('');
   const [firstName, setFirstName] = useState('');
+  const [middleInitial, setMiddleInitial] = useState('');
   const [lastName, setLastName] = useState('');
   const [rank, setRank] = useState<RecruitRank | ''>('');
   const [status, setStatus] = useState<RecruitStatus | ''>('active');
@@ -110,6 +111,7 @@ export default function ModifyRecruitScreen() {
         setWeaponsSerialNumber(recruit.weaponsSerialNumber ?? '');
         setRcoSerialNumber(recruit.rcoSerialNumber ?? '');
         setFirstName(recruit.firstName);
+        setMiddleInitial(recruit.middleInitial ?? '');
         setLastName(recruit.lastName);
         setRank(recruit.rank);
         setStatus(recruit.status);
@@ -136,6 +138,7 @@ export default function ModifyRecruitScreen() {
         weaponsSerialNumber: weaponsSerialNumber.trim() || undefined,
         rcoSerialNumber: rcoSerialNumber.trim() || undefined,
         firstName: firstName.trim(),
+        middleInitial: middleInitial.trim().toUpperCase() || undefined,
         lastName: lastName.trim(),
         rank,
         status,
@@ -246,6 +249,7 @@ export default function ModifyRecruitScreen() {
       <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
         <Input label="EDIPI" value={edipi} onChangeText={setEdipi} keyboardType="number-pad" error={fieldErrors.edipi} />
         <Input label="First name" value={firstName} onChangeText={setFirstName} error={fieldErrors.firstName} />
+        <Input label="Middle initial" value={middleInitial} onChangeText={setMiddleInitial} autoCapitalize="characters" maxLength={2} error={fieldErrors.middleInitial} />
         <Input label="Last name" value={lastName} onChangeText={setLastName} error={fieldErrors.lastName} />
         <Select label="Rank" value={rank} onChange={setRank} options={rankOptions} placeholder="Select rank" />
         <Select label="Status" value={status} onChange={setStatus} options={RECRUIT_STATUS_OPTIONS} placeholder="Select status" />

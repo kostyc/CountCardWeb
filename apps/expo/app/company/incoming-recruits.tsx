@@ -1,15 +1,43 @@
+'use client';
+
 import { useCallback, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { listTransferBatches } from '@countcard/firebase/services/transferBatches';
+import {
+  acceptTransferBatch,
+  advanceCdiReview,
+  advanceFirstSgtReview,
+  listTransferBatches,
+  rejectTransferBatch,
+} from '@countcard/firebase/services/transferBatches';
 import type { TransferBatch } from '@countcard/core/types/models';
-import { canPerformIncomingCustodyWorkflow } from '@countcard/core/permissions/adminAccess';
+import type { TransferBatchStatus } from '@countcard/core/validation/lifecycleSchemas';
+import { canPerformIncomingCustodyWorkflow, isFullAdminUser } from '@countcard/core/permissions/adminAccess';
 import { useAuth } from '@/context/AuthContext';
 import { useAppUser } from '@/hooks/useAppUser';
 import { Screen, SectionHeader, Button, ListRow, EmptyState, Input } from '@/components/ui';
-import { postTransferBatchAction } from '@/lib/transferBatchApi';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { spacing, typography } from '@/constants/theme';
+
+const REVIEW_STATUSES: TransferBatchStatus[] = [
+  'published',
+  'first_sgt_review',
+  'cdi_review',
+  'sdi_accept',
+];
+
+function stageActionLabel(status: TransferBatchStatus): string | null {
+  switch (status) {
+    case 'first_sgt_review':
+      return 'Complete 1st Sgt review';
+    case 'cdi_review':
+      return 'Complete CDI review';
+    case 'sdi_accept':
+      return 'Accept custody (SDI)';
+    default:
+      return null;
+  }
+}
 
 export default function IncomingRecruitsScreen() {
   const { user } = useAuth();
@@ -22,7 +50,8 @@ export default function IncomingRecruitsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  const canAccess = canPerformIncomingCustodyWorkflow(appUser);
+  const canAccess = canPerformIncomingCustodyWorkflow(appUser) || isFullAdminUser(appUser);
+  const role = appUser?.customClaims?.role ?? appUser?.profile?.role;
   const company = appUser?.customClaims?.organizationalAssignment?.company
     ?? appUser?.profile?.organizationalAssignment?.company;
 
@@ -30,11 +59,12 @@ export default function IncomingRecruitsScreen() {
     setLoading(true);
     setError(null);
     try {
-      const [inTransit, published] = await Promise.all([
-        listTransferBatches({ status: 'in_transit', company }, { pageSize: 50 }),
-        listTransferBatches({ status: 'published', company }, { pageSize: 50 }),
-      ]);
-      setBatches([...inTransit.items, ...published.items]);
+      const results = await Promise.all(
+        REVIEW_STATUSES.map((status) =>
+          listTransferBatches({ status, company }, { pageSize: 50 })
+        )
+      );
+      setBatches(results.flatMap((r) => r.items));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load incoming batches');
     } finally {
@@ -48,25 +78,47 @@ export default function IncomingRecruitsScreen() {
     }, [load])
   );
 
-  async function accept(batchId: string) {
+  function canActOnBatch(batch: TransferBatch): boolean {
+    if (isFullAdminUser(appUser)) return true;
+    switch (batch.status) {
+      case 'first_sgt_review':
+        return role === 'company_first_sgt';
+      case 'cdi_review':
+        return role === 'chief_drill_instructor';
+      case 'sdi_accept':
+        return role === 'senior_drill_instructor';
+      default:
+        return false;
+    }
+  }
+
+  async function advance(batch: TransferBatch) {
+    if (!user) return;
     setActing(true);
     setMessage(null);
     try {
-      await postTransferBatchAction(batchId, 'accept');
-      setMessage('Custody accepted.');
+      if (batch.status === 'first_sgt_review') {
+        await advanceFirstSgtReview(batch.transferBatchId, user.uid);
+      } else if (batch.status === 'cdi_review') {
+        await advanceCdiReview(batch.transferBatchId, user.uid);
+      } else if (batch.status === 'sdi_accept') {
+        await acceptTransferBatch(batch.transferBatchId, user.uid);
+      }
+      setMessage('Review step completed.');
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Accept failed');
+      setError(e instanceof Error ? e.message : 'Action failed');
     } finally {
       setActing(false);
     }
   }
 
   async function reject(batchId: string) {
+    if (!user) return;
     setActing(true);
     setMessage(null);
     try {
-      await postTransferBatchAction(batchId, 'reject', { reason: rejectReason || undefined });
+      await rejectTransferBatch(batchId, user.uid, rejectReason || undefined);
       setMessage('Batch rejected.');
       setRejectReason('');
       await load();
@@ -82,7 +134,7 @@ export default function IncomingRecruitsScreen() {
       <Screen scroll>
         <EmptyState
           title="Company custody access required"
-          description="SDI, CDI, or company leadership role required for incoming recruit custody."
+          description="SDI, CDI, 1stSgt, or company leadership role required for incoming recruit custody."
         />
       </Screen>
     );
@@ -90,35 +142,49 @@ export default function IncomingRecruitsScreen() {
 
   return (
     <Screen scroll>
-      <SectionHeader title="Incoming recruits" subtitle="Accept or reject in-transit custody" />
+      <SectionHeader
+        title="Incoming recruits"
+        subtitle="Staged review: 1st Sgt → CDI → SDI accept"
+      />
 
       {loading ? <ActivityIndicator size="large" color={theme.colors.primary} /> : null}
       {error ? <Text style={[styles.error, { color: theme.colors.error }]}>{error}</Text> : null}
       {message ? <Text style={[styles.message, { color: theme.colors.primary }]}>{message}</Text> : null}
 
       {batches.length === 0 && !loading ? (
-        <EmptyState title="No pending batches" description="Published or in-transit batches for your company appear here." />
+        <EmptyState title="No pending batches" description="Batches awaiting company review appear here." />
       ) : (
-        batches.map((b) => (
-          <View key={b.transferBatchId} style={styles.batchBlock}>
-            <ListRow
-              title={`${b.pickupWeek} — ${b.status}`}
-              subtitle={`${b.recruitIds.length} recruits → ${b.destinationAssignment.platoon ?? '—'}`}
-            />
-            {b.status === 'in_transit' ? (
-              <View style={styles.actions}>
-                <Button title="Accept custody" loading={acting} onPress={() => void accept(b.transferBatchId)} />
-                <Input
-                  label="Reject reason"
-                  value={rejectReason}
-                  onChangeText={setRejectReason}
-                  placeholder="Optional reason"
-                />
-                <Button title="Reject" variant="secondary" loading={acting} onPress={() => void reject(b.transferBatchId)} />
-              </View>
-            ) : null}
-          </View>
-        ))
+        batches.map((b) => {
+          const actionLabel = stageActionLabel(b.status);
+          const showAction = actionLabel && canActOnBatch(b);
+          const showReject = ['first_sgt_review', 'cdi_review', 'sdi_accept', 'published'].includes(b.status);
+          return (
+            <View key={b.transferBatchId} style={styles.batchBlock}>
+              <ListRow
+                title={`${b.pickupWeek} — ${b.status}`}
+                subtitle={`${b.recruitIds.length} recruits → ${b.destinationAssignment.platoon ?? '—'}`}
+              />
+              {showAction || showReject ? (
+                <View style={styles.actions}>
+                  {showAction ? (
+                    <Button title={actionLabel!} loading={acting} onPress={() => void advance(b)} />
+                  ) : null}
+                  {showReject ? (
+                    <>
+                      <Input
+                        label="Reject reason"
+                        value={rejectReason}
+                        onChangeText={setRejectReason}
+                        placeholder="Optional reason"
+                      />
+                      <Button title="Reject" variant="secondary" loading={acting} onPress={() => void reject(b.transferBatchId)} />
+                    </>
+                  ) : null}
+                </View>
+              ) : null}
+            </View>
+          );
+        })
       )}
 
       <View style={styles.footer}>

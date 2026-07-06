@@ -8,6 +8,7 @@ export * from './types/components';
 export * from './validation';
 export * from './permissions';
 export * from './constants/organizations';
+export * from './constants/rtrPlatoonNumbering';
 export * from './constants/recruitStatus';
 export * from './constants/custodyPhase';
 export * from './constants/receivingChecklist';
