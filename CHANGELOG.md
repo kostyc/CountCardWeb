@@ -5,9 +5,22 @@ All notable changes to CountCard Web are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.5.31...HEAD)
+## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.5.32...HEAD)
 
 - (Nothing yet.)
+
+## [2026.0.5.32] - 2026-07-06 — Sprint 27 API E2E via ADC
+
+### Added
+
+- `scripts/verify-countcard-auth.sh` — scoped gcloud/Firebase/Admin SDK check without changing global gcloud project.
+- `.cursor/rules/gcloud-firebase-auth.mdc` — multi-project auth workflow (reauth each session, no global `gcloud config set project`).
+- Admin SDK wrappers for progress, comments, DI cards, and org messaging API routes (`apps/web/lib/lifecycle/*Admin.ts`).
+
+### Fixed
+
+- `sprint27-e2e.mjs` — password sign-in (no service account key), correct lifecycle payloads, optional Expo smoke when `:8081` is down; **33/33** pass with ADC.
+- Transfer batch accept/create — omit `undefined` from Firestore `workflowHistory`, `notes`, and `transferHistory.fromAssignment` fields.
 
 ## [2026.0.5.31] - 2026-07-06 — Sprint 27 manual verification complete
 
