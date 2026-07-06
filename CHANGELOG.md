@@ -5,9 +5,100 @@ All notable changes to CountCard Web are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.2.24...HEAD)
+## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.5.31...HEAD)
 
 - (Nothing yet.)
+
+## [2026.0.5.31] - 2026-07-06 — Sprint 27 manual verification complete
+
+### Added
+
+- `scripts/sprint27-client-gaps.mjs` — reject custody, DI signatures, platoon/battalion messaging, SDI/CDI scope checks, Expo smoke (27/27).
+
+### Fixed
+
+- Web `/di-leadership-cards` and `/conversations` use authenticated client Firestore SDK (same pattern as incoming-recruits); fixes PERMISSION_DENIED when server APIs lacked Firestore auth context.
+- API routes for DI cards and org channels import `@/lib/firebase/config` for server-side client SDK initialization.
+
+### Changed
+
+- Sprint 27 TEST-MATRIX fully checked off; Sprint doc marked complete.
+
+## [2026.0.4.30] - 2026-07-06 — Sprint 27 transfer batch E2E unblocked
+
+### Fixed
+
+- Firestore rules deployed for `transferBatches` and `diLeadershipCards`; custody transfer client E2E passes end-to-end.
+- Transfer accept: omit undefined org fields from `transferHistory` entries (Firestore rejects `undefined` in `arrayUnion`).
+- Admin E2E scripts: stop defaulting to non-existent `CountCard` named database; use `(default)` unless `FIRESTORE_DATABASE_ID` is set.
+
+### Changed
+
+- Sprint 27 TEST-MATRIX Phases 0–4 checked off where verified by client E2E and browser recruit detail.
+
+## [2026.0.4.29] - 2026-07-05 — Sprint 27 verification fixes
+
+### Fixed
+
+- `firestore.indexes.json` parse error (missing `},`) and composite index for Expo incoming batch queries (`company` + `status` + `updatedAt`).
+- Receiving intake company dropdown: include **Receiving** in Support Battalion company list (was showing STC).
+- Incoming recruits page loads published and in-transit batches in parallel.
+- Transfer batch create API rejects recruits not in `receiving_ready` custody.
+
+## [2026.0.4.28] - 2026-07-05 — Sprint 27 Recruit Lifecycle
+
+### Added
+
+- Recruit custody lifecycle: Receiving intake, transfer batches (publish/initiate/accept/reject), training progress events, append-only comments, DI leadership cards, and org messaging channels.
+- Web routes: `/receiving/*`, `/company/incoming-recruits`, `/di-leadership-cards`, `/conversations`.
+- Expo parity: Receiving transfers list, incoming recruit custody (accept/reject), training progress read-only on recruit detail; dashboard quick actions.
+- Lifecycle API authorization for transfer batches, progress, DI cards, and org channels.
+- Firestore indexes for `transferBatches`, `recruits` by `custodyPhase`, and `diLeadershipCards`.
+
+### Changed
+
+- Single-recruit transfer gated to `custodyPhase: training` (API, web UI, Expo, and client SDK).
+- CSV roster export uses authenticated fetch download instead of bare link.
+
+### Fixed
+
+- Transfer batch and DI card Firestore query helpers aligned with `queryDocuments` API.
+- Web production build: sodium-plus type cast and conversations pagination `pageSize`.
+
+
+### Fixed
+
+- 3rd Battalion companies corrected to India, Kilo, Lima, Mike (removed non-existent Juliet Company).
+
+## [2026.0.3.26] - 2026-07-05 — Role-based recruits tab views
+
+### Added
+
+- Recruits tab layouts scoped by role: battalion staff see company columns; company/series staff see flat sorted lists; DIs see platoon only (web and Expo).
+- Shared recruit list helpers: `getRecruitListViewMode`, `getRecruitListFilterLevel`, `sortRecruits`, and org-scope checks for recruit visibility.
+
+### Changed
+
+- Recruit list queries and `canViewRecruit` now enforce organizational scope for command staff (no global unscoped admin bypass on the recruits tab).
+- Chief DI recruit view limited to series; Senior DI limited to platoon.
+- Web `/recruits` hides org filters above the user’s scope and shows a scope label.
+
+## [2026.0.3.25] - 2026-07-05 — Recruit lifecycle workflow
+
+### Added
+
+- Receiving Company (`Support` / `Receiving`) with custody phases: receiving → transfer pending → in transit → training.
+- Receiving intake (height, weight, initial PFT/CFT), medical checklist, and transfer batch workflow (publish, Friday initiate, destination accept/reject).
+- Roster CSV export for published transfer batches.
+- Recruit progress events (PFT, CFT, drill, inspections, hiking) and append-only comments.
+- DI leadership cards with dual signatures and append-only recommendations.
+- Org messaging channels (platoon, company, battalion broadcast) and web `/conversations` UI.
+- `POST /api/encryption/wrap-dek` for E2E message key wrapping.
+
+### Changed
+
+- Single-recruit transfer blocked when recruit is not in training custody (use transfer batches for pickup week).
+- Recruit detail shows custody phase, transfer history, and progress panel when in training.
 
 ## [2026.0.2.24] - 2026-07-05
 

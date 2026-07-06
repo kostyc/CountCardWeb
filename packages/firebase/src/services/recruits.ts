@@ -21,6 +21,7 @@ import {
   deleteDocument,
   queryDocuments,
   handleFirestoreError,
+  ServiceError,
   type PaginationOptions,
   type PaginationResult,
 } from './base';
@@ -31,6 +32,7 @@ import type {
   RecruitProfileUpdate,
 } from '@countcard/core/types/models';
 import type { RecruitStatus } from '@countcard/core/validation/recruitSchemas';
+import type { CustodyPhase } from '@countcard/core/validation/lifecycleSchemas';
 import type { RecruitRank } from '@countcard/core/constants/recruitRanks';
 import type { Regiment } from '@countcard/core/types/auth';
 import { Timestamp } from 'firebase/firestore';
@@ -191,6 +193,12 @@ export async function transferRecruitProfile(
       throw new Error(`Recruit profile not found: ${recruitId}`);
     }
 
+    if (currentRecruit.custodyPhase && currentRecruit.custodyPhase !== 'training') {
+      throw new Error(
+        'Recruit is not in training custody. Use transfer batch workflow for Receiving pickup.'
+      );
+    }
+
     const fromAssignment: RecruitOrganizationalSnapshot = {
       regiment: currentRecruit.regiment,
       battalion: currentRecruit.battalion,
@@ -299,6 +307,7 @@ export async function listRecruits(
     platoon?: string;
     status?: RecruitStatus;
     rank?: RecruitRank;
+    custodyPhase?: CustodyPhase;
   },
   pagination?: PaginationOptions
 ): Promise<PaginationResult<RecruitProfile>> {
@@ -327,16 +336,50 @@ export async function listRecruits(
     if (filters?.rank) {
       constraints.push(where('rank', '==', filters.rank));
     }
+    if (filters?.custodyPhase) {
+      constraints.push(where('custodyPhase', '==', filters.custodyPhase));
+    }
 
     // Add ordering
     constraints.push(orderBy('lastName', 'asc'));
     constraints.push(orderBy('firstName', 'asc'));
 
-    return await queryDocuments<RecruitProfile>(
-      COLLECTION_NAME,
-      constraints,
-      pagination
-    );
+    try {
+      return await queryDocuments<RecruitProfile>(
+        COLLECTION_NAME,
+        constraints,
+        pagination
+      );
+    } catch (error) {
+      const code = error instanceof ServiceError ? error.code : '';
+      const isIndexError =
+        code === 'failed-precondition' ||
+        (error instanceof Error && error.message.includes('requires an index'));
+      if (!filters?.custodyPhase || !isIndexError) {
+        throw error;
+      }
+
+      const fallbackConstraints: Parameters<typeof queryDocuments>[1] = [];
+      if (filters.regiment) fallbackConstraints.push(where('regiment', '==', filters.regiment));
+      if (filters.battalion) fallbackConstraints.push(where('battalion', '==', filters.battalion));
+      if (filters.company) fallbackConstraints.push(where('company', '==', filters.company));
+      if (filters.series) fallbackConstraints.push(where('series', '==', filters.series));
+      if (filters.platoon) fallbackConstraints.push(where('platoon', '==', filters.platoon));
+      if (filters.status) fallbackConstraints.push(where('status', '==', filters.status));
+      if (filters.rank) fallbackConstraints.push(where('rank', '==', filters.rank));
+      fallbackConstraints.push(where('custodyPhase', '==', filters.custodyPhase));
+
+      const result = await queryDocuments<RecruitProfile>(
+        COLLECTION_NAME,
+        fallbackConstraints,
+        pagination
+      );
+      result.items.sort((a, b) => {
+        const last = a.lastName.localeCompare(b.lastName);
+        return last !== 0 ? last : a.firstName.localeCompare(b.firstName);
+      });
+      return result;
+    }
   } catch (error) {
     throw handleFirestoreError(error, 'Failed to list recruits');
   }

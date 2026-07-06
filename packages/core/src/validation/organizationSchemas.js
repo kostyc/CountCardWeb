@@ -44,9 +44,9 @@ exports.companySchema = zod_1.z.enum([
     'Hotel',
     // 3rd Battalion
     'India',
-    'Juliet',
-    'Kilo',
-    'Mike',
+  'Kilo',
+  'Lima',
+  'Mike',
     // Support Battalion
     'STC',
     'MRP',
@@ -82,8 +82,8 @@ exports.organizationalAssignmentSchema = zod_1.z.object({
     // Validate company belongs to correct battalion
     const firstBattalionCompanies = ['Alpha', 'Bravo', 'Charlie', 'Delta'];
     const secondBattalionCompanies = ['Echo', 'Foxtrot', 'Golf', 'Hotel'];
-    const thirdBattalionCompanies = ['India', 'Juliet', 'Kilo', 'Mike'];
-    const supportBattalionCompanies = ['STC', 'MRP', 'BMP'];
+    const thirdBattalionCompanies = ['India', 'Kilo', 'Lima', 'Mike'];
+    const supportBattalionCompanies = ['STC', 'MRP', 'BMP', 'Receiving'];
     if (data.battalion === '1st' && !firstBattalionCompanies.includes(data.company)) {
         return false;
     }

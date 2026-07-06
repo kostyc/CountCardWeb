@@ -32,6 +32,12 @@ import { debugLog } from '@/lib/utils/debugLogger';
 import type { RecruitStatus } from '@/lib/validation/recruitSchemas';
 import type { RecruitProfile } from '@/types/models';
 import { deriveRecruitDocumentId, formatEdipiForDisplay } from '@countcard/core/utils/recruitEdipi';
+import {
+  canEditOrgAssignment,
+  RECEIVING_DEFAULT_ASSIGNMENT,
+  RECEIVING_PLATOON,
+  CUSTODY_PHASE_METADATA,
+} from '@countcard/core/constants/custodyPhase';
 
 /**
  * Recruit form data type
@@ -55,8 +61,12 @@ export interface RecruitFormData {
   dietaryRestrictions?: string;
   preferredContactMethod?: 'phone' | 'email' | '';
   extendedNotes?: string;
-  /** Privacy: who can see full profile */
   fullProfileVisibleTo?: '' | 'same_platoon' | 'same_company' | 'same_battalion' | 'admins_only';
+  heightInches?: string;
+  weightPounds?: string;
+  initialPftPullUps?: string;
+  initialPftPlankSeconds?: string;
+  initialCftTotal?: string;
 }
 
 /**
@@ -122,6 +132,10 @@ export interface RecruitFormProps {
    * @default 'create'
    */
   mode?: 'create' | 'edit';
+  /**
+   * Receiving intake mode — locks org to Support/Receiving
+   */
+  receivingMode?: boolean;
 }
 
 /**
@@ -148,7 +162,12 @@ export function RecruitForm({
   loading = false,
   disabled = false,
   mode = 'create',
+  receivingMode = false,
 }: RecruitFormProps): JSX.Element {
+  const lockOrg =
+    receivingMode ||
+    (initialData?.custodyPhase != null && !canEditOrgAssignment(initialData.custodyPhase));
+
   // Form state
   const [formData, setFormData] = useState<RecruitFormData>({
     edipi: initialData ? formatEdipiForDisplay(initialData) : '',
@@ -170,15 +189,25 @@ export function RecruitForm({
     preferredContactMethod: initialData?.preferredContactMethod || '',
     extendedNotes: initialData?.extendedNotes,
     fullProfileVisibleTo: initialData?.privacy?.fullProfileVisibleTo ?? '',
+    heightInches: initialData?.heightInches != null ? String(initialData.heightInches) : '',
+    weightPounds: initialData?.weightPounds != null ? String(initialData.weightPounds) : '',
+    initialPftPullUps:
+      initialData?.initialPft?.pullUps != null ? String(initialData.initialPft.pullUps) : '',
+    initialPftPlankSeconds:
+      initialData?.initialPft?.plankSeconds != null
+        ? String(initialData.initialPft.plankSeconds)
+        : '',
+    initialCftTotal:
+      initialData?.initialCft?.totalScore != null ? String(initialData.initialCft.totalScore) : '',
   });
 
   // Organizational assignment state
   const [organizationalAssignment, setOrganizationalAssignment] = useState<OrganizationalAssignmentValue>({
-    regiment: initialData?.regiment,
-    battalion: initialData?.battalion,
-    company: initialData?.company,
+    regiment: initialData?.regiment ?? (receivingMode ? 'West' : undefined),
+    battalion: initialData?.battalion ?? (receivingMode ? RECEIVING_DEFAULT_ASSIGNMENT.battalion : undefined),
+    company: initialData?.company ?? (receivingMode ? RECEIVING_DEFAULT_ASSIGNMENT.company : undefined),
     series: initialData?.series,
-    platoon: initialData?.platoon,
+    platoon: initialData?.platoon ?? (receivingMode ? RECEIVING_PLATOON : undefined),
   });
 
   // Update form data when organizational assignment changes
@@ -305,15 +334,76 @@ export function RecruitForm({
 
         {/* Organizational Assignment Section */}
         <div className="mb-6">
+          {initialData?.custodyPhase && (
+            <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-2">
+              Custody phase:{' '}
+              {CUSTODY_PHASE_METADATA[initialData.custodyPhase]?.label ?? initialData.custodyPhase}
+            </p>
+          )}
           <OrganizationalAssignment
             value={organizationalAssignment}
             onChange={setOrganizationalAssignment}
             errors={errors.organizational}
             required
-            disabled={disabled || loading}
+            disabled={disabled || loading || lockOrg}
             showHelperText
           />
+          {lockOrg && (
+            <p className="text-sm text-amber-700 dark:text-amber-300 mt-2">
+              Organization assignment is locked until training custody is accepted. Use the transfer
+              batch workflow for pickup week.
+            </p>
+          )}
         </div>
+
+        {/* Receiving intake metrics */}
+        {(receivingMode || initialData?.custodyPhase === 'receiving' || initialData?.custodyPhase === 'receiving_ready') && (
+          <div className="space-y-4 mb-6">
+            <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark">
+              Intake Metrics
+            </h3>
+            <Input
+              type="number"
+              label="Height (inches)"
+              value={formData.heightInches || ''}
+              onChange={(e) => handleFieldChange('heightInches', e.target.value)}
+              disabled={disabled || loading}
+              fullWidth
+            />
+            <Input
+              type="number"
+              label="Weight (lbs)"
+              value={formData.weightPounds || ''}
+              onChange={(e) => handleFieldChange('weightPounds', e.target.value)}
+              disabled={disabled || loading}
+              fullWidth
+            />
+            <Input
+              type="number"
+              label="Initial PFT — Pull-ups"
+              value={formData.initialPftPullUps || ''}
+              onChange={(e) => handleFieldChange('initialPftPullUps', e.target.value)}
+              disabled={disabled || loading}
+              fullWidth
+            />
+            <Input
+              type="number"
+              label="Initial PFT — Plank (seconds)"
+              value={formData.initialPftPlankSeconds || ''}
+              onChange={(e) => handleFieldChange('initialPftPlankSeconds', e.target.value)}
+              disabled={disabled || loading}
+              fullWidth
+            />
+            <Input
+              type="number"
+              label="Initial CFT — Total score"
+              value={formData.initialCftTotal || ''}
+              onChange={(e) => handleFieldChange('initialCftTotal', e.target.value)}
+              disabled={disabled || loading}
+              fullWidth
+            />
+          </div>
+        )}
 
         {/* Equipment Section */}
         <div className="space-y-4 mb-6">

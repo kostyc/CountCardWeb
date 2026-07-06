@@ -103,7 +103,7 @@ async function getClientLibsodium(): Promise<LibsodiumClient> {
 
 async function getSodiumModuleExports(): Promise<SodiumModule> {
   if (!sodiumModule) {
-    sodiumModule = (await import('sodium-plus')) as SodiumModule;
+    sodiumModule = (await import('sodium-plus')) as unknown as SodiumModule;
   }
   return sodiumModule.default ?? sodiumModule;
 }

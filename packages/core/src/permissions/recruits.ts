@@ -8,9 +8,48 @@
 import { AppUser, UserRole, OrganizationalAssignment } from '@countcard/core/types/auth';
 import { PermissionCheckResult } from './types';
 import { canAccessOrganizationByRole, hasPermission, isAdminRole } from './roles';
-import { checkOrganizationAccess } from './utils';
+import { getBootstrapAdminEmailsFromEnv, isFullAdminUser } from './adminAccess';
+import { isBootstrapAdminEmail } from './bootstrapAdmin';
 import type { RecruitProfile } from '@countcard/core/types/models';
 import type { Battalion, Company, Series } from '@countcard/core/validation/organizationSchemas';
+
+export type RecruitOrganizationalScope = {
+  regiment?: string;
+  battalion?: string;
+  company?: string;
+  series?: string;
+  platoon?: string;
+};
+
+export type RecruitListViewMode = 'company_columns' | 'flat';
+
+export type RecruitListFilterLevel = 'battalion' | 'company' | 'series' | 'platoon';
+
+export type RecruitSortField =
+  | 'name'
+  | 'rank'
+  | 'status'
+  | 'platoon'
+  | 'series'
+  | 'createdAt'
+  | 'updatedAt';
+
+export type RecruitSortOrder = 'asc' | 'desc';
+
+function toMillis(value: Date | { toMillis(): number } | undefined): number {
+  if (!value) return 0;
+  if (value instanceof Date) return value.getTime();
+  return value.toMillis();
+}
+
+/** Bootstrap / system admins bypass recruit list scope; role-based staff do not. */
+function hasUnscopedRecruitListAccess(user: AppUser | null): boolean {
+  if (!user) return false;
+  if (isBootstrapAdminEmail(user.email ?? user.profile?.email, getBootstrapAdminEmailsFromEnv().join(','))) {
+    return true;
+  }
+  return user.customClaims?.admin === true;
+}
 
 /**
  * Convert recruit profile organizational fields to OrganizationalAssignment
@@ -41,6 +80,10 @@ export function canViewRecruit(
     };
   }
 
+  if (hasUnscopedRecruitListAccess(user)) {
+    return { allowed: true };
+  }
+
   const role = user.customClaims?.role || user.profile?.role;
   if (!role) {
     return {
@@ -49,28 +92,10 @@ export function canViewRecruit(
     };
   }
 
-  // Admins can view any recruit
-  if (isAdminRole(role)) {
-    return {
-      allowed: true,
-    };
-  }
-
-  // Check organizational scope
-  const userOrg = user.customClaims?.organizationalAssignment || user.profile?.organizationalAssignment;
-  if (!userOrg) {
-    return {
-      allowed: false,
-      reason: 'User has no organizational assignment',
-    };
-  }
-
-  const recruitOrg = recruitToOrganizationalAssignment(recruit);
-  const canAccess = canAccessOrganizationByRole(role, userOrg, recruitOrg);
-
+  const inScope = isRecruitInOrganizationalScope(user, recruit);
   return {
-    allowed: canAccess,
-    reason: canAccess ? undefined : 'User cannot access recruits in this organizational scope',
+    allowed: inScope,
+    reason: inScope ? undefined : 'User cannot access recruits in this organizational scope',
   };
 }
 
@@ -87,6 +112,10 @@ export function canCreateRecruit(
       allowed: false,
       reason: 'User not authenticated',
     };
+  }
+
+  if (isFullAdminUser(user)) {
+    return { allowed: true };
   }
 
   const role = user.customClaims?.role || user.profile?.role;
@@ -152,6 +181,10 @@ export function canEditRecruit(
     };
   }
 
+  if (isFullAdminUser(user)) {
+    return { allowed: true };
+  }
+
   const role = user.customClaims?.role || user.profile?.role;
   if (!role) {
     return {
@@ -214,6 +247,10 @@ export function canDeleteRecruit(
     };
   }
 
+  if (isFullAdminUser(user)) {
+    return { allowed: true };
+  }
+
   const role = user.customClaims?.role || user.profile?.role;
   if (!role) {
     return {
@@ -264,15 +301,7 @@ export function canDeleteRecruit(
  * Get organizational scope for filtering recruits
  * Returns the organizational filters that should be applied based on user's role
  */
-export function getRecruitOrganizationalScope(
-  user: AppUser | null
-): {
-  regiment?: string;
-  battalion?: string;
-  company?: string;
-  series?: string;
-  platoon?: string;
-} {
+export function getRecruitOrganizationalScope(user: AppUser | null): RecruitOrganizationalScope {
   if (!user) {
     return {};
   }
@@ -284,19 +313,11 @@ export function getRecruitOrganizationalScope(
     return {};
   }
 
-  // Admins can see all recruits (no filters)
-  if (isAdminRole(role)) {
+  if (hasUnscopedRecruitListAccess(user)) {
     return {};
   }
 
-  // Base scope from user's assignment
-  const scope: {
-    regiment?: string;
-    battalion?: string;
-    company?: string;
-    series?: string;
-    platoon?: string;
-  } = {
+  const scope: RecruitOrganizationalScope = {
     regiment: userOrg.regiment,
     battalion: userOrg.battalion,
     company: userOrg.company,
@@ -304,14 +325,10 @@ export function getRecruitOrganizationalScope(
     platoon: userOrg.platoon,
   };
 
-  // Role-based scope expansion
-  // Higher roles can see more of the organizational structure
   switch (role) {
     case 'battalion_commander':
     case 'battalion_xo':
     case 'battalion_sgt_maj':
-      // Battalion-level roles can see entire battalion
-      // Remove company/series/platoon restrictions
       delete scope.company;
       delete scope.series;
       delete scope.platoon;
@@ -320,31 +337,159 @@ export function getRecruitOrganizationalScope(
     case 'company_commander':
     case 'company_xo':
     case 'company_first_sgt':
-    case 'chief_drill_instructor':
-      // Company-level roles can see entire company
-      // Remove series/platoon restrictions
       delete scope.series;
       delete scope.platoon;
       break;
 
     case 'series_commander':
-    case 'senior_drill_instructor':
-      // Series-level roles can see entire series
-      // Remove platoon restrictions
+    case 'chief_drill_instructor':
       delete scope.platoon;
       break;
 
+    case 'senior_drill_instructor':
     case 'drill_instructor':
-      // Platoon-level roles see only their platoon
-      // Keep all restrictions
       break;
 
     default:
-      // Unknown role - return base scope
       break;
   }
 
   return scope;
+}
+
+/**
+ * Whether a recruit falls within the user's recruit-list organizational scope.
+ */
+export function isRecruitInOrganizationalScope(
+  user: AppUser | null,
+  recruit: RecruitProfile
+): boolean {
+  if (!user) return false;
+  if (hasUnscopedRecruitListAccess(user)) return true;
+
+  const role = user.customClaims?.role || user.profile?.role;
+  const userOrg = user.customClaims?.organizationalAssignment || user.profile?.organizationalAssignment;
+  if (!role || !userOrg) return false;
+
+  const scope = getRecruitOrganizationalScope(user);
+
+  if (scope.regiment && recruit.regiment !== scope.regiment) return false;
+  if (scope.battalion && recruit.battalion !== scope.battalion) return false;
+  if (scope.company && recruit.company !== scope.company) return false;
+  if (scope.series && recruit.series !== scope.series) return false;
+  if (scope.platoon && recruit.platoon !== scope.platoon) return false;
+
+  return true;
+}
+
+export function getRecruitListViewMode(role: UserRole | undefined): RecruitListViewMode {
+  switch (role) {
+    case 'battalion_commander':
+    case 'battalion_xo':
+    case 'battalion_sgt_maj':
+      return 'company_columns';
+    default:
+      return 'flat';
+  }
+}
+
+export function getRecruitListFilterLevel(role: UserRole | undefined): RecruitListFilterLevel {
+  switch (role) {
+    case 'battalion_commander':
+    case 'battalion_xo':
+    case 'battalion_sgt_maj':
+      return 'battalion';
+    case 'company_commander':
+    case 'company_xo':
+    case 'company_first_sgt':
+      return 'company';
+    case 'series_commander':
+    case 'chief_drill_instructor':
+      return 'series';
+    case 'senior_drill_instructor':
+    case 'drill_instructor':
+      return 'platoon';
+    default:
+      return 'platoon';
+  }
+}
+
+export function getRecruitListScopeLabel(user: AppUser | null): string | null {
+  if (!user) return null;
+  const role = user.customClaims?.role || user.profile?.role;
+  const userOrg = user.customClaims?.organizationalAssignment || user.profile?.organizationalAssignment;
+  if (!role || !userOrg) return null;
+
+  if (hasUnscopedRecruitListAccess(user)) return 'All recruits';
+
+  switch (role) {
+    case 'battalion_commander':
+    case 'battalion_xo':
+    case 'battalion_sgt_maj':
+      return userOrg.battalion ? `${userOrg.battalion} Battalion` : null;
+    case 'company_commander':
+    case 'company_xo':
+    case 'company_first_sgt':
+      return userOrg.company ? `${userOrg.company} Company` : null;
+    case 'series_commander':
+    case 'chief_drill_instructor':
+      return userOrg.series ? `${userOrg.series} Series` : null;
+    case 'senior_drill_instructor':
+    case 'drill_instructor':
+      return userOrg.platoon ? `Platoon ${userOrg.platoon}` : null;
+    default:
+      return null;
+  }
+}
+
+export function sortRecruits(
+  recruits: RecruitProfile[],
+  field: RecruitSortField,
+  order: RecruitSortOrder
+): RecruitProfile[] {
+  const sorted = [...recruits].sort((a, b) => {
+    let aValue: string | number;
+    let bValue: string | number;
+
+    switch (field) {
+      case 'name':
+        aValue = `${a.lastName} ${a.firstName}`.toLowerCase();
+        bValue = `${b.lastName} ${b.firstName}`.toLowerCase();
+        break;
+      case 'rank':
+        aValue = a.rank || '';
+        bValue = b.rank || '';
+        break;
+      case 'status':
+        aValue = a.status || '';
+        bValue = b.status || '';
+        break;
+      case 'platoon':
+        aValue = a.platoon || '';
+        bValue = b.platoon || '';
+        break;
+      case 'series':
+        aValue = a.series || '';
+        bValue = b.series || '';
+        break;
+      case 'createdAt':
+        aValue = toMillis(a.createdAt);
+        bValue = toMillis(b.createdAt);
+        break;
+      case 'updatedAt':
+        aValue = toMillis(a.updatedAt);
+        bValue = toMillis(b.updatedAt);
+        break;
+      default:
+        return 0;
+    }
+
+    if (aValue < bValue) return order === 'asc' ? -1 : 1;
+    if (aValue > bValue) return order === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  return sorted;
 }
 
 /**

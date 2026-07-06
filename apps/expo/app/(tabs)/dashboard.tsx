@@ -1,6 +1,8 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
+import { canPerformReceivingWorkflow, canPerformIncomingCustodyWorkflow } from '@countcard/core/permissions/adminAccess';
+import { useAppUser } from '@/hooks/useAppUser';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Screen, QuickActionCard, SectionHeader } from '@/components/ui';
 import { spacing, typography, radius } from '@/constants/theme';
@@ -13,8 +15,11 @@ function getInitials(email?: string | null): string {
 
 export default function DashboardScreen() {
   const { user } = useAuth();
+  const { appUser } = useAppUser(user);
   const theme = useAppTheme();
   const router = useRouter();
+  const showReceiving = canPerformReceivingWorkflow(appUser);
+  const showIncoming = canPerformIncomingCustodyWorkflow(appUser);
 
   return (
     <Screen scroll>
@@ -65,6 +70,22 @@ export default function DashboardScreen() {
           icon="person.badge.shield.checkmark.fill"
           onPress={() => router.push('/admin')}
         />
+        {showReceiving ? (
+          <QuickActionCard
+            title="Receiving"
+            description="Transfer batches & ready recruits"
+            icon="arrow.triangle.branch"
+            onPress={() => router.push('/receiving/transfers')}
+          />
+        ) : null}
+        {showIncoming ? (
+          <QuickActionCard
+            title="Incoming"
+            description="Accept recruit custody"
+            icon="tray.and.arrow.down.fill"
+            onPress={() => router.push('/company/incoming-recruits')}
+          />
+        ) : null}
       </View>
     </Screen>
   );

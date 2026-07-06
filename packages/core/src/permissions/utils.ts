@@ -6,6 +6,7 @@
 import { AppUser, UserRole, OrganizationalAssignment } from '@countcard/core/types/auth';
 import { Permission, PermissionCheckResult } from './types';
 import { hasPermission, canAccessOrganizationByRole, getPrivilegeLevel } from './roles';
+import { isFullAdminUser } from './adminAccess';
 
 /**
  * Check if user has a specific permission
@@ -19,6 +20,10 @@ export function checkPermission(
       allowed: false,
       reason: 'User not authenticated',
     };
+  }
+
+  if (isFullAdminUser(user)) {
+    return { allowed: true };
   }
 
   const role = user.customClaims?.role || user.profile?.role;
@@ -48,6 +53,10 @@ export function checkOrganizationAccess(
       allowed: false,
       reason: 'User not authenticated',
     };
+  }
+
+  if (isFullAdminUser(user)) {
+    return { allowed: true };
   }
 
   const role = user.customClaims?.role || user.profile?.role;
@@ -111,6 +120,10 @@ export function checkPrivilegeLevel(
       allowed: false,
       reason: 'User not authenticated',
     };
+  }
+
+  if (isFullAdminUser(user)) {
+    return { allowed: true };
   }
 
   const role = user.customClaims?.role || user.profile?.role;

@@ -88,6 +88,20 @@ export async function POST(
     }
 
     const currentRecruit = recruitSnap.data() as RecruitProfile;
+
+    if (
+      currentRecruit.custodyPhase &&
+      currentRecruit.custodyPhase !== 'training'
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            'Recruit is not in training custody. Use transfer batch workflow for Receiving pickup.',
+        },
+        { status: 400 }
+      );
+    }
+
     const editCheck = canEditRecruit(appUser, currentRecruit);
     if (!editCheck.allowed) {
       return NextResponse.json(

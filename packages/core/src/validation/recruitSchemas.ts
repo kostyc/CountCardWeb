@@ -8,6 +8,14 @@
 import { z } from 'zod';
 import { recruitRankSchema } from '../constants/recruitRanks';
 import { regimentSchema } from './userProfileSchemas';
+import {
+  custodyPhaseSchema,
+  heightInchesSchema,
+  weightPoundsSchema,
+  fitnessScoreEventSchema,
+  receivingChecklistEntrySchema,
+  organizationalAssignmentPartialSchema,
+} from './lifecycleSchemas';
 
 /**
  * Recruit status validation
@@ -150,6 +158,14 @@ export const recruitCreateSchema = z.object({
   preferredContactMethod: preferredContactMethodSchema,
   extendedNotes: extendedNotesSchema,
   privacy: recruitPrivacySchema,
+  custodyPhase: custodyPhaseSchema.optional(),
+  heightInches: heightInchesSchema,
+  weightPounds: weightPoundsSchema,
+  initialPft: fitnessScoreEventSchema.optional(),
+  initialCft: fitnessScoreEventSchema.optional(),
+  receivingChecklist: z.array(receivingChecklistEntrySchema).optional(),
+  intendedAssignment: organizationalAssignmentPartialSchema.optional(),
+  activeTransferBatchId: z.string().optional(),
 });
 
 /**
@@ -178,6 +194,14 @@ export const recruitUpdateSchema = z.object({
   preferredContactMethod: preferredContactMethodSchema,
   extendedNotes: extendedNotesSchema,
   privacy: recruitPrivacySchema,
+  custodyPhase: custodyPhaseSchema.optional(),
+  heightInches: heightInchesSchema,
+  weightPounds: weightPoundsSchema,
+  initialPft: fitnessScoreEventSchema.optional(),
+  initialCft: fitnessScoreEventSchema.optional(),
+  receivingChecklist: z.array(receivingChecklistEntrySchema).optional(),
+  intendedAssignment: organizationalAssignmentPartialSchema.optional(),
+  activeTransferBatchId: z.string().optional(),
 });
 
 /**
@@ -190,6 +214,7 @@ export const recruitQuerySchema = z.object({
   regiment: regimentSchema.optional(),
   status: recruitStatusSchema.optional(),
   rank: recruitRankSchema.optional(),
+  custodyPhase: custodyPhaseSchema.optional(),
   search: z.string().max(100, 'Search term must be 100 characters or less').optional(),
 });
 

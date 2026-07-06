@@ -386,3 +386,83 @@ export async function getMessageById(
     throw handleFirestoreError(error, `Failed to get message ${messageId} from conversation ${conversationId}`);
   }
 }
+
+/**
+ * Create org-scoped channel (platoon, company, battalion broadcast)
+ */
+export async function createOrgChannelConversation(params: {
+  conversationType: 'platoon_channel' | 'company_channel' | 'battalion_broadcast';
+  organizationalScope: {
+    regiment: string;
+    battalion?: string;
+    company?: string;
+    series?: string;
+    platoon?: string;
+  };
+  createdBy: string;
+  title?: string;
+}): Promise<string> {
+  const { getUsersByOrganization } = await import('./userProfiles');
+  const scope = params.organizationalScope;
+  const orgFilter = {
+    regiment: scope.regiment as 'West' | 'East',
+    battalion: scope.battalion as import('@countcard/core/validation/organizationSchemas').Battalion | undefined,
+    company: scope.company as import('@countcard/core/validation/organizationSchemas').Company | undefined,
+    series: scope.series as import('@countcard/core/validation/organizationSchemas').Series | undefined,
+    platoon: scope.platoon,
+  };
+
+  const result = await getUsersByOrganization(orgFilter, { pageSize: 100 });
+  const participantSet = new Set<string>([params.createdBy]);
+  for (const profile of result.items) {
+    if (profile.userId) participantSet.add(profile.userId);
+  }
+  const participants = Array.from(participantSet).slice(0, 100);
+
+  const slug = [
+    params.conversationType,
+    scope.regiment,
+    scope.battalion,
+    scope.company,
+    scope.platoon,
+  ]
+    .filter(Boolean)
+    .join('-')
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, '');
+
+  const conversationId = `org-${slug}-${Date.now()}`;
+
+  await createConversation(
+    conversationId,
+    {
+      conversationId,
+      participants,
+      metadata: { title: params.title ?? params.conversationType },
+    },
+    params.createdBy
+  );
+
+  await updateConversation(
+    conversationId,
+    {
+      conversationId,
+      metadata: {
+        title: params.title ?? params.conversationType,
+        conversationType: params.conversationType,
+        organizationalScope: scope,
+        membershipRule: 'org_role_expansion',
+      },
+    },
+    params.createdBy
+  );
+
+  const docRef = doc(getDb(), CONVERSATIONS_COLLECTION, conversationId);
+  await updateDoc(docRef, {
+    conversationType: params.conversationType,
+    organizationalScope: scope,
+    membershipRule: 'org_role_expansion',
+  });
+
+  return conversationId;
+}

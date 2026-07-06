@@ -13,8 +13,17 @@ import {
   canEditRecruit,
   canDeleteRecruit,
   getRecruitOrganizationalScope,
+  getRecruitListViewMode,
+  getRecruitListFilterLevel,
+  getRecruitListScopeLabel,
+} from '@/lib/permissions/recruits';
+import type {
+  RecruitListViewMode,
+  RecruitListFilterLevel,
+  RecruitOrganizationalScope,
 } from '@/lib/permissions/recruits';
 import { hasPermission, isAdminRole } from '@/lib/permissions/roles';
+import { isFullAdminUser } from '@countcard/core/permissions/adminAccess';
 import type { UserRole } from '@/types/auth';
 import type { RecruitProfile } from '@/types/models';
 import type { OrganizationalAssignment } from '@/types/auth';
@@ -43,13 +52,10 @@ export interface UseRecruitPermissionsResult {
   /**
    * Get organizational scope for filtering recruits
    */
-  getOrganizationalScope: () => {
-    regiment?: string;
-    battalion?: string;
-    company?: string;
-    series?: string;
-    platoon?: string;
-  };
+  getOrganizationalScope: () => RecruitOrganizationalScope;
+  listViewMode: RecruitListViewMode;
+  filterLevel: RecruitListFilterLevel;
+  scopeLabel: string | null;
   /**
    * Whether user can view any recruits
    */
@@ -102,9 +108,22 @@ export function useRecruitPermissions(): UseRecruitPermissionsResult {
     [user]
   );
 
+  const listViewMode = useMemo((): RecruitListViewMode => {
+    const role = user?.customClaims?.role || user?.profile?.role;
+    return getRecruitListViewMode(role);
+  }, [user]);
+
+  const filterLevel = useMemo((): RecruitListFilterLevel => {
+    const role = user?.customClaims?.role || user?.profile?.role;
+    return getRecruitListFilterLevel(role);
+  }, [user]);
+
+  const scopeLabel = useMemo(() => getRecruitListScopeLabel(user), [user]);
+
   // Check if user can view/create any recruits (has any permissions)
   const canViewAny = useMemo(() => {
     if (!user) return false;
+    if (isFullAdminUser(user)) return true;
     const role = user.customClaims?.role || user.profile?.role;
     if (!role) return false;
     // If user has a role and organizational assignment, they can view recruits
@@ -114,6 +133,7 @@ export function useRecruitPermissions(): UseRecruitPermissionsResult {
 
   const canCreateAny = useMemo(() => {
     if (!user) return false;
+    if (isFullAdminUser(user)) return true;
     const role = user.customClaims?.role || user.profile?.role;
     if (!role) return false;
     if (isAdminRole(role as UserRole)) return true;
@@ -132,6 +152,9 @@ export function useRecruitPermissions(): UseRecruitPermissionsResult {
     canEdit,
     canDelete,
     getOrganizationalScope,
+    listViewMode,
+    filterLevel,
+    scopeLabel,
     canViewAny,
     canCreateAny,
   };

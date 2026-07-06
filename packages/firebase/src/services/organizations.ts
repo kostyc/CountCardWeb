@@ -37,8 +37,8 @@ const PLATOONS_COLLECTION = 'platoons';
 const BATTALION_COMPANIES: Record<Battalion, Company[]> = {
   '1st': ['Alpha', 'Bravo', 'Charlie', 'Delta'],
   '2nd': ['Echo', 'Foxtrot', 'Golf', 'Hotel'],
-  '3rd': ['India', 'Juliet', 'Kilo', 'Mike'],
-  'Support': ['STC', 'MRP', 'BMP'],
+  '3rd': ['India', 'Kilo', 'Lima', 'Mike'],
+  'Support': ['STC', 'MRP', 'BMP', 'Receiving'],
 };
 
 /**

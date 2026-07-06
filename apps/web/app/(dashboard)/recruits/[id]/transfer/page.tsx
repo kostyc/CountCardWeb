@@ -19,6 +19,7 @@ import {
 import { transferRecruitViaApi } from '@countcard/api-client';
 import { validateOrganizationalAssignment } from '@/lib/services/firestore/organizations';
 import { logError, logInfo } from '@/lib/utils/logger';
+import { isTrainingCustodyPhase } from '@countcard/core/constants/custodyPhase';
 import type { RecruitProfile } from '@/types/models';
 import type { OrganizationalAssignment } from '@/types/auth';
 
@@ -47,6 +48,12 @@ export default function TransferRecruitPage(): JSX.Element {
 
   const canTransferRecruit = useMemo(() => {
     if (!recruit) return { allowed: false, reason: 'Recruit not loaded' };
+    if (recruit.custodyPhase && !isTrainingCustodyPhase(recruit.custodyPhase)) {
+      return {
+        allowed: false,
+        reason: 'Single-recruit transfer requires training custody. Use Receiving transfer batch workflow.',
+      };
+    }
     return canEdit(recruit);
   }, [recruit, canEdit]);
 

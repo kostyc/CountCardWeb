@@ -20,6 +20,7 @@ import { Spinner } from '@/components/feedback';
 import { ErrorState } from '@/components/feedback';
 import { Button } from '@/components/ui/Button';
 import { checkPermission } from '@/lib/permissions/utils';
+import { isFullAdminUser } from '@countcard/core/permissions/adminAccess';
 import type { CountCard } from '@/types/models';
 import type { SortOrder } from '@/components/countCards/CountCardList';
 import type { PaginationResult } from '@/lib/services/firestore/base';
@@ -45,6 +46,10 @@ function getCountCardOrganizationalScope(user: any): {
   platoon?: string;
 } {
   if (!user) {
+    return {};
+  }
+
+  if (isFullAdminUser(user)) {
     return {};
   }
 

@@ -11,6 +11,13 @@ import type { RecruitRank } from '../constants/recruitRanks';
 import type { Battalion, Company, Series } from '@countcard/core/validation/organizationSchemas';
 import type { RecruitStatus } from '@countcard/core/validation/recruitSchemas';
 import type { CountCardStatus, WorkflowState } from '@countcard/core/validation/countCardSchemas';
+import type {
+  CustodyPhase,
+  ProgressEventType,
+  RecruitCommentCategory,
+  TransferBatchStatus,
+  ConversationType,
+} from '@countcard/core/validation/lifecycleSchemas';
 
 /**
  * Base entity interface for all Firestore documents
@@ -126,6 +133,58 @@ export interface RecruitProfile extends BaseEntity {
   extendedNotes?: string;
   /** Privacy: who can see full profile (default: same org as per existing permissions) */
   privacy?: RecruitProfilePrivacy;
+  /** Custody lifecycle phase (Receiving → training) */
+  custodyPhase?: CustodyPhase;
+  /** Height in inches at intake */
+  heightInches?: number;
+  /** Weight in pounds at intake */
+  weightPounds?: number;
+  /** Initial PFT scores at Receiving */
+  initialPft?: FitnessScoreRecord;
+  /** Initial CFT scores at Receiving */
+  initialCft?: FitnessScoreRecord;
+  /** Receiving medical/admin checklist */
+  receivingChecklist?: ReceivingChecklistEntry[];
+  /** Intended destination assignment (before custody accept) */
+  intendedAssignment?: OrganizationalAssignmentSnapshot;
+  /** Active transfer batch ID when on roster or in transit */
+  activeTransferBatchId?: string;
+}
+
+/**
+ * Fitness score snapshot (PFT/CFT)
+ */
+export interface FitnessScoreRecord {
+  pullUps?: number;
+  crunches?: number;
+  plankSeconds?: number;
+  runMinutes?: number;
+  runSeconds?: number;
+  totalScore?: number;
+  pass?: boolean;
+  recordedAt?: Date | Timestamp;
+}
+
+/**
+ * Receiving checklist entry
+ */
+export interface ReceivingChecklistEntry {
+  item: 'immunizations' | 'vision' | 'dental' | 'drug_test' | 'other';
+  completed: boolean;
+  completedAt?: Date | Timestamp;
+  completedBy?: string;
+  notes?: string;
+}
+
+/**
+ * Denormalized org assignment snapshot
+ */
+export interface OrganizationalAssignmentSnapshot {
+  regiment?: Regiment;
+  battalion?: string;
+  company?: string;
+  series?: string;
+  platoon?: string;
 }
 
 /**
@@ -154,6 +213,93 @@ export type RecruitProfileUpdate = Partial<Omit<RecruitProfile, 'id' | 'recruitI
   updatedBy: string;
   updatedAt?: Date | Timestamp;
 };
+
+/**
+ * Transfer batch for Receiving → company custody handoff
+ */
+export interface TransferBatch extends BaseEntity {
+  transferBatchId: string;
+  pickupWeek: string;
+  regiment: Regiment;
+  status: TransferBatchStatus;
+  sourceAssignment: OrganizationalAssignmentSnapshot;
+  destinationAssignment: OrganizationalAssignmentSnapshot;
+  recruitIds: string[];
+  publishedAt?: Date | Timestamp;
+  publishedBy?: string;
+  initiatedAt?: Date | Timestamp;
+  initiatedBy?: string;
+  completedAt?: Date | Timestamp;
+  completedBy?: string;
+  rejectedAt?: Date | Timestamp;
+  rejectedBy?: string;
+  rejectionReason?: string;
+  notificationsSentTo?: Array<{ uid: string; role: string }>;
+  notes?: string;
+  workflowHistory?: Array<{
+    action: string;
+    timestamp: Date | Timestamp;
+    userId: string;
+    notes?: string;
+  }>;
+}
+
+/**
+ * Recruit progress event (PFT, CFT, drill, inspections, etc.)
+ */
+export interface RecruitProgressEvent extends BaseEntity {
+  eventId: string;
+  recruitId: string;
+  type: ProgressEventType;
+  recordedAt: Date | Timestamp;
+  recordedBy: string;
+  scores?: Record<string, unknown>;
+  passFail?: boolean;
+  location?: string;
+  notes?: string;
+  encryptedPayload?: EncryptedData;
+}
+
+/**
+ * Append-only recruit comment
+ */
+export interface RecruitComment {
+  commentId: string;
+  recruitId: string;
+  authorId: string;
+  authorRole?: string;
+  body: string;
+  category: RecruitCommentCategory;
+  createdAt: Date | Timestamp;
+}
+
+/**
+ * DI leadership card (3x5 import or digital form)
+ */
+export interface DILeadershipCard extends BaseEntity {
+  cardId: string;
+  subjectUserId: string;
+  authorRole: 'sdi' | 'chief_di' | 'first_sgt';
+  cardType: 'three_by_five_import' | 'digital_form';
+  importImageUrl?: string;
+  summary?: string;
+  diSignature?: SignatureRecord;
+  seniorSignature?: SignatureRecord;
+  recommendations?: Array<{
+    text: string;
+    authorId: string;
+    createdAt: Date | Timestamp;
+  }>;
+  workflowState: 'draft' | 'pending_senior_sign' | 'completed';
+  organizationalAssignment: OrganizationalAssignmentSnapshot;
+}
+
+export interface SignatureRecord {
+  userId: string;
+  signedAt: Date | Timestamp;
+  signatureImageUrl?: string;
+  attestationHash?: string;
+}
 
 /**
  * ============================================================================
@@ -668,6 +814,12 @@ export interface Conversation extends BaseEntity {
   conversationId: string;
   /** Participant user IDs */
   participants: string[];
+  /** Channel type for org-scoped messaging */
+  conversationType?: ConversationType;
+  /** Org scope for platoon/company/battalion channels */
+  organizationalScope?: OrganizationalAssignmentSnapshot;
+  /** How membership is resolved */
+  membershipRule?: 'static_participants' | 'org_role_expansion';
   /** Last message timestamp */
   lastMessageAt?: Date | Timestamp;
   /** Last message content (for preview) */
@@ -710,6 +862,8 @@ export type ResourceType =
   | 'conversation'
   | 'platoon'
   | 'logo'
+  | 'transferBatch'
+  | 'diLeadershipCard'
   | 'other';
 
 /**

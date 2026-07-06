@@ -88,15 +88,15 @@ TEMP_FILE=$(mktemp)
 sed "s|^FIREBASE_ADMIN_PROJECT_ID=.*|FIREBASE_ADMIN_PROJECT_ID=$PROJECT_ID|" .env.local > "$TEMP_FILE"
 mv "$TEMP_FILE" .env.local
 
-# Update FIREBASE_ADMIN_CLIENT_EMAIL
-sed "s|^FIREBASE_ADMIN_CLIENT_EMAIL=.*|FIREBASE_ADMIN_CLIENT_EMAIL=$CLIENT_EMAIL|" .env.local > "$TEMP_FILE"
+# Update FIREBASE_ADMIN_CLIENT_EMAIL (also uncomments if previously commented out)
+sed -E "s|^#?[[:space:]]*FIREBASE_ADMIN_CLIENT_EMAIL=.*|FIREBASE_ADMIN_CLIENT_EMAIL=$CLIENT_EMAIL|" .env.local > "$TEMP_FILE"
 mv "$TEMP_FILE" .env.local
 
 # Update FIREBASE_ADMIN_PRIVATE_KEY (this is tricky due to special characters)
-# We need to escape the private key properly
+# We need to escape the private key properly; also uncomments if previously commented out
 TEMP_FILE2=$(mktemp)
 awk -v new_key="$FORMATTED_PRIVATE_KEY" '
-    /^FIREBASE_ADMIN_PRIVATE_KEY=/ {
+    /^#?[[:space:]]*FIREBASE_ADMIN_PRIVATE_KEY=/ {
         print "FIREBASE_ADMIN_PRIVATE_KEY=\"" new_key "\""
         next
     }
@@ -106,17 +106,12 @@ mv "$TEMP_FILE2" .env.local
 
 echo "✅ .env.local updated with Firebase Admin SDK credentials!"
 echo ""
-echo "=========================================="
-echo "Next Steps:"
-echo "=========================================="
+echo "3. Verify Admin SDK:"
+echo "   node scripts/verify-admin-sdk.mjs"
 echo ""
-echo "1. Verify the configuration:"
-echo "   cat .env.local | grep FIREBASE_ADMIN"
-echo ""
-echo "2. Restart your dev server:"
-echo "   npm run dev"
-echo ""
-echo "3. Test Firebase Admin SDK connection"
+echo "4. Run Sprint 27 API E2E:"
+echo "   npm run dev:web   # separate terminal"
+echo "   node scripts/sprint27-e2e.mjs"
 echo ""
 echo "=========================================="
 echo "⚠️  Security Reminder:"

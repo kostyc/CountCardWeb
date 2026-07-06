@@ -24,14 +24,14 @@ export const BATTALIONS: Battalion[] = ['1st', '2nd', '3rd', 'Support'];
  * Standard USMC Recruit Training Battalion structure:
  * - 1st Battalion: Alpha, Bravo, Charlie, Delta Companies
  * - 2nd Battalion: Echo, Foxtrot, Golf, Hotel Companies
- * - 3rd Battalion: India, Juliet, Kilo, Mike Companies
- * - Support Battalion: STC, MRP, BMP Companies
+ * - 3rd Battalion: India, Kilo, Lima, Mike Companies
+ * - Support Battalion: STC, MRP, BMP, Receiving Companies
  */
 export const BATTALION_COMPANIES: Record<Battalion, Company[]> = {
   '1st': ['Alpha', 'Bravo', 'Charlie', 'Delta'],
   '2nd': ['Echo', 'Foxtrot', 'Golf', 'Hotel'],
-  '3rd': ['India', 'Juliet', 'Kilo', 'Mike'],
-  'Support': ['STC', 'MRP', 'BMP'],
+  '3rd': ['India', 'Kilo', 'Lima', 'Mike'],
+  'Support': ['STC', 'MRP', 'BMP', 'Receiving'],
 };
 
 /**

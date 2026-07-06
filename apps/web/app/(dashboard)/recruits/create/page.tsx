@@ -22,6 +22,7 @@ import Breadcrumbs from '@/components/navigation/Breadcrumbs';
 import ErrorState from '@/components/feedback/ErrorState';
 import { RecruitQuickActions } from '@/components/recruits/RecruitQuickActions';
 import { deriveRecruitDocumentId, normalizeEdipiDigits } from '@countcard/core/utils/recruitEdipi';
+import type { OrganizationalAssignment } from '@/types/auth';
 
 /**
  * Breadcrumb items

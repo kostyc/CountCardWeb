@@ -7,7 +7,8 @@ import { NextRequest } from 'next/server';
 import { adminAuth } from '@/lib/firebase/admin';
 import { UserRole, OrganizationalAssignment } from '@/types/auth';
 import { Permission } from '@countcard/core/permissions/types';
-import { hasPermission, canAccessOrganizationByRole, isAdminRole } from '@countcard/core/permissions/roles';
+import { hasPermission, canAccessOrganizationByRole } from '@countcard/core/permissions/roles';
+import { isFullAdminFromClaims } from '@countcard/core/permissions/adminAccess';
 import { logError } from '@/lib/utils/logger';
 
 /**
@@ -15,7 +16,9 @@ import { logError } from '@/lib/utils/logger';
  */
 export interface DecodedToken {
   uid: string;
+  email?: string;
   role?: UserRole;
+  admin?: boolean;
   organizationalAssignment?: OrganizationalAssignment;
   [key: string]: unknown;
 }
@@ -36,7 +39,10 @@ export async function verifyAuthToken(request: NextRequest): Promise<DecodedToke
     
     return {
       ...decodedToken,
+      uid: decodedToken.uid,
+      email: decodedToken.email,
       role: decodedToken.role as UserRole | undefined,
+      admin: decodedToken.admin as boolean | undefined,
       organizationalAssignment: decodedToken.organizationalAssignment as OrganizationalAssignment | undefined,
     };
   } catch (error) {
@@ -52,13 +58,14 @@ export async function isAdmin(userId: string): Promise<boolean> {
   try {
     const user = await adminAuth.getUser(userId);
     const customClaims = user.customClaims || {};
-    
-    // Check if user has admin role in custom claims
-    if (customClaims.role && isAdminRole(customClaims.role as UserRole)) {
-      return true;
-    }
-    
-    if (customClaims.admin === true) {
+
+    if (
+      isFullAdminFromClaims({
+        email: user.email,
+        role: customClaims.role as UserRole | undefined,
+        admin: customClaims.admin as boolean | undefined,
+      })
+    ) {
       return true;
     }
 
@@ -89,7 +96,21 @@ export function verifyRole(token: DecodedToken | null, requiredRole: UserRole): 
  * Verify user has a specific permission
  */
 export function verifyPermission(token: DecodedToken | null, permission: Permission): boolean {
-  if (!token || !token.role) {
+  if (!token) {
+    return false;
+  }
+
+  if (
+    isFullAdminFromClaims({
+      email: token.email,
+      role: token.role,
+      admin: token.admin,
+    })
+  ) {
+    return true;
+  }
+
+  if (!token.role) {
     return false;
   }
   return hasPermission(token.role, permission);
@@ -102,7 +123,21 @@ export function verifyOrganizationAccess(
   token: DecodedToken | null,
   targetOrg: OrganizationalAssignment
 ): boolean {
-  if (!token || !token.role || !token.organizationalAssignment) {
+  if (!token) {
+    return false;
+  }
+
+  if (
+    isFullAdminFromClaims({
+      email: token.email,
+      role: token.role,
+      admin: token.admin,
+    })
+  ) {
+    return true;
+  }
+
+  if (!token.role || !token.organizationalAssignment) {
     return false;
   }
   return canAccessOrganizationByRole(token.role, token.organizationalAssignment, targetOrg);

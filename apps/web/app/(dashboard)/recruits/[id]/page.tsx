@@ -21,6 +21,7 @@ import { Container } from '@/components/ui/Container';
 import Breadcrumbs from '@/components/navigation/Breadcrumbs';
 import { RecruitDetail } from '@/components/recruits/RecruitDetail';
 import ErrorState from '@/components/feedback/ErrorState';
+import { isTrainingCustodyPhase } from '@countcard/core/constants/custodyPhase';
 import type { RecruitProfile } from '@/types/models';
 import type { EmergencyContact } from '@/types/models';
 
@@ -58,12 +59,16 @@ export default function RecruitDetailPage(): JSX.Element {
         canView: { allowed: false, reason: 'Recruit not loaded' },
         canEdit: { allowed: false, reason: 'Recruit not loaded' },
         canDelete: { allowed: false, reason: 'Recruit not loaded' },
+        canTransfer: false,
       };
     }
     return {
       canView: canView(recruit),
       canEdit: canEdit(recruit),
       canDelete: canDelete(recruit),
+      canTransfer:
+        canEdit(recruit).allowed &&
+        (recruit.custodyPhase == null || isTrainingCustodyPhase(recruit.custodyPhase)),
     };
   }, [recruit, canView, canEdit, canDelete]);
 
@@ -72,9 +77,7 @@ export default function RecruitDetailPage(): JSX.Element {
    */
   useEffect(() => {
     async function loadRecruit() {
-      if (!recruitId) {
-        setError(new Error('Recruit ID is required'));
-        setLoading(false);
+      if (!recruitId || !user) {
         return;
       }
 
@@ -117,7 +120,7 @@ export default function RecruitDetailPage(): JSX.Element {
     }
 
     loadRecruit();
-  }, [recruitId]);
+  }, [recruitId, user]);
 
   /**
    * Handle modify
@@ -182,17 +185,25 @@ export default function RecruitDetailPage(): JSX.Element {
       <div className="space-y-6">
         <Breadcrumbs items={breadcrumbItems} />
 
-        {permissions.canView.allowed ? (
+        {loading || !user ? (
+          <RecruitDetail
+            recruit={recruit}
+            emergencyContacts={emergencyContacts}
+            loading={loading}
+            error={error}
+            recruitId={recruitId}
+          />
+        ) : permissions.canView.allowed ? (
           <RecruitDetail
             recruit={recruit}
             emergencyContacts={emergencyContacts}
             loading={loading}
             error={error}
             onModify={permissions.canEdit.allowed ? handleModify : undefined}
-            onTransfer={permissions.canEdit.allowed ? handleTransfer : undefined}
+            onTransfer={permissions.canTransfer ? handleTransfer : undefined}
             onDelete={permissions.canDelete.allowed ? handleDelete : undefined}
             showModifyButton={permissions.canEdit.allowed}
-            showTransferButton={permissions.canEdit.allowed}
+            showTransferButton={permissions.canTransfer}
             showDeleteButton={permissions.canDelete.allowed}
             recruitId={recruitId}
           />

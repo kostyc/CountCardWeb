@@ -38,6 +38,8 @@ import type { EmergencyContact } from '@/types/models';
 import type { RecruitStatus as RecruitStatusType } from '@/lib/validation/recruitSchemas';
 import { formatDate, toDate } from '@/lib/utils/datetime';
 import { formatEdipiForDisplay } from '@countcard/core/utils/recruitEdipi';
+import { CUSTODY_PHASE_METADATA } from '@countcard/core/constants/custodyPhase';
+import { RecruitProgressPanel } from './RecruitProgressPanel';
 import { getBattalionLogoPath } from '@/lib/constants/organizations';
 import { cn } from '@/lib/components/utils';
 
@@ -442,6 +444,46 @@ export function RecruitDetail({
               )}
             </div>
           </Card>
+
+          {recruit.custodyPhase && (
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-2">Custody Phase</h2>
+              <p className="text-base">
+                {CUSTODY_PHASE_METADATA[recruit.custodyPhase]?.label ?? recruit.custodyPhase}
+              </p>
+              {recruit.intendedAssignment?.company && (
+                <p className="text-sm text-gray-600 mt-2">
+                  Intended destination: {recruit.intendedAssignment.company}{' '}
+                  {recruit.intendedAssignment.platoon && `/ ${recruit.intendedAssignment.platoon}`}
+                </p>
+              )}
+            </Card>
+          )}
+
+          {recruit.transferHistory && recruit.transferHistory.length > 0 && (
+            <Card className="p-6">
+              <h2 className="text-xl font-semibold mb-4">Transfer History</h2>
+              <ul className="space-y-3">
+                {[...recruit.transferHistory].reverse().map((entry, idx) => (
+                  <li key={idx} className="text-sm border-b pb-2">
+                    <span>
+                      {entry.fromAssignment.company ?? '—'} / {entry.fromAssignment.platoon ?? '—'}
+                      {' → '}
+                      {entry.toAssignment.company ?? '—'} / {entry.toAssignment.platoon ?? '—'}
+                    </span>
+                    <span className="block text-gray-500">
+                      {formatDate(toDate(entry.timestamp))}
+                      {entry.reason ? ` — ${entry.reason}` : ''}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
+          {recruit.custodyPhase === 'training' && recruitId && (
+            <RecruitProgressPanel recruitId={recruitId} />
+          )}
 
           {/* Status Management */}
           <RecruitStatus

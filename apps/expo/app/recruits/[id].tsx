@@ -5,6 +5,12 @@ import { getRecruitProfileById } from '@countcard/firebase/services/recruits';
 import type { RecruitProfile } from '@countcard/core/types/models';
 import { formatEdipiForDisplay } from '@countcard/core/utils/recruitEdipi';
 import { canEditRecruit } from '@countcard/core/permissions/recruits';
+import { CUSTODY_PHASE_METADATA, isTrainingCustodyPhase } from '@countcard/core/constants/custodyPhase';
+import {
+  listRecruitProgressEvents,
+  listRecruitComments,
+} from '@countcard/firebase/services/recruitProgress';
+import type { RecruitProgressEvent, RecruitComment } from '@countcard/core/types/models';
 import { useAuth } from '@/context/AuthContext';
 import { useAppUser } from '@/hooks/useAppUser';
 import { Screen, StatusBadge, SectionHeader, Button } from '@/components/ui';
@@ -29,18 +35,40 @@ export default function RecruitDetailScreen() {
   const theme = useAppTheme();
   const [recruit, setRecruit] = useState<RecruitProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [progressEvents, setProgressEvents] = useState<RecruitProgressEvent[]>([]);
+  const [comments, setComments] = useState<RecruitComment[]>([]);
 
   const canModify = useMemo(() => {
     if (!appUser || !recruit) return false;
     return canEditRecruit(appUser, recruit).allowed;
   }, [appUser, recruit]);
 
+  const canTransfer = useMemo(() => {
+    if (!canModify || !recruit) return false;
+    return recruit.custodyPhase == null || isTrainingCustodyPhase(recruit.custodyPhase);
+  }, [canModify, recruit]);
+
+  const showProgress = recruit?.custodyPhase === 'training';
+
   useFocusEffect(
     useCallback(() => {
       if (!id) return;
       setLoading(true);
       getRecruitProfileById(id)
-        .then(setRecruit)
+        .then(async (data) => {
+          setRecruit(data);
+          if (data?.custodyPhase === 'training') {
+            const [ev, cm] = await Promise.all([
+              listRecruitProgressEvents(id),
+              listRecruitComments(id),
+            ]);
+            setProgressEvents(ev);
+            setComments(cm);
+          } else {
+            setProgressEvents([]);
+            setComments([]);
+          }
+        })
         .finally(() => setLoading(false));
     }, [id])
   );
@@ -77,8 +105,22 @@ export default function RecruitDetailScreen() {
       {canModify ? (
         <View style={styles.actions}>
           <Button title="Modify Recruit" onPress={() => router.push(`/recruits/${id}/edit`)} />
-          <Button title="Transfer Recruit" variant="secondary" onPress={() => router.push(`/recruits/${id}/transfer`)} />
+          {canTransfer ? (
+            <Button title="Transfer Recruit" variant="secondary" onPress={() => router.push(`/recruits/${id}/transfer`)} />
+          ) : null}
         </View>
+      ) : null}
+
+      {recruit.custodyPhase ? (
+        <>
+          <SectionHeader title="Custody" />
+          <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
+            <DetailField
+              label="Phase"
+              value={CUSTODY_PHASE_METADATA[recruit.custodyPhase]?.label ?? recruit.custodyPhase}
+            />
+          </View>
+        </>
       ) : null}
 
       <SectionHeader title="Identification" />
@@ -98,6 +140,36 @@ export default function RecruitDetailScreen() {
         <DetailField label="Squad" value={recruit.squad} />
         <DetailField label="Series" value={recruit.series} />
       </View>
+
+      {showProgress ? (
+        <>
+          <SectionHeader title="Training progress" subtitle="Read-only on mobile; add events on web" />
+          <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
+            {progressEvents.length === 0 ? (
+              <Text style={{ color: theme.colors.textMuted }}>No progress events yet.</Text>
+            ) : (
+              progressEvents.slice(0, 8).map((ev) => (
+                <Text key={ev.eventId} style={{ color: theme.colors.text, marginBottom: 6 }}>
+                  {ev.type.replace(/_/g, ' ')}
+                  {ev.notes ? ` — ${ev.notes}` : ''}
+                </Text>
+              ))
+            )}
+          </View>
+          {comments.length > 0 ? (
+            <>
+              <SectionHeader title="Comments" />
+              <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
+                {comments.slice(0, 5).map((c) => (
+                  <Text key={c.commentId} style={{ color: theme.colors.text, marginBottom: 8 }}>
+                    {c.body}
+                  </Text>
+                ))}
+              </View>
+            </>
+          ) : null}
+        </>
+      ) : null}
     </Screen>
   );
 }

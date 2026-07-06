@@ -11,7 +11,10 @@ import type { NavMenuItem } from '@/components/navigation';
 const BASE_NAV_ITEMS: NavMenuItem[] = [
   { label: 'Dashboard', href: '/dashboard' },
   { label: 'Recruits', href: '/recruits' },
+  { label: 'Receiving', href: '/receiving/transfers' },
+  { label: 'Incoming', href: '/company/incoming-recruits' },
   { label: 'Count Cards', href: '/count-cards' },
+  { label: 'DI Cards', href: '/di-leadership-cards' },
   { label: 'Messages', href: '/conversations' },
   { label: 'Settings', href: '/settings' },
 ];

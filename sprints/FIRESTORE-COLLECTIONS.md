@@ -727,6 +727,25 @@ The following collections are documented but not yet implemented (placeholders f
 - Tracks who accessed audit logs and when
 - Indexes required: `(investigatorUserId, accessedAt)`, `(auditLogId, accessedAt)`
 
+### 19. `transferBatches` - Receiving custody transfer batches (Sprint 27)
+
+- Pickup week roster, draft → published → in_transit → completed/rejected
+- Subcollection: none; recruits reference via `activeTransferBatchId`
+- Indexes: `(status, updatedAt)`, `(destinationAssignment.company, status)`
+
+### 20. `recruits/{id}/progressEvents` - Training progress events (Sprint 27)
+
+- PFT, CFT, drill, inspections, hiking, general comments
+- Indexes: `(type, recordedAt)` on subcollection
+
+### 21. `recruits/{id}/comments` - Append-only recruit comments (Sprint 27)
+
+- Immutable comment thread per recruit
+
+### 22. `diLeadershipCards` - DI 3x5 / leadership cards (Sprint 27)
+
+- Dual signatures, append-only recommendations
+
 ---
 
 ## Related Documentation

@@ -1,13 +1,27 @@
 CountCard Version Tracking
 ==================================
-Full Version: 2026.0.2.24
-Store Version: 2026.0.2
-Build Number: 24
+Full Version: 2026.0.5.31
+Store Version: 2026.0.5
+Build Number: 31
 Last Updated: 2026-07-05
 Release Type: Development
 
 Version History:
 ---------------
+2026.0.5.31 (2026-07-05) - Sprint 27 manual verification complete
+
+2026.0.4.30 (2026-07-05) - Sprint 27 transfer batch E2E unblocked
+
+2026.0.4.29 (2026-07-05) - Sprint 27 verification fixes
+
+2026.0.4.28 (2026-07-05) - Sprint 27 Recruit Lifecycle
+
+2026.0.3.27 (2026-07-05) - Fix 3rd Battalion companies: Lima not Juliet
+
+2026.0.3.26 (2026-07-05) - Role-based recruits tab views
+
+2026.0.3.25 (2026-07-05) - Recruit lifecycle workflow
+
 2026.0.2.24 (2026-07-05) - Roster import layout, transfer API, and navigation fixes
 
 2026.0.2.23 (2026-07-05) - Import spreadsheet grid mass edits

@@ -28,12 +28,20 @@ import { EmptyState, Skeleton } from '@/components/feedback';
 import { getCompaniesByBattalion, getAllBattalions } from '@/lib/services/firestore/organizations';
 import { getRecruitRankOptions } from '@/lib/utils/ranks';
 import { RankDisplay } from './RankDisplay';
+import { RecruitCompanyColumnView } from './RecruitCompanyColumnView';
 import { formatEdipiForDisplay } from '@countcard/core/utils/recruitEdipi';
+import type {
+  RecruitListViewMode,
+  RecruitListFilterLevel,
+  RecruitOrganizationalScope,
+  RecruitSortField,
+  RecruitSortOrder,
+} from '@/lib/permissions/recruits';
 import type { RecruitProfile } from '@/types/models';
 import type { RecruitStatus } from '@/lib/validation/recruitSchemas';
 import type { RecruitRank } from '@countcard/core/constants/recruitRanks';
 import type { Regiment } from '@/types/auth';
-import type { Battalion, Company, Series } from '@/lib/validation/organizationSchemas';
+import type { Battalion, Company } from '@/lib/validation/organizationSchemas';
 import type { SelectOption } from '@/components/forms/Select';
 
 /**
@@ -52,8 +60,8 @@ export interface RecruitFilters {
 /**
  * Sort field type
  */
-export type SortField = 'name' | 'rank' | 'status' | 'platoon' | 'createdAt' | 'updatedAt';
-export type SortOrder = 'asc' | 'desc';
+export type SortField = RecruitSortField;
+export type SortOrder = RecruitSortOrder;
 
 /**
  * Recruit list component props
@@ -122,6 +130,12 @@ export interface RecruitListProps {
    * @default 'table'
    */
   viewMode?: 'table' | 'card';
+  listViewMode?: RecruitListViewMode;
+  filterLevel?: RecruitListFilterLevel;
+  scopeLabel?: string | null;
+  battalionCompanies?: Company[];
+  recruitsByCompany?: Record<string, RecruitProfile[]>;
+  lockedOrgScope?: RecruitOrganizationalScope;
 }
 
 /**
@@ -145,9 +159,23 @@ const SORT_FIELD_OPTIONS: SelectOption[] = [
   { value: 'rank', label: 'Rank' },
   { value: 'status', label: 'Status' },
   { value: 'platoon', label: 'Platoon' },
+  { value: 'series', label: 'Series' },
   { value: 'createdAt', label: 'Created Date' },
   { value: 'updatedAt', label: 'Updated Date' },
 ];
+
+function canShowOrgFilter(
+  filterLevel: RecruitListFilterLevel,
+  field: 'regiment' | 'battalion' | 'company' | 'series' | 'platoon'
+): boolean {
+  if (filterLevel === 'platoon') return false;
+  if (filterLevel === 'series') return field === 'platoon';
+  if (filterLevel === 'company') return field === 'series' || field === 'platoon';
+  if (filterLevel === 'battalion') {
+    return field === 'company' || field === 'series' || field === 'platoon';
+  }
+  return true;
+}
 
 /**
  * Recruit List Component
@@ -173,10 +201,29 @@ export function RecruitList({
   canModifyRecruit,
   canTransferRecruit,
   viewMode = 'table',
+  listViewMode = 'flat',
+  filterLevel = 'platoon',
+  battalionCompanies = [],
+  recruitsByCompany = {},
+  lockedOrgScope = {},
 }: RecruitListProps): JSX.Element {
   const showRowActions = Boolean(onModifyClick || onTransferClick);
-  // View mode state
-  const [currentViewMode, setCurrentViewMode] = useState<'table' | 'card'>(viewMode);
+  const [currentViewMode, setCurrentViewMode] = useState<'table' | 'card' | 'columns'>(
+    listViewMode === 'company_columns' ? 'columns' : viewMode
+  );
+  const showFlatViewToggle = listViewMode === 'flat';
+
+  const effectiveBattalion = filters.battalion || lockedOrgScope.battalion;
+  const effectiveCompany = filters.company || lockedOrgScope.company;
+
+  const companyOptions: SelectOption[] = useMemo(() => {
+    if (!effectiveBattalion) return [];
+    const companies = getCompaniesByBattalion(effectiveBattalion as Battalion);
+    return companies.map((company) => ({
+      value: company,
+      label: company,
+    }));
+  }, [effectiveBattalion]);
 
   // Regiment options
   const regimentOptions: SelectOption[] = useMemo(
@@ -196,18 +243,6 @@ export function RecruitList({
       })),
     []
   );
-
-  // Company options (filtered by battalion)
-  const companyOptions: SelectOption[] = useMemo(() => {
-    if (!filters.battalion) {
-      return [];
-    }
-    const companies = getCompaniesByBattalion(filters.battalion as Battalion);
-    return companies.map((company) => ({
-      value: company,
-      label: company,
-    }));
-  }, [filters.battalion]);
 
   // Series options
   const seriesOptions: SelectOption[] = useMemo(
@@ -299,7 +334,100 @@ export function RecruitList({
     onSortChange(sortField, sortOrder === 'asc' ? 'desc' : 'asc');
   };
 
-  // Check if any filters are active
+  const renderOrgFilters = () => (
+    <>
+      {canShowOrgFilter(filterLevel, 'regiment') ? (
+        <Select
+          label="Regiment"
+          options={regimentOptions}
+          value={filters.regiment || ''}
+          onChange={(e) => handleFilterChange('regiment', e.target.value || undefined)}
+          placeholder="All Regiments"
+          fullWidth
+        />
+      ) : null}
+
+      {canShowOrgFilter(filterLevel, 'battalion') ? (
+        <Select
+          label="Battalion"
+          options={battalionOptions}
+          value={filters.battalion || ''}
+          onChange={(e) => handleFilterChange('battalion', e.target.value || undefined)}
+          placeholder="All Battalions"
+          disabled={!filters.regiment}
+          fullWidth
+        />
+      ) : null}
+
+      {canShowOrgFilter(filterLevel, 'company') ? (
+        <Select
+          label="Company"
+          options={companyOptions}
+          value={filters.company || ''}
+          onChange={(e) => handleFilterChange('company', e.target.value || undefined)}
+          placeholder="All Companies"
+          disabled={!effectiveBattalion}
+          fullWidth
+        />
+      ) : null}
+
+      {canShowOrgFilter(filterLevel, 'series') ? (
+        <Select
+          label="Series"
+          options={seriesOptions}
+          value={filters.series || ''}
+          onChange={(e) => handleFilterChange('series', e.target.value || undefined)}
+          placeholder="All Series"
+          disabled={filterLevel === 'battalion' ? !filters.company : !effectiveCompany}
+          fullWidth
+        />
+      ) : null}
+
+      {canShowOrgFilter(filterLevel, 'platoon') ? (
+        <Input
+          type="text"
+          label="Platoon"
+          placeholder="0000"
+          value={filters.platoon || ''}
+          onChange={(e) => handleFilterChange('platoon', e.target.value || undefined)}
+          disabled={filterLevel === 'battalion' ? !filters.company : filterLevel === 'company' ? false : !effectiveCompany}
+          fullWidth
+        />
+      ) : null}
+    </>
+  );
+
+  const renderViewToggle = () => (
+    <div className="flex items-center gap-2">
+      {listViewMode === 'company_columns' ? (
+        <Button
+          variant={currentViewMode === 'columns' ? 'primary' : 'secondary'}
+          size="sm"
+          onClick={() => setCurrentViewMode('columns')}
+        >
+          Columns
+        </Button>
+      ) : null}
+      {showFlatViewToggle || listViewMode === 'company_columns' ? (
+        <>
+          <Button
+            variant={currentViewMode === 'table' ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setCurrentViewMode('table')}
+          >
+            Table
+          </Button>
+          <Button
+            variant={currentViewMode === 'card' ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setCurrentViewMode('card')}
+          >
+            Cards
+          </Button>
+        </>
+      ) : null}
+    </div>
+  );
   const hasActiveFilters = useMemo(() => {
     return (
       !!filters.regiment ||
@@ -313,111 +441,75 @@ export function RecruitList({
     );
   }, [filters, searchTerm]);
 
-  // Empty state
+  const renderSortControls = () => (
+    <div className="lg:col-span-2 flex gap-2">
+      <Select
+        label="Sort By"
+        options={SORT_FIELD_OPTIONS}
+        value={sortField}
+        onChange={(e) => handleSortFieldChange(e.target.value)}
+        fullWidth
+      />
+      <Button
+        variant="secondary"
+        onClick={handleSortOrderToggle}
+        className="mt-6"
+        aria-label={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
+      >
+        {sortOrder === 'asc' ? '↑' : '↓'}
+      </Button>
+    </div>
+  );
+
+  const renderFiltersGrid = (includeSort = false) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="lg:col-span-4">
+        <Input
+          type="text"
+          label="Search"
+          placeholder="Search by name or EDIPI..."
+          value={searchTerm}
+          onChange={(e) => onSearchChange(e.target.value)}
+          fullWidth
+        />
+      </div>
+      {renderOrgFilters()}
+      <Select
+        label="Status"
+        options={RECRUIT_STATUS_OPTIONS}
+        value={filters.status || ''}
+        onChange={(e) => handleFilterChange('status', e.target.value || undefined)}
+        placeholder="All Statuses"
+        fullWidth
+      />
+      <Select
+        label="Rank"
+        options={rankOptions}
+        value={filters.rank || ''}
+        onChange={(e) => handleFilterChange('rank', e.target.value || undefined)}
+        placeholder="All Ranks"
+        fullWidth
+      />
+      {includeSort ? renderSortControls() : null}
+    </div>
+  );
+
   if (!loading && recruits.length === 0) {
     return (
       <div className="space-y-6">
-        {/* Filters */}
         <Card className="p-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-text-primary-light dark:text-text-primary-dark">
                 Filters
               </h3>
-              {hasActiveFilters && (
+              {hasActiveFilters ? (
                 <Button variant="secondary" size="sm" onClick={handleClearFilters}>
                   Clear Filters
                 </Button>
-              )}
+              ) : null}
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Search */}
-              <div className="lg:col-span-4">
-                <Input
-                  type="text"
-                  label="Search"
-                  placeholder="Search by name or EDIPI..."
-                  value={searchTerm}
-                  onChange={(e) => onSearchChange(e.target.value)}
-                  fullWidth
-                />
-              </div>
-
-              {/* Regiment */}
-              <Select
-                label="Regiment"
-                options={regimentOptions}
-                value={filters.regiment || ''}
-                onChange={(e) => handleFilterChange('regiment', e.target.value || undefined)}
-                placeholder="All Regiments"
-                fullWidth
-              />
-
-              {/* Battalion */}
-              <Select
-                label="Battalion"
-                options={battalionOptions}
-                value={filters.battalion || ''}
-                onChange={(e) => handleFilterChange('battalion', e.target.value || undefined)}
-                placeholder="All Battalions"
-                disabled={!filters.regiment}
-                fullWidth
-              />
-
-              {/* Company */}
-              <Select
-                label="Company"
-                options={companyOptions}
-                value={filters.company || ''}
-                onChange={(e) => handleFilterChange('company', e.target.value || undefined)}
-                placeholder="All Companies"
-                disabled={!filters.battalion}
-                fullWidth
-              />
-
-              {/* Series */}
-              <Select
-                label="Series"
-                options={seriesOptions}
-                value={filters.series || ''}
-                onChange={(e) => handleFilterChange('series', e.target.value || undefined)}
-                placeholder="All Series"
-                disabled={!filters.company}
-                fullWidth
-              />
-
-              {/* Platoon */}
-              <Input
-                type="text"
-                label="Platoon"
-                placeholder="0000"
-                value={filters.platoon || ''}
-                onChange={(e) => handleFilterChange('platoon', e.target.value || undefined)}
-                disabled={!filters.company}
-                fullWidth
-              />
-
-              {/* Status */}
-              <Select
-                label="Status"
-                options={RECRUIT_STATUS_OPTIONS}
-                value={filters.status || ''}
-                onChange={(e) => handleFilterChange('status', e.target.value || undefined)}
-                placeholder="All Statuses"
-                fullWidth
-              />
-
-              {/* Rank */}
-              <Select
-                label="Rank"
-                options={rankOptions}
-                value={filters.rank || ''}
-                onChange={(e) => handleFilterChange('rank', e.target.value || undefined)}
-                placeholder="All Ranks"
-                fullWidth
-              />
-            </div>
+            {renderFiltersGrid()}
           </div>
         </Card>
 
@@ -447,7 +539,6 @@ export function RecruitList({
 
   return (
     <div className="space-y-6">
-      {/* Filters */}
       <Card className="p-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -455,141 +546,26 @@ export function RecruitList({
               Filters
             </h3>
             <div className="flex items-center gap-4">
-              {hasActiveFilters && (
+              {hasActiveFilters ? (
                 <Button variant="secondary" size="sm" onClick={handleClearFilters}>
                   Clear Filters
                 </Button>
-              )}
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={currentViewMode === 'table' ? 'primary' : 'secondary'}
-                  size="sm"
-                  onClick={() => setCurrentViewMode('table')}
-                >
-                  Table
-                </Button>
-                <Button
-                  variant={currentViewMode === 'card' ? 'primary' : 'secondary'}
-                  size="sm"
-                  onClick={() => setCurrentViewMode('card')}
-                >
-                  Cards
-                </Button>
-              </div>
+              ) : null}
+              {renderViewToggle()}
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Search */}
-            <div className="lg:col-span-4">
-              <Input
-                type="text"
-                label="Search"
-                placeholder="Search by name or EDIPI..."
-                value={searchTerm}
-                onChange={(e) => onSearchChange(e.target.value)}
-                fullWidth
-              />
-            </div>
-
-            {/* Regiment */}
-            <Select
-              label="Regiment"
-              options={regimentOptions}
-              value={filters.regiment || ''}
-              onChange={(e) => handleFilterChange('regiment', e.target.value || undefined)}
-              placeholder="All Regiments"
-              fullWidth
-            />
-
-            {/* Battalion */}
-            <Select
-              label="Battalion"
-              options={battalionOptions}
-              value={filters.battalion || ''}
-              onChange={(e) => handleFilterChange('battalion', e.target.value || undefined)}
-              placeholder="All Battalions"
-              disabled={!filters.regiment}
-              fullWidth
-            />
-
-            {/* Company */}
-            <Select
-              label="Company"
-              options={companyOptions}
-              value={filters.company || ''}
-              onChange={(e) => handleFilterChange('company', e.target.value || undefined)}
-              placeholder="All Companies"
-              disabled={!filters.battalion}
-              fullWidth
-            />
-
-            {/* Series */}
-            <Select
-              label="Series"
-              options={seriesOptions}
-              value={filters.series || ''}
-              onChange={(e) => handleFilterChange('series', e.target.value || undefined)}
-              placeholder="All Series"
-              disabled={!filters.company}
-              fullWidth
-            />
-
-            {/* Platoon */}
-            <Input
-              type="text"
-              label="Platoon"
-              placeholder="0000"
-              value={filters.platoon || ''}
-              onChange={(e) => handleFilterChange('platoon', e.target.value || undefined)}
-              disabled={!filters.company}
-              fullWidth
-            />
-
-            {/* Status */}
-            <Select
-              label="Status"
-              options={RECRUIT_STATUS_OPTIONS}
-              value={filters.status || ''}
-              onChange={(e) => handleFilterChange('status', e.target.value || undefined)}
-              placeholder="All Statuses"
-              fullWidth
-            />
-
-            {/* Rank */}
-            <Select
-              label="Rank"
-              options={rankOptions}
-              value={filters.rank || ''}
-              onChange={(e) => handleFilterChange('rank', e.target.value || undefined)}
-              placeholder="All Ranks"
-              fullWidth
-            />
-
-            {/* Sort */}
-            <div className="lg:col-span-2 flex gap-2">
-              <Select
-                label="Sort By"
-                options={SORT_FIELD_OPTIONS}
-                value={sortField}
-                onChange={(e) => handleSortFieldChange(e.target.value)}
-                fullWidth
-              />
-              <Button
-                variant="secondary"
-                onClick={handleSortOrderToggle}
-                className="mt-6"
-                aria-label={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
-              >
-                {sortOrder === 'asc' ? '↑' : '↓'}
-              </Button>
-            </div>
-          </div>
+          {renderFiltersGrid(true)}
         </div>
       </Card>
 
-      {/* Recruit List */}
-      {currentViewMode === 'table' ? (
+      {currentViewMode === 'columns' ? (
+        <RecruitCompanyColumnView
+          companies={battalionCompanies}
+          recruitsByCompany={recruitsByCompany}
+          loading={loading}
+          onRecruitClick={onRecruitClick}
+        />
+      ) : currentViewMode === 'table' ? (
         <Card className="p-0 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">

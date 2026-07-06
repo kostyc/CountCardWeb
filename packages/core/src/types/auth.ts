@@ -119,6 +119,7 @@ export interface AppUser extends FirebaseUser {
   customClaims?: {
     role?: UserRole;
     organizationalAssignment?: OrganizationalAssignment;
+    admin?: boolean;
   };
 }
 

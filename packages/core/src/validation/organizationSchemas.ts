@@ -29,7 +29,7 @@ export const battalionSchema = z.enum([
  * - Alpha-Delta (1st Battalion)
  * - Echo-Hotel (2nd Battalion)
  * - India-Mike (3rd Battalion)
- * - STC/MRP/BMP (Support Battalion)
+ * - STC/MRP/BMP/Receiving (Support Battalion)
  */
 export const companySchema = z.enum([
   // 1st Battalion
@@ -44,13 +44,14 @@ export const companySchema = z.enum([
   'Hotel',
   // 3rd Battalion
   'India',
-  'Juliet',
   'Kilo',
+  'Lima',
   'Mike',
   // Support Battalion
   'STC',
   'MRP',
   'BMP',
+  'Receiving',
 ]);
 
 /**
@@ -86,8 +87,8 @@ export const organizationalAssignmentSchema = z.object({
     // Validate company belongs to correct battalion
     const firstBattalionCompanies = ['Alpha', 'Bravo', 'Charlie', 'Delta'];
     const secondBattalionCompanies = ['Echo', 'Foxtrot', 'Golf', 'Hotel'];
-    const thirdBattalionCompanies = ['India', 'Juliet', 'Kilo', 'Mike'];
-    const supportBattalionCompanies = ['STC', 'MRP', 'BMP'];
+    const thirdBattalionCompanies = ['India', 'Kilo', 'Lima', 'Mike'];
+    const supportBattalionCompanies = ['STC', 'MRP', 'BMP', 'Receiving'];
     
     if (data.battalion === '1st' && !firstBattalionCompanies.includes(data.company)) {
       return false;

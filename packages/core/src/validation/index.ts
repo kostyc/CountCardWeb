@@ -246,3 +246,30 @@ export {
   type AdminLogEntryInput,
   type AdminLogQuery,
 } from './adminLogSchemas';
+
+// Lifecycle schemas
+export {
+  custodyPhaseSchema,
+  transferBatchStatusSchema,
+  transferBatchCreateSchema,
+  transferBatchRejectSchema,
+  progressEventTypeSchema,
+  progressEventInputSchema,
+  recruitCommentCategorySchema,
+  recruitCommentInputSchema,
+  diLeadershipCardInputSchema,
+  diRecommendationInputSchema,
+  diCardAuthorRoleSchema,
+  diCardTypeSchema,
+  diCardWorkflowStateSchema,
+  signatureRecordSchema,
+  conversationTypeSchema,
+  conversationOrgScopeSchema,
+  fitnessScoreEventSchema,
+  receivingChecklistEntrySchema,
+  type CustodyPhase,
+  type TransferBatchStatus,
+  type ProgressEventType,
+  type RecruitCommentCategory,
+  type ConversationType,
+} from './lifecycleSchemas';

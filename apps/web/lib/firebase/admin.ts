@@ -28,9 +28,9 @@ if (getApps().length === 0) {
   const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'countcard-94c5b';
   
   // Check if service account credentials are provided
-  const hasServiceAccountCreds = 
-    process.env.FIREBASE_ADMIN_CLIENT_EMAIL && 
-    process.env.FIREBASE_ADMIN_PRIVATE_KEY;
+  const hasServiceAccountCreds =
+    Boolean(process.env.FIREBASE_ADMIN_CLIENT_EMAIL?.trim()) &&
+    Boolean(process.env.FIREBASE_ADMIN_PRIVATE_KEY?.trim());
 
   if (hasServiceAccountCreds) {
     // Use service account credentials from environment variables

@@ -39,6 +39,21 @@ service cloud.firestore {
     // Recruits & count cards: authenticated access (permissions enforced in app until Sprint 14)
     match /recruits/{recruitId} {
       allow read, write: if isAuthenticated();
+
+      match /progressEvents/{eventId} {
+        allow read, write: if isAuthenticated();
+      }
+      match /comments/{commentId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+
+    match /transferBatches/{batchId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /diLeadershipCards/{cardId} {
+      allow read, write: if isAuthenticated();
     }
 
     match /countCards/{countCardId} {

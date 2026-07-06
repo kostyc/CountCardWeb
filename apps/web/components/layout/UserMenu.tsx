@@ -8,7 +8,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { UserRole } from '@/types/auth';
+import { isFullAdminUser } from '@countcard/core/permissions/adminAccess';
 import { debugLog } from '@/lib/utils/debugLogger';
 
 /**
@@ -154,25 +154,9 @@ export default function UserMenu(): JSX.Element | null {
   };
 
   /**
-   * Check if user has admin role
+   * Full admin — all workflows (Receiving, admin panel, etc.)
    */
-  const isAdmin = (): boolean => {
-    const role = user.customClaims?.role || user.profile?.role;
-    if (!role) return false;
-
-    // Admin roles: Company 1stSgt and above
-    const adminRoles: UserRole[] = [
-      'company_first_sgt',
-      'series_commander',
-      'company_xo',
-      'company_commander',
-      'battalion_sgt_maj',
-      'battalion_xo',
-      'battalion_commander',
-    ];
-
-    return adminRoles.includes(role);
-  };
+  const showAdminMenu = isFullAdminUser(user);
 
   /**
    * Get user display name or email
@@ -329,12 +313,12 @@ export default function UserMenu(): JSX.Element | null {
             </button>
 
             {/* Admin Menu Items */}
-            {isAdmin() && (
+            {showAdminMenu && (
               <>
                 <div className="border-t border-border-primary-light dark:border-border-primary-dark my-1" />
                 <button
                   type="button"
-                  onClick={() => handleMenuItemClick('/dashboard/admin')}
+                  onClick={() => handleMenuItemClick('/admin')}
                   className="w-full text-left px-4 py-3 min-h-[44px] text-sm text-text-primary-light dark:text-text-primary-dark hover:bg-background-secondary-light dark:hover:bg-background-secondary-dark focus:outline-none focus:bg-background-secondary-light dark:focus:bg-background-secondary-dark transition-colors flex items-center"
                   role="menuitem"
                 >

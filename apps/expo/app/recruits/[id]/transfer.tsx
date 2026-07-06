@@ -4,6 +4,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import type { OrganizationalAssignment, Regiment } from '@countcard/core/types/auth';
 import type { Battalion, Company, Series } from '@countcard/core/validation/organizationSchemas';
 import { canEditRecruit } from '@countcard/core/permissions/recruits';
+import { isTrainingCustodyPhase } from '@countcard/core/constants/custodyPhase';
 import {
   getRecruitProfileById,
 } from '@countcard/firebase/services/recruits';
@@ -53,6 +54,7 @@ export default function TransferRecruitScreen() {
 
   const canTransfer = useMemo(() => {
     if (!appUser || !recruit) return false;
+    if (recruit.custodyPhase && !isTrainingCustodyPhase(recruit.custodyPhase)) return false;
     return canEditRecruit(appUser, recruit).allowed;
   }, [appUser, recruit]);
 
