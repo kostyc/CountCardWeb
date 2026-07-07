@@ -17,3 +17,5 @@ export * from './transferBatches';
 export * from './recruitProgress';
 export * from './recruitWeight';
 export * from './diLeadershipCards';
+export * from './companyTrainingDays';
+export * from './mcrdCountCards';

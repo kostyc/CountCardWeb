@@ -7,6 +7,8 @@ import {
   Pressable,
   Text,
   RefreshControl,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { listRecruits } from '@countcard/firebase/services/recruits';
 import type { RecruitProfile } from '@countcard/core/types/models';
@@ -25,6 +27,7 @@ import {
 } from '@countcard/core/permissions/recruits';
 import type { RecruitSortField, RecruitSortOrder } from '@countcard/core/permissions/recruits';
 import { getCompaniesByBattalion } from '@countcard/core/constants/organizations';
+import { getEffectiveOrganizationalAssignment, getEffectiveUserRole } from '@countcard/core/utils/effectiveOrgAssignment';
 import type { Battalion, Company } from '@countcard/core/validation/organizationSchemas';
 import { hasPermission, isAdminRole } from '@countcard/core/permissions/roles';
 import {
@@ -121,10 +124,7 @@ export default function RecruitsScreen() {
   const [progressSummaries, setProgressSummaries] = useState<Record<string, RecruitProgressSummary>>({});
   const [progressLoading, setProgressLoading] = useState(false);
 
-  const listViewMode = useMemo(() => {
-    const role = appUser?.customClaims?.role || appUser?.profile?.role;
-    return getRecruitListViewMode(role);
-  }, [appUser]);
+  const listViewMode = useMemo(() => getRecruitListViewMode(getEffectiveUserRole(appUser)), [appUser]);
 
   const scopeLabel = useMemo(() => getRecruitListScopeLabel(appUser), [appUser]);
 
@@ -134,9 +134,7 @@ export default function RecruitsScreen() {
   );
 
   const userBattalion = useMemo((): Battalion | undefined => {
-    const battalion =
-      appUser?.customClaims?.organizationalAssignment?.battalion ||
-      appUser?.profile?.organizationalAssignment?.battalion;
+    const battalion = getEffectiveOrganizationalAssignment(appUser)?.battalion;
     return battalion as Battalion | undefined;
   }, [appUser]);
 
@@ -147,7 +145,7 @@ export default function RecruitsScreen() {
 
   const canCreateAny = useMemo(() => {
     if (!appUser) return false;
-    const role = appUser.customClaims?.role || appUser.profile?.role;
+    const role = getEffectiveUserRole(appUser);
     if (!role) return false;
     if (isAdminRole(role)) return true;
     return (
@@ -239,7 +237,17 @@ export default function RecruitsScreen() {
     viewStyle,
     onViewStyleChange: setViewStyle,
     onCustomizeColumns: () => setColumnPickerOpen(true),
+    allowGridView: Platform.OS === 'web',
   };
+
+  const effectiveViewStyle = Platform.OS === 'web' ? viewStyle : 'list';
+
+  const listHeader = (
+    <View style={styles.listHeader}>
+      <RecruitActionBar canCreateAny={canCreateAny} onImport={goImport} onCreate={goCreate} />
+      <RecruitListToolbar {...toolbarProps} />
+    </View>
+  );
 
   if (userLoading || loading || !columnsReady) {
     return (
@@ -305,9 +313,7 @@ export default function RecruitsScreen() {
   }
 
   return (
-    <Screen scroll={false} padded={false}>
-      <RecruitActionBar canCreateAny={canCreateAny} onImport={goImport} onCreate={goCreate} />
-      <RecruitListToolbar {...toolbarProps} />
+    <Screen padded={false}>
       <RecruitColumnPicker
         visible={columnPickerOpen}
         visibleColumnIds={visibleColumnIds}
@@ -316,8 +322,15 @@ export default function RecruitsScreen() {
         onReset={() => void setVisibleColumnIds([...DEFAULT_RECRUIT_LIST_COLUMN_IDS])}
       />
 
-      {viewStyle === 'grid' ? (
-        <>
+      {effectiveViewStyle === 'grid' ? (
+        <ScrollView
+          style={styles.fill}
+          contentContainerStyle={styles.gridScrollContent}
+          contentInsetAdjustmentBehavior={Platform.OS === 'ios' ? 'automatic' : undefined}
+          keyboardShouldPersistTaps="handled"
+          nestedScrollEnabled
+        >
+          {listHeader}
           {progressLoading ? (
             <View style={styles.progressLoading}>
               <ActivityIndicator color={theme.colors.primary} size="small" />
@@ -335,20 +348,24 @@ export default function RecruitsScreen() {
             onRecruitsUpdated={loadRecruits}
             refreshing={refreshing}
           />
-        </>
+        </ScrollView>
       ) : listViewMode === 'company_columns' ? (
         <RecruitCompanySectionList
           sections={companySections}
           onRecruitPress={(id) => router.push(`/recruits/${id}`)}
           refreshing={refreshing}
           onRefresh={handleRefresh}
+          ListHeaderComponent={listHeader}
         />
       ) : (
         <FlatList
           data={sortedRecruits}
           keyExtractor={(item) => item.recruitId}
+          ListHeaderComponent={listHeader}
           contentContainerStyle={styles.list}
+          contentInsetAdjustmentBehavior={Platform.OS === 'ios' ? 'automatic' : undefined}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.colors.primary} />
           }
@@ -366,6 +383,7 @@ export default function RecruitsScreen() {
           )}
           ItemSeparatorComponent={null}
           style={[
+            styles.fill,
             styles.group,
             { backgroundColor: theme.colors.surface },
             cardShadow(theme.scheme),
@@ -377,6 +395,7 @@ export default function RecruitsScreen() {
 }
 
 const styles = StyleSheet.create({
+  fill: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   headerActions: {
     flexDirection: 'row',
@@ -400,7 +419,14 @@ const styles = StyleSheet.create({
     ...typography.headline,
     fontSize: 14,
   },
-  list: { padding: 20, paddingBottom: 32 },
+  list: { paddingHorizontal: 20, paddingBottom: 32 },
+  listHeader: {
+    marginHorizontal: -20,
+  },
+  gridScrollContent: {
+    flexGrow: 1,
+    paddingBottom: spacing.lg,
+  },
   group: {
     marginHorizontal: 20,
     marginTop: 8,

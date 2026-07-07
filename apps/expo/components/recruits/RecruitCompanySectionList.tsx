@@ -1,4 +1,5 @@
-import { SectionList, Text, View, StyleSheet } from 'react-native';
+import { SectionList, Text, View, StyleSheet, Platform } from 'react-native';
+import type { ReactElement } from 'react';
 import type { RecruitProfile } from '@countcard/core/types/models';
 import { formatEdipiForDisplay } from '@countcard/core/utils/recruitEdipi';
 import type { Company } from '@countcard/core/validation/organizationSchemas';
@@ -17,6 +18,7 @@ interface RecruitCompanySectionListProps {
   onRecruitPress: (recruitId: string) => void;
   refreshing?: boolean;
   onRefresh?: () => void;
+  ListHeaderComponent?: ReactElement | (() => ReactElement);
 }
 
 export function RecruitCompanySectionList({
@@ -24,6 +26,7 @@ export function RecruitCompanySectionList({
   onRecruitPress,
   refreshing,
   onRefresh,
+  ListHeaderComponent,
 }: RecruitCompanySectionListProps) {
   const theme = useAppTheme();
 
@@ -34,6 +37,8 @@ export function RecruitCompanySectionList({
       stickySectionHeadersEnabled
       refreshing={refreshing}
       onRefresh={onRefresh}
+      ListHeaderComponent={ListHeaderComponent}
+      contentInsetAdjustmentBehavior={Platform.OS === 'ios' ? 'automatic' : undefined}
       contentContainerStyle={styles.list}
       renderSectionHeader={({ section }) => (
         <View

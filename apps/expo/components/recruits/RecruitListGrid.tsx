@@ -485,7 +485,6 @@ export function RecruitListGrid({
 
 const styles = StyleSheet.create({
   wrapper: {
-    flex: 1,
     paddingHorizontal: 20,
     gap: spacing.sm,
     paddingBottom: spacing.lg,
@@ -518,7 +517,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   tableScroll: {
-    flex: 1,
+    flexGrow: 0,
   },
   headerRow: {
     flexDirection: 'row',

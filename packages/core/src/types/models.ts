@@ -418,6 +418,103 @@ export type CountCardUpdate = Partial<Omit<CountCard, 'id' | 'countCardId' | 'cr
   updatedAt?: Date | Timestamp;
 };
 
+/** Battalion guidon background for MCRD 1513/6 count card */
+export type CountCardBackgroundColor = 'White' | 'Yellow' | 'Blue' | 'Red';
+
+/** Recruit IDs assigned to each disposition column on a grid row */
+export interface CountCardDispositionAssignments {
+  bedRest?: string[];
+  lightDuty?: string[];
+  sickBay?: string[];
+  dental?: string[];
+  gearGuard?: string[];
+  other?: string[];
+}
+
+/** Single platoon row on the MCRD grid count card (Depot Order 1513.6) */
+export interface CountCardGridRow {
+  platoon: string;
+  totalStrength: number | null;
+  totalPresent: number | null;
+  weapons: number | null;
+  bedRest: number | null;
+  lightDuty: number | null;
+  sickBay: number | null;
+  dental: number | null;
+  gearGuard: number | null;
+  other: number | null;
+  total: number | null;
+  otherComments?: string;
+  /** Recruit roster linkage per disposition (recruitId) */
+  dispositionAssignments?: CountCardDispositionAssignments;
+}
+
+/** Company-level training day (F-1 anchor + current T-DAY code) */
+export interface CompanyTrainingDay extends BaseEntity {
+  companyKey: string;
+  regiment: Regiment;
+  battalion: string;
+  company: string;
+  f1Friday: Date | Timestamp;
+  currentTrainingDayCode: string;
+  currentTrainingDayPhase: 1 | 2 | 3 | 4;
+  effectiveDate: Date | Timestamp;
+  setBy: string;
+  setByRole?: UserRole;
+  setAt: Date | Timestamp;
+  manualOverride?: boolean;
+}
+
+/** MCRD San Diego grid count card (Depot Order 1513.6) */
+export interface McrdCountCard extends BaseEntity {
+  countCardId: string;
+  regiment?: Regiment;
+  battalion?: string;
+  company: string;
+  series: string;
+  /** Training event label (e.g. Field Day, PFT) */
+  event?: string;
+  countDate: Date | Timestamp;
+  trainingDayCode: string;
+  trainingDayPhase: 1 | 2 | 3 | 4;
+  f1Friday: Date | Timestamp;
+  backgroundColor: CountCardBackgroundColor;
+  rows: CountCardGridRow[];
+  notes?: string;
+  status: CountCardStatus;
+  workflowState: WorkflowState;
+  submittedBy: string;
+  submittedTo?: string;
+  approvedBy?: string;
+  rejectedBy?: string;
+  location?: string;
+  workflowHistory?: WorkflowHistoryEntry[];
+}
+
+export type McrdCountCardInput = Omit<
+  McrdCountCard,
+  'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'
+> & {
+  createdBy: string;
+  updatedBy?: string;
+};
+
+export type McrdCountCardUpdate = Partial<
+  Omit<McrdCountCard, 'id' | 'countCardId' | 'createdAt' | 'createdBy'>
+> & {
+  countCardId: string;
+  updatedBy: string;
+  updatedAt?: Date | Timestamp;
+};
+
+export type CompanyTrainingDayInput = Omit<
+  CompanyTrainingDay,
+  'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy'
+> & {
+  createdBy: string;
+  updatedBy?: string;
+};
+
 /**
  * ============================================================================
  * ORGANIZATIONAL STRUCTURE TYPES

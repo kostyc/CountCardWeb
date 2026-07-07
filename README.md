@@ -2,7 +2,7 @@
 
 Marine Corps Drill Instructor accountability application for tracking and managing recruits. Cross-platform monorepo: **Expo (iOS/Android — primary client)**, shared packages, Firebase Cloud Functions API.
 
-**Version**: 2026.0.5 (Build 40)
+**Version**: 2026.0.5 (Build 43)
 
 ## Technology Stack
 

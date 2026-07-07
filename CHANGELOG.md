@@ -5,7 +5,28 @@ All notable changes to CountCard Web are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.5.40...HEAD)
+## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.5.43...HEAD)
+
+## [2026.0.5.43] - 2026-07-07 — USMC Drill Instructor brand icons
+
+### Changed
+
+- App icon, splash screen, favicon, and Android adaptive icons updated to the USMC Drill Instructor (0911) brand logo; auth screens show the logo instead of the CC placeholder.
+
+## [2026.0.5.42] - 2026-07-06 — Fix Training Day screen navigation crash
+
+### Fixed
+
+- Training Day banner tap no longer crashes — fixed `getUserOrganization` import in company training day permissions; added `company/_layout` stack for reliable navigation.
+
+## [2026.0.5.41] - 2026-07-06 — MCRD grid count card and company training day
+
+### Added
+
+- **MCRD COUNT CARD (1513/6)** — mobile yellow grid matching the physical form: T-DAY, SERIES, DATE header; 11-column platoon grid (PLT, T/S, T/P, WPN, BR, LD, SB, DENT, GG, OTH, TOTAL); compact phone view with expandable full grid.
+- **Company Training Day** — F-1 Friday anchor (must be Friday); any company member can set or advance T-DAY; count cards inherit T-DAY read-only.
+- Training day matrix engine (F1–F4, T1–T59, S1–S11, M1–M11, Receiving) in `@countcard/core`.
+- Firestore collections `mcrdCountCards` and `companyTrainingDays` with workflow submit/approve/reject.
 
 ## [2026.0.5.40] - 2026-07-06 — Recruit receiving IST, urinalysis, and roster UX
 

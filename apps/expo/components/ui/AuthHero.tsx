@@ -1,7 +1,10 @@
 import { ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { palette, typography } from '@/constants/theme';
+
+const logo = require('@/assets/images/auth-logo.png');
 
 interface AuthHeroProps {
   title?: string;
@@ -9,16 +12,16 @@ interface AuthHeroProps {
   children?: ReactNode;
 }
 
-export function AuthHero({ title = 'CountCard', subtitle = 'Marine Corps accountability', children }: AuthHeroProps) {
+export function AuthHero({ title = 'Count Card', subtitle, children }: AuthHeroProps) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.hero, { paddingTop: insets.top + 24 }]}>
-      <View style={styles.brandMark}>
-        <Text style={styles.brandLetter}>CC</Text>
+    <View style={[styles.hero, { paddingTop: insets.top + 16 }]}>
+      <View style={styles.brandRow}>
+        <Image source={logo} style={styles.brandMark} contentFit="contain" accessibilityLabel="Count Card logo" />
+        <Text style={styles.title}>{title}</Text>
       </View>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subtitle}>{subtitle}</Text>
+      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       {children}
     </View>
   );
@@ -28,29 +31,24 @@ const styles = StyleSheet.create({
   hero: {
     backgroundColor: palette.navy,
     paddingHorizontal: 24,
-    paddingBottom: 32,
+    paddingBottom: 20,
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
   },
-  brandMark: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: palette.marineRed,
+  brandRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
+    gap: 12,
   },
-  brandLetter: {
-    color: palette.white,
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: 1,
+  brandMark: {
+    width: 48,
+    height: 48,
   },
   title: {
     ...typography.hero,
     color: palette.white,
-    fontSize: 28,
+    fontSize: 24,
+    flexShrink: 1,
   },
   subtitle: {
     ...typography.body,

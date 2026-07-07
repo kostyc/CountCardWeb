@@ -62,6 +62,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-notifications',
     'expo-image-picker',
     'expo-apple-authentication',
+    '@react-native-community/datetimepicker',
     '@react-native-firebase/app',
     // App Check native plugin omitted for local prebuild (Expo 57 Swift AppDelegate).
     // Dev builds use EXPO_PUBLIC_APPCHECK_DEBUG_TOKEN via JS SDK in lib/appCheck.ts.

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   DEFAULT_RECRUIT_LIST_COLUMN_IDS,
@@ -10,6 +11,10 @@ const STORAGE_KEY = 'recruit-list-columns-v1';
 const VIEW_MODE_KEY = 'recruit-list-view-mode-v1';
 
 export type RecruitListViewStyle = 'list' | 'grid';
+
+function defaultViewStyle(): RecruitListViewStyle {
+  return Platform.OS === 'web' ? 'grid' : 'list';
+}
 
 function columnOrderIndex(id: RecruitListColumnId): number {
   return RECRUIT_LIST_COLUMNS.findIndex((column) => column.id === id);
@@ -40,7 +45,7 @@ export function useRecruitListColumns() {
   const [visibleColumnIds, setVisibleColumnIds] = useState<RecruitListColumnId[]>(
     DEFAULT_RECRUIT_LIST_COLUMN_IDS
   );
-  const [viewStyle, setViewStyle] = useState<RecruitListViewStyle>('grid');
+  const [viewStyle, setViewStyle] = useState<RecruitListViewStyle>(defaultViewStyle);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {

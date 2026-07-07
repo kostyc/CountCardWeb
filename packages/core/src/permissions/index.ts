@@ -10,3 +10,5 @@ export * from './recruits';
 export * from './bootstrapAdmin';
 export * from './adminAccess';
 export * from './lifecycle';
+export * from './companyTrainingDay';
+export * from './mcrdCountCardWorkflow';

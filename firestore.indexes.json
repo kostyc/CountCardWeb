@@ -191,6 +191,36 @@
       ]
     },
     {
+      "collectionGroup": "recruits",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "battalion",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "company",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "platoon",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "regiment",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastName",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "firstName",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "countCards",
       "queryScope": "COLLECTION",
       "fields": [
@@ -768,6 +798,42 @@
         },
         {
           "fieldPath": "updatedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "mcrdCountCards",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "company",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "countDate",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "mcrdCountCards",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "regiment",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "battalion",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "company",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "countDate",
           "order": "DESCENDING"
         }
       ]
