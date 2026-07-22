@@ -80,16 +80,35 @@ router.post('/accept-policies', async (req, res) => {
       res.status(401).json({ error: 'Unauthorized - valid authentication token required' });
       return;
     }
-    const { privacyPolicyAccepted, termsOfServiceAccepted } = req.body ?? {};
-    await adminDb.collection('userProfiles').doc(token.uid).set(
-      {
-        privacyPolicyAccepted: Boolean(privacyPolicyAccepted),
-        termsOfServiceAccepted: Boolean(termsOfServiceAccepted),
-        policiesAcceptedAt: new Date(),
-        updatedAt: new Date(),
-      },
-      { merge: true }
-    );
+    const {
+      privacyPolicyAccepted,
+      termsOfServiceAccepted,
+      privacyPolicyVersion,
+      termsOfServiceVersion,
+    } = req.body ?? {};
+
+    const now = new Date();
+    const updateData: Record<string, unknown> = {
+      privacyPolicyAccepted: Boolean(privacyPolicyAccepted),
+      termsOfServiceAccepted: Boolean(termsOfServiceAccepted),
+      policiesAcceptedAt: now,
+      updatedAt: now,
+    };
+
+    if (privacyPolicyAccepted) {
+      updateData.privacyPolicyAcceptedAt = now;
+      if (typeof privacyPolicyVersion === 'string' && privacyPolicyVersion.trim()) {
+        updateData.privacyPolicyVersion = privacyPolicyVersion.trim();
+      }
+    }
+    if (termsOfServiceAccepted) {
+      updateData.termsOfServiceAcceptedAt = now;
+      if (typeof termsOfServiceVersion === 'string' && termsOfServiceVersion.trim()) {
+        updateData.termsOfServiceVersion = termsOfServiceVersion.trim();
+      }
+    }
+
+    await adminDb.collection('userProfiles').doc(token.uid).set(updateData, { merge: true });
     res.json({ success: true, message: 'Policy acceptance recorded' });
   } catch {
     res.status(500).json({ error: 'Failed to record policy acceptance' });

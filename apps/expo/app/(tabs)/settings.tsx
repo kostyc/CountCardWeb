@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { getUserProfileById } from '@countcard/firebase/services/userProfiles';
 import { Screen, SectionHeader, ListRow } from '@/components/ui';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { APP_VERSION } from '@/constants/appVersion';
+import { LEGAL_DOCUMENT_VERSION } from '@/constants/legalDocuments';
 import { cardShadow, radius, typography } from '@/constants/theme';
 
 export default function SettingsScreen() {
@@ -13,11 +14,20 @@ export default function SettingsScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const [hasProfile, setHasProfile] = useState(false);
+  const [policiesAccepted, setPoliciesAccepted] = useState(false);
+  const [policyVersion, setPolicyVersion] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!user) return;
-    getUserProfileById(user.uid).then((p) => setHasProfile(Boolean(p?.firstName)));
-  }, [user?.uid]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
+      getUserProfileById(user.uid).then((p) => {
+        setHasProfile(Boolean(p?.firstName));
+        const accepted = Boolean(p?.privacyPolicyAccepted && p?.termsOfServiceAccepted);
+        setPoliciesAccepted(accepted);
+        setPolicyVersion(p?.privacyPolicyVersion ?? p?.termsOfServiceVersion ?? null);
+      });
+    }, [user?.uid])
+  );
 
   async function handleResetPassword() {
     if (!user?.email) return;
@@ -56,7 +66,24 @@ export default function SettingsScreen() {
 
       <SectionHeader title="Legal" />
       <View style={[styles.group, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
-        <ListRow title="Privacy policy" onPress={() => router.push('/privacy-policy')} isFirst />
+        <ListRow
+          title="Policy acceptance"
+          showChevron={false}
+          isFirst
+          right={
+            <Text
+              style={[
+                styles.policyStatus,
+                { color: policiesAccepted ? theme.colors.success : theme.colors.textMuted },
+              ]}
+            >
+              {policiesAccepted
+                ? `Accepted · v${policyVersion ?? LEGAL_DOCUMENT_VERSION}`
+                : 'Not recorded'}
+            </Text>
+          }
+        />
+        <ListRow title="Privacy policy" onPress={() => router.push('/privacy-policy')} />
         <ListRow title="Terms of service" onPress={() => router.push('/terms-of-service')} />
         <ListRow title="Share app" onPress={() => router.push('/share')} isLast />
       </View>
@@ -80,5 +107,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   signOut: { ...typography.callout, fontWeight: '600' },
+  policyStatus: { ...typography.caption, fontWeight: '600' },
   version: { ...typography.caption, textAlign: 'center', marginTop: 8 },
 });
