@@ -77,12 +77,20 @@ export default function DashboardScreen() {
           onPress={() => router.push('/admin')}
         />
         {showReceiving ? (
-          <QuickActionCard
-            title="Receiving"
-            description="Transfer batches & ready recruits"
-            icon="arrow.triangle.branch"
-            onPress={() => router.push('/receiving/transfers')}
-          />
+          <>
+            <QuickActionCard
+              title="Intake"
+              description="Add recruit at Receiving"
+              icon="person.badge.plus"
+              onPress={() => router.push('/receiving/intake')}
+            />
+            <QuickActionCard
+              title="Receiving"
+              description="Transfer batches & ready recruits"
+              icon="arrow.triangle.branch"
+              onPress={() => router.push('/receiving/transfers')}
+            />
+          </>
         ) : null}
         {showIncoming ? (
           <QuickActionCard

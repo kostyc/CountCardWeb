@@ -7,10 +7,26 @@ import {
   type PickedImage,
 } from '@/lib/imageValidation';
 
-async function assertUploadable(uri: string, mimeType?: string): Promise<{ blob: Blob; contentType: string }> {
+function resolveContentType(mimeType: string | undefined, blobType: string, fileName?: string): string {
+  const candidate = (mimeType || blobType || '').split(';')[0].trim().toLowerCase();
+  if (ALLOWED_IMAGE_MIME_TYPES.includes(candidate as (typeof ALLOWED_IMAGE_MIME_TYPES)[number])) {
+    return candidate;
+  }
+  const lower = (fileName ?? '').toLowerCase();
+  if (lower.endsWith('.png')) return 'image/png';
+  if (lower.endsWith('.webp')) return 'image/webp';
+  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+  return 'image/jpeg';
+}
+
+async function assertUploadable(
+  uri: string,
+  mimeType?: string,
+  fileName?: string
+): Promise<{ blob: Blob; contentType: string }> {
   const response = await fetch(uri);
   const blob = await response.blob();
-  const contentType = mimeType ?? blob.type ?? 'image/jpeg';
+  const contentType = resolveContentType(mimeType, blob.type, fileName);
 
   if (!ALLOWED_IMAGE_MIME_TYPES.includes(contentType as (typeof ALLOWED_IMAGE_MIME_TYPES)[number])) {
     throw new Error('Image must be in JPG, PNG, or WebP format.');
@@ -31,7 +47,7 @@ export async function uploadProfilePictureFromUri(
   fileName = 'profile.jpg',
   mimeType?: string
 ): Promise<string> {
-  const { blob, contentType } = await assertUploadable(uri, mimeType);
+  const { blob, contentType } = await assertUploadable(uri, mimeType, fileName);
   const storage = getStorage(requireApp());
   const timestamp = Date.now();
   const sanitized = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -55,7 +71,7 @@ export async function uploadRecruitPhotoFromUri(
   fileName = 'photo.jpg',
   mimeType?: string
 ): Promise<string> {
-  const { blob, contentType } = await assertUploadable(uri, mimeType);
+  const { blob, contentType } = await assertUploadable(uri, mimeType, fileName);
   const storage = getStorage(requireApp());
   const timestamp = Date.now();
   const sanitized = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -71,6 +87,30 @@ export async function uploadRecruitPhotoFromUri(
 export async function uploadRecruitPhoto(image: PickedImage, recruitId: string): Promise<string> {
   const ext = image.mimeType === 'image/png' ? 'png' : image.mimeType === 'image/webp' ? 'webp' : 'jpg';
   return uploadRecruitPhotoFromUri(recruitId, image.uri, `photo.${ext}`, image.mimeType);
+}
+
+export async function uploadDILeadershipCardImageFromUri(
+  userId: string,
+  uri: string,
+  fileName = 'di-card.jpg',
+  mimeType?: string
+): Promise<string> {
+  const { blob, contentType } = await assertUploadable(uri, mimeType, fileName);
+  const storage = getStorage(requireApp());
+  const timestamp = Date.now();
+  const sanitized = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+  const storagePath = `di-leadership-cards/${userId}/${timestamp}-${sanitized}`;
+  const storageRef = ref(storage, storagePath);
+  const snapshot = await uploadBytes(storageRef, blob, {
+    contentType,
+    cacheControl: 'public, max-age=31536000',
+  });
+  return getDownloadURL(snapshot.ref);
+}
+
+export async function uploadDILeadershipCardImage(image: PickedImage, userId: string): Promise<string> {
+  const ext = image.mimeType === 'image/png' ? 'png' : image.mimeType === 'image/webp' ? 'webp' : 'jpg';
+  return uploadDILeadershipCardImageFromUri(userId, image.uri, `di-card.${ext}`, image.mimeType);
 }
 
 /** Pre-upload size check when only URI is known. */

@@ -14,13 +14,24 @@ const PICKER_OPTIONS: ImagePicker.ImagePickerOptions = {
   exif: false,
 };
 
-async function launchLibrary(): Promise<PickImageResult> {
+/** 3×5 index-card proportions (width:height). */
+const DI_CARD_PICKER_OPTIONS: ImagePicker.ImagePickerOptions = {
+  mediaTypes: ['images'],
+  allowsEditing: true,
+  aspect: [3, 5],
+  quality: 0.9,
+  exif: false,
+};
+
+async function launchLibrary(
+  options: ImagePicker.ImagePickerOptions = PICKER_OPTIONS
+): Promise<PickImageResult> {
   const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!permission.granted) {
     return { ok: false, error: 'Photo library access is required to choose an image.' };
   }
 
-  const result = await ImagePicker.launchImageLibraryAsync(PICKER_OPTIONS);
+  const result = await ImagePicker.launchImageLibraryAsync(options);
   if (result.canceled || !result.assets[0]) {
     return { ok: false, cancelled: true };
   }
@@ -35,13 +46,15 @@ async function launchLibrary(): Promise<PickImageResult> {
   });
 }
 
-async function launchCamera(): Promise<PickImageResult> {
+async function launchCamera(
+  options: ImagePicker.ImagePickerOptions = PICKER_OPTIONS
+): Promise<PickImageResult> {
   const permission = await ImagePicker.requestCameraPermissionsAsync();
   if (!permission.granted) {
     return { ok: false, error: 'Camera access is required to take a photo.' };
   }
 
-  const result = await ImagePicker.launchCameraAsync(PICKER_OPTIONS);
+  const result = await ImagePicker.launchCameraAsync(options);
   if (result.canceled || !result.assets[0]) {
     return { ok: false, cancelled: true };
   }
@@ -75,6 +88,15 @@ export async function pickValidatedImage(): Promise<PickImageResult> {
   const source = await pickSource();
   if (!source) return { ok: false, cancelled: true };
   return source === 'camera' ? launchCamera() : launchLibrary();
+}
+
+/** Pick a 3×5 DI leadership card photo (portrait index-card crop). */
+export async function pickDiCardImage(): Promise<PickImageResult> {
+  const source = await pickSource();
+  if (!source) return { ok: false, cancelled: true };
+  return source === 'camera'
+    ? launchCamera(DI_CARD_PICKER_OPTIONS)
+    : launchLibrary(DI_CARD_PICKER_OPTIONS);
 }
 
 /** @deprecated Use pickValidatedImage */
