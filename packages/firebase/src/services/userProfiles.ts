@@ -116,6 +116,9 @@ export async function recordPolicyAcceptance(
 ): Promise<void> {
   try {
     const now = Timestamp.now();
+    const docRef = doc(getDb(), COLLECTION_NAME, userId);
+    const existing = await getDocumentById<UserProfileDocument>(COLLECTION_NAME, userId);
+
     const payload = stripUndefined({
       userId,
       privacyPolicyAccepted: input.privacyPolicyAccepted,
@@ -127,9 +130,10 @@ export async function recordPolicyAcceptance(
       policiesAcceptedAt: now,
       updatedAt: now,
       updatedBy: userId,
+      ...(existing ? {} : { createdAt: now, createdBy: userId }),
     });
 
-    await setDoc(doc(getDb(), COLLECTION_NAME, userId), payload, { merge: true });
+    await setDoc(docRef, payload, { merge: true });
   } catch (error) {
     throw handleFirestoreError(error, `Failed to record policy acceptance for ${userId}`);
   }

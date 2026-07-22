@@ -7,10 +7,16 @@ import {
   ScrollView,
   Text,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { recordPolicyAcceptance } from '@countcard/firebase/services/userProfiles';
 import { useAuth } from '@/context/AuthContext';
-import { AuthHero, Button, Input, TextLink, CheckboxRow, checkboxLabelTextStyle } from '@/components/ui';
+import {
+  AuthHero,
+  Button,
+  Input,
+  TextLink,
+  CheckboxRow,
+  checkboxLabelTextStyle,
+} from '@/components/ui';
 import { LEGAL_DOCUMENT_VERSION } from '@/constants/legalDocuments';
 import { requireAuth } from '@/lib/firebase';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -19,7 +25,6 @@ import { spacing, typography } from '@/constants/theme';
 export default function SignUpScreen() {
   const { signUpWithEmail } = useAuth();
   const theme = useAppTheme();
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
@@ -27,7 +32,8 @@ export default function SignUpScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const canSubmit = privacyAccepted && termsAccepted && email.trim().length > 0 && password.length >= 6;
+  const canSubmit =
+    privacyAccepted && termsAccepted && email.trim().length > 0 && password.length >= 6;
 
   async function handleSignUp() {
     if (!privacyAccepted || !termsAccepted) {
@@ -44,14 +50,15 @@ export default function SignUpScreen() {
     try {
       await signUpWithEmail(email.trim(), password);
       const uid = requireAuth().currentUser?.uid;
-      if (uid) {
-        await recordPolicyAcceptance(uid, {
-          privacyPolicyAccepted: true,
-          termsOfServiceAccepted: true,
-          privacyPolicyVersion: LEGAL_DOCUMENT_VERSION,
-          termsOfServiceVersion: LEGAL_DOCUMENT_VERSION,
-        });
+      if (!uid) {
+        throw new Error('Account created but session is missing. Sign in and accept policies again.');
       }
+      await recordPolicyAcceptance(uid, {
+        privacyPolicyAccepted: true,
+        termsOfServiceAccepted: true,
+        privacyPolicyVersion: LEGAL_DOCUMENT_VERSION,
+        termsOfServiceVersion: LEGAL_DOCUMENT_VERSION,
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Sign up failed');
     } finally {
@@ -99,14 +106,7 @@ export default function SignUpScreen() {
               accessibilityLabel="Accept Privacy Policy"
               label={
                 <Text style={[checkboxLabelTextStyle, { color: theme.colors.text }]}>
-                  I agree to the{' '}
-                  <Text
-                    onPress={() => router.push('/privacy-policy')}
-                    style={{ color: theme.colors.primary, fontWeight: '700' }}
-                  >
-                    Privacy Policy
-                  </Text>
-                  {' '}(v{LEGAL_DOCUMENT_VERSION})
+                  I agree to the Privacy Policy (v{LEGAL_DOCUMENT_VERSION})
                 </Text>
               }
             />
@@ -116,17 +116,25 @@ export default function SignUpScreen() {
               accessibilityLabel="Accept Terms of Service"
               label={
                 <Text style={[checkboxLabelTextStyle, { color: theme.colors.text }]}>
-                  I agree to the{' '}
-                  <Text
-                    onPress={() => router.push('/terms-of-service')}
-                    style={{ color: theme.colors.primary, fontWeight: '700' }}
-                  >
-                    Terms of Service
-                  </Text>
-                  {' '}(v{LEGAL_DOCUMENT_VERSION})
+                  I agree to the Terms of Service (v{LEGAL_DOCUMENT_VERSION})
                 </Text>
               }
             />
+            <View style={styles.policyLinks}>
+              <TextLink
+                href="/privacy-policy"
+                style={{ ...styles.policyLink, color: theme.colors.primary }}
+              >
+                Read Privacy Policy
+              </TextLink>
+              <Text style={{ color: theme.colors.textMuted }}> · </Text>
+              <TextLink
+                href="/terms-of-service"
+                style={{ ...styles.policyLink, color: theme.colors.primary }}
+              >
+                Read Terms of Service
+              </TextLink>
+            </View>
           </View>
 
           {error ? (
@@ -135,7 +143,13 @@ export default function SignUpScreen() {
 
           <Button
             title="Create Account"
-            onPress={() => void handleSignUp()}
+            onPress={() => {
+              if (!canSubmit) {
+                setError('Accept the Privacy Policy and Terms of Service to continue');
+                return;
+              }
+              void handleSignUp();
+            }}
             loading={loading}
             disabled={!canSubmit || loading}
           />
@@ -163,6 +177,18 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     marginBottom: spacing.md,
     gap: 4,
+  },
+  policyLinks: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    marginTop: spacing.xs,
+    paddingLeft: 36,
+  },
+  policyLink: {
+    ...typography.caption,
+    fontWeight: '700',
+    paddingVertical: 6,
   },
   errorText: { ...typography.caption, marginBottom: spacing.md, marginTop: -8 },
   link: {
