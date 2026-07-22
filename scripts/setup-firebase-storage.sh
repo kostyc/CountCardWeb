@@ -45,11 +45,11 @@ firebase deploy --only storage --project="$PROJECT_ID"
 # 4. Set CORS on the bucket (bucket name for new buckets is PROJECT_ID.firebasestorage.app)
 BUCKET="${PROJECT_ID}.firebasestorage.app"
 echo "Setting CORS on gs://${BUCKET}..."
-if command -v gsutil &>/dev/null; then
-  gsutil cors set "$REPO_ROOT/storage.cors.json" "gs://${BUCKET}"
+if command -v gcloud &>/dev/null; then
+  gcloud storage buckets update "gs://${BUCKET}" --cors-file="$REPO_ROOT/storage.cors.json"
   echo "CORS updated."
 else
-  echo "gsutil not found. Set CORS manually: gsutil cors set storage.cors.json gs://${BUCKET}"
+  echo "gcloud not found. Set CORS manually: gcloud storage buckets update gs://${BUCKET} --cors-file=storage.cors.json"
 fi
 
 echo "Done. Profile picture upload from the app should work after a refresh."
