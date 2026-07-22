@@ -7,6 +7,15 @@ Version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.5.40...HEAD)
 
+### Added
+
+- Expo **DI leadership cards — 3×5 image import**: choose Digital form or 3×5 photo import, pick/crop a card image (3:5), upload to Storage (`di-leadership-cards/{userId}/…`), create `three_by_five_import` documents with `importImageUrl`, and browse recent cards with thumbnails.
+- Firebase Storage rules for `di-leadership-cards/{userId}` (authenticated read; owner write; images ≤5MB).
+
+### Fixed
+
+- Expo client reads `EXPO_PUBLIC_BOOTSTRAP_ADMIN_EMAILS` for full-admin / receiving workflow access (was `NEXT_PUBLIC_*` only).
+
 ## [2026.0.5.40] - 2026-07-06 — Recruit receiving IST, urinalysis, and roster UX
 
 ### Added
