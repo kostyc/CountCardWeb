@@ -87,6 +87,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     typedRoutes: true,
   },
   extra: {
+    bootstrapAdminEmails: env(
+      process.env.EXPO_PUBLIC_BOOTSTRAP_ADMIN_EMAILS,
+      process.env.NEXT_PUBLIC_BOOTSTRAP_ADMIN_EMAILS
+    ),
     firebaseApiKey: env(process.env.EXPO_PUBLIC_FIREBASE_API_KEY, process.env.NEXT_PUBLIC_FIREBASE_API_KEY),
     firebaseAuthDomain: env(
       process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
