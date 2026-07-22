@@ -7,11 +7,14 @@
 
 import {
   collection,
+  doc,
   query,
   where,
   orderBy,
   limit as firestoreLimit,
   getDocs,
+  setDoc,
+  Timestamp,
 } from 'firebase/firestore';
 import {
   getDocumentById,
@@ -19,6 +22,7 @@ import {
   updateDocument,
   queryDocuments,
   handleFirestoreError,
+  stripUndefined,
   type PaginationOptions,
   type PaginationResult,
 } from './base';
@@ -92,6 +96,46 @@ export async function getUserProfileById(userId: string): Promise<UserProfileDoc
     return await getDocumentById<UserProfileDocument>(COLLECTION_NAME, userId);
   } catch (error) {
     throw handleFirestoreError(error, `Failed to get user profile for ${userId}`);
+  }
+}
+
+export interface PolicyAcceptanceInput {
+  privacyPolicyAccepted: boolean;
+  termsOfServiceAccepted: boolean;
+  privacyPolicyVersion?: string;
+  termsOfServiceVersion?: string;
+}
+
+/**
+ * Record privacy / terms acceptance (merge into userProfiles; creates doc if missing).
+ * Client-side path so Expo does not depend on Cloud Functions / Cloud Run.
+ */
+export async function recordPolicyAcceptance(
+  userId: string,
+  input: PolicyAcceptanceInput
+): Promise<void> {
+  try {
+    const now = Timestamp.now();
+    const docRef = doc(getDb(), COLLECTION_NAME, userId);
+    const existing = await getDocumentById<UserProfileDocument>(COLLECTION_NAME, userId);
+
+    const payload = stripUndefined({
+      userId,
+      privacyPolicyAccepted: input.privacyPolicyAccepted,
+      termsOfServiceAccepted: input.termsOfServiceAccepted,
+      privacyPolicyVersion: input.privacyPolicyVersion,
+      termsOfServiceVersion: input.termsOfServiceVersion,
+      privacyPolicyAcceptedAt: input.privacyPolicyAccepted ? now : undefined,
+      termsOfServiceAcceptedAt: input.termsOfServiceAccepted ? now : undefined,
+      policiesAcceptedAt: now,
+      updatedAt: now,
+      updatedBy: userId,
+      ...(existing ? {} : { createdAt: now, createdBy: userId }),
+    });
+
+    await setDoc(docRef, payload, { merge: true });
+  } catch (error) {
+    throw handleFirestoreError(error, `Failed to record policy acceptance for ${userId}`);
   }
 }
 

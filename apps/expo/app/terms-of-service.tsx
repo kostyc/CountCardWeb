@@ -1,15 +1,6 @@
-import { UnderConstruction } from '@/components/ui/UnderConstruction';
+import { LegalDocument } from '@/components/ui/LegalDocument';
+import { TERMS_OF_SERVICE } from '@/constants/legalDocuments';
 
 export default function TermsOfServiceScreen() {
-  return (
-    <UnderConstruction
-      title="Terms of Service"
-      sprintRef="Sprint 2"
-      showBackLink={false}
-      needsAdded={[
-        'Full terms of service document.',
-        'Version tracking and acceptance storage (Sprint 2 acceptance flow exists).',
-      ]}
-    />
-  );
+  return <LegalDocument document={TERMS_OF_SERVICE} />;
 }

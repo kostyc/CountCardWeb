@@ -72,11 +72,17 @@ export interface PaginationResult<T> {
 /**
  * Convert Firestore Timestamp to Date
  */
-export function timestampToDate(timestamp: Date | Timestamp): Date {
+export function timestampToDate(timestamp: Date | Timestamp | null | undefined): Date {
+  if (!timestamp) {
+    return new Date(0);
+  }
   if (timestamp instanceof Date) {
     return timestamp;
   }
-  return timestamp.toDate();
+  if (typeof (timestamp as Timestamp).toDate === 'function') {
+    return (timestamp as Timestamp).toDate();
+  }
+  return new Date(timestamp as unknown as string | number);
 }
 
 /**
@@ -165,8 +171,8 @@ export async function getDocumentById<T extends BaseEntity>(
     return {
       id: docSnap.id,
       ...data,
-      createdAt: timestampToDate(data.createdAt as Date | Timestamp),
-      updatedAt: timestampToDate(data.updatedAt as Date | Timestamp),
+      createdAt: timestampToDate(data.createdAt as Date | Timestamp | undefined),
+      updatedAt: timestampToDate(data.updatedAt as Date | Timestamp | undefined),
     } as T;
   } catch (error) {
     throw handleFirestoreError(error, `Failed to get document ${documentId} from ${collectionName}`);

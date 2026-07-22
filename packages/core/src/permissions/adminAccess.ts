@@ -12,13 +12,18 @@ function getUserOrgAssignment(user: AppUser | null) {
   return user.customClaims?.organizationalAssignment ?? user.profile?.organizationalAssignment ?? null;
 }
 
-/** Client-safe bootstrap list (NEXT_PUBLIC); server may also read BOOTSTRAP_ADMIN_EMAILS */
+function readBootstrapAdminEmailsRaw(): string | undefined {
+  if (typeof process === 'undefined') return undefined;
+  return (
+    process.env.EXPO_PUBLIC_BOOTSTRAP_ADMIN_EMAILS ??
+    process.env.NEXT_PUBLIC_BOOTSTRAP_ADMIN_EMAILS ??
+    process.env.BOOTSTRAP_ADMIN_EMAILS
+  );
+}
+
+/** Client-safe bootstrap list (EXPO_PUBLIC / NEXT_PUBLIC); server may also read BOOTSTRAP_ADMIN_EMAILS */
 export function getBootstrapAdminEmailsFromEnv(): string[] {
-  const raw =
-    typeof process !== 'undefined'
-      ? process.env.NEXT_PUBLIC_BOOTSTRAP_ADMIN_EMAILS ?? process.env.BOOTSTRAP_ADMIN_EMAILS
-      : undefined;
-  return parseBootstrapAdminEmails(raw);
+  return parseBootstrapAdminEmails(readBootstrapAdminEmailsRaw());
 }
 
 export interface AdminClaimsInput {
@@ -31,12 +36,7 @@ export interface AdminClaimsInput {
  * Full admin from token/profile claims (server + client).
  */
 export function isFullAdminFromClaims(input: AdminClaimsInput): boolean {
-  const bootstrapRaw =
-    typeof process !== 'undefined'
-      ? process.env.NEXT_PUBLIC_BOOTSTRAP_ADMIN_EMAILS ?? process.env.BOOTSTRAP_ADMIN_EMAILS
-      : undefined;
-
-  if (isBootstrapAdminEmail(input.email, bootstrapRaw)) {
+  if (isBootstrapAdminEmail(input.email, readBootstrapAdminEmailsRaw())) {
     return true;
   }
 

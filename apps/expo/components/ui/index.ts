@@ -12,3 +12,4 @@ export { AuthHero } from './AuthHero';
 export { Select } from './Select';
 export { TextLink } from './TextLink';
 export { HeaderBackButton } from './HeaderBackButton';
+export { CheckboxRow, checkboxLabelTextStyle } from './CheckboxRow';

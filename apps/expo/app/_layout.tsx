@@ -17,6 +17,8 @@ export { ErrorBoundary } from 'expo-router';
 
 SplashScreen.preventAutoHideAsync();
 
+const PUBLIC_ROUTES = new Set(['privacy-policy', 'terms-of-service']);
+
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const segments = useSegments();
@@ -24,8 +26,10 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (loading) return;
-    const inAuth = segments[0] === '(auth)';
-    if (!user && !inAuth) {
+    const root = segments[0];
+    const inAuth = root === '(auth)';
+    const inPublic = typeof root === 'string' && PUBLIC_ROUTES.has(root);
+    if (!user && !inAuth && !inPublic) {
       router.replace('/(auth)/login');
     } else if (user && inAuth) {
       router.replace('/(tabs)/dashboard');
