@@ -13,10 +13,12 @@ todos:
     status: completed
   - id: qa
     content: Browser QA create 3x5 import card with image
-    status: in_progress
-status: active
+    status: completed
+status: completed
+completedAt: '2026-07-22'
 isProject: false
 ---
+
 
 # DI Leadership Card — 3×5 Image Import
 
