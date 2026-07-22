@@ -73,6 +73,30 @@ export async function uploadRecruitPhoto(image: PickedImage, recruitId: string):
   return uploadRecruitPhotoFromUri(recruitId, image.uri, `photo.${ext}`, image.mimeType);
 }
 
+export async function uploadDILeadershipCardImageFromUri(
+  userId: string,
+  uri: string,
+  fileName = 'di-card.jpg',
+  mimeType?: string
+): Promise<string> {
+  const { blob, contentType } = await assertUploadable(uri, mimeType);
+  const storage = getStorage(requireApp());
+  const timestamp = Date.now();
+  const sanitized = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+  const storagePath = `di-leadership-cards/${userId}/${timestamp}-${sanitized}`;
+  const storageRef = ref(storage, storagePath);
+  const snapshot = await uploadBytes(storageRef, blob, {
+    contentType,
+    cacheControl: 'public, max-age=31536000',
+  });
+  return getDownloadURL(snapshot.ref);
+}
+
+export async function uploadDILeadershipCardImage(image: PickedImage, userId: string): Promise<string> {
+  const ext = image.mimeType === 'image/png' ? 'png' : image.mimeType === 'image/webp' ? 'webp' : 'jpg';
+  return uploadDILeadershipCardImageFromUri(userId, image.uri, `di-card.${ext}`, image.mimeType);
+}
+
 /** Pre-upload size check when only URI is known. */
 export async function ensureImageWithinLimit(uri: string): Promise<void> {
   const size = await resolveImageByteSize(uri);

@@ -63,7 +63,7 @@ Replace immediate recruit transfer with Receiving → custody handoff → traini
 
 - Firestore rules: full role-scope enforcement deferred to Sprint 14
 - E2E encryption not wired to `/conversations` thread UI (plaintext MVP)
-- DI cards: 3×5 image import UI not implemented
+- DI cards: 3×5 image import UI — implemented in Expo (`/di-leadership-cards`); deploy `storage.rules` for `di-leadership-cards/{userId}` before production use
 - Expo: batch create/publish uses web app; mobile supports list + accept/reject
 
 See [TEST-MATRIX.md](./TEST-MATRIX.md) for verification checklist.
