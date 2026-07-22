@@ -94,3 +94,13 @@ Detailed project-specific rules are located in `.cursor/rules/` directory:
 - Follow Marine Corps regulations and guidelines for data handling
 - Maintain audit logs for all administrative actions
 - Documentation is a critical part of code quality and must be maintained alongside code
+
+## Cursor Cloud specific instructions
+
+- **How to run the app (no mobile simulator):** Use **Expo web** — `npm run dev:web` serves the app at `http://localhost:8081`. The first request triggers a ~15–20s Metro web bundle; wait for `Web Bundled ...` in the logs before loading in a browser. Native targets (`ios`/`android`) are not runnable here. Commands live in root `package.json` and `apps/expo/package.json`.
+- **`.env.local` is required and gitignored.** The app hard-throws on startup without a Firebase API key (`apps/expo/lib/firebase.ts`). The startup/update script recreates a repo-root `.env.local` from the **public** Firebase web config that is already committed in `apps/expo/google-services.json` (client-embedded values, not secrets). No secrets are needed to run the UI.
+- **`EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` is mandatory even for email/password.** The login screen (`apps/expo/lib/googleAuth.ts`) throws `Client Id property 'webClientId' must be defined` if it is unset — so it must be in `.env.local` or the login route crashes. The public value is the `client_id` in `apps/expo/google-services.json`.
+- **The app talks to the LIVE cloud project `countcard-94c5b`.** No Firestore/Auth emulators are configured (`firebase.json` only wires the functions emulator). Sign-up/sign-in and Firestore writes hit production — use throwaway test accounts when validating.
+- **App Check is non-blocking in the cloud browser.** Web App Check uses reCAPTCHA Enterprise and logs `AppCheck: ReCAPTCHA error (appCheck/recaptcha-error)`; Auth and Firestore still work. Set `EXPO_PUBLIC_DISABLE_APP_CHECK=true` in `.env.local` to silence it.
+- **Lint/build:** `npm run lint` only typechecks `functions` (`tsc --noEmit`). Functions bundle: `npm run build -w countcard-functions`. Web static export: `npm run build:expo`. Note `functions/lib/*` is a committed build artifact — avoid committing incidental rebuild churn.
+- **Optional Cloud Functions API** (`npm run dev:functions`, emulator on `:5001`) is only needed for encryption/OCR routes and the `e2e:*` scripts; it requires Firebase CLI + ADC for `countcard-94c5b` (see `.cursor/rules/gcloud-firebase-auth.mdc`). Core UI flows (auth, recruits, count cards, receiving) use the Firestore SDK directly and do not need it.
