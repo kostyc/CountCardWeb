@@ -7,6 +7,10 @@ import { AppUser, UserRole, OrganizationalAssignment } from '@countcard/core/typ
 import { Permission, PermissionCheckResult } from './types';
 import { hasPermission, canAccessOrganizationByRole, getPrivilegeLevel } from './roles';
 import { isFullAdminUser } from './adminAccess';
+import {
+  getEffectiveOrganizationalAssignment,
+  getEffectiveUserRole,
+} from '../utils/effectiveOrgAssignment';
 
 /**
  * Check if user has a specific permission
@@ -26,7 +30,7 @@ export function checkPermission(
     return { allowed: true };
   }
 
-  const role = user.customClaims?.role || user.profile?.role;
+  const role = getEffectiveUserRole(user);
   if (!role) {
     return {
       allowed: false,
@@ -59,7 +63,7 @@ export function checkOrganizationAccess(
     return { allowed: true };
   }
 
-  const role = user.customClaims?.role || user.profile?.role;
+  const role = getEffectiveUserRole(user);
   if (!role) {
     return {
       allowed: false,
@@ -67,7 +71,7 @@ export function checkOrganizationAccess(
     };
   }
 
-  const userOrg = user.customClaims?.organizationalAssignment || user.profile?.organizationalAssignment;
+  const userOrg = getEffectiveOrganizationalAssignment(user);
   if (!userOrg) {
     return {
       allowed: false,
@@ -126,7 +130,7 @@ export function checkPrivilegeLevel(
     return { allowed: true };
   }
 
-  const role = user.customClaims?.role || user.profile?.role;
+  const role = getEffectiveUserRole(user);
   if (!role) {
     return {
       allowed: false,
@@ -147,7 +151,7 @@ export function checkPrivilegeLevel(
  */
 export function getUserRole(user: AppUser | null): UserRole | null {
   if (!user) return null;
-  return user.customClaims?.role || user.profile?.role || null;
+  return getEffectiveUserRole(user) ?? null;
 }
 
 /**
@@ -155,5 +159,5 @@ export function getUserRole(user: AppUser | null): UserRole | null {
  */
 export function getUserOrganization(user: AppUser | null): OrganizationalAssignment | null {
   if (!user) return null;
-  return user.customClaims?.organizationalAssignment || user.profile?.organizationalAssignment || null;
+  return getEffectiveOrganizationalAssignment(user) ?? null;
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { verifyCrossPlatformCompatibility } from '@countcard/encryption';
 import { useAuth } from '@/context/AuthContext';
 import { getUserProfileById } from '@countcard/firebase/services/userProfiles';
@@ -8,6 +9,58 @@ import { Screen, SectionHeader, StatusBadge, Button } from '@/components/ui';
 import EncryptionKeyManagement from '@/components/profile/EncryptionKeyManagement';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { cardShadow, radius, spacing, typography } from '@/constants/theme';
+import { userAlert } from '@/lib/userAlert';
+
+const ENCRYPTION_HELP_TITLE = 'How encryption works';
+const ENCRYPTION_HELP_MESSAGE =
+  'CountCard protects sensitive recruit information with end-to-end encryption.\n\n' +
+  'Your data is encrypted on this device before it reaches the cloud, using XChaCha20-Poly1305 — a modern authenticated encryption standard.\n\n' +
+  'Each user has a personal encryption key. Supported data (notes, emergency contacts, and direct messages) can only be read by people with the right keys.\n\n' +
+  'Save a recovery code from Encryption & backup so you can regain access on a new device.';
+
+const COMPATIBLE_HELP_TITLE = 'What Compatible means';
+const COMPATIBLE_HELP_MESSAGE =
+  'CountCard runs a quick check on this device: it loads the encryption libraries (libsodium via @countcard/encryption), encrypts sample data, and decrypts it again.\n\n' +
+  'Compatible means that round-trip succeeded. Your encryption keys and protected data should work on this device, and ciphertext will stay consistent with CountCard on web and mobile.\n\n' +
+  'Issue detected means the libraries could not load or the round-trip failed. Try updating the app, restarting your device, or signing in on another supported device.';
+
+function showEncryptionHelp() {
+  void userAlert(ENCRYPTION_HELP_TITLE, ENCRYPTION_HELP_MESSAGE);
+}
+
+function showCompatibleHelp() {
+  void userAlert(COMPATIBLE_HELP_TITLE, COMPATIBLE_HELP_MESSAGE);
+}
+
+function HelpIconButton({
+  onPress,
+  accessibilityLabel,
+}: {
+  onPress: () => void;
+  accessibilityLabel: string;
+}) {
+  const theme = useAppTheme();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      hitSlop={8}
+      style={styles.helpButton}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+    >
+      <SymbolView
+        name={{
+          ios: 'questionmark.circle',
+          android: 'help_outline',
+          web: 'help_outline',
+        }}
+        tintColor={theme.colors.textMuted}
+        size={22}
+      />
+    </Pressable>
+  );
+}
 
 export default function ProfileScreen() {
   const theme = useAppTheme();
@@ -48,7 +101,13 @@ export default function ProfileScreen() {
       ) : null}
 
       <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>Encryption</Text>
+        <View style={styles.titleRow}>
+          <Text style={[styles.titleRowTitle, { color: theme.colors.text }]}>Encryption</Text>
+          <HelpIconButton
+            onPress={showEncryptionHelp}
+            accessibilityLabel="Learn how encryption works"
+          />
+        </View>
         <Text style={[styles.body, { color: theme.colors.textMuted }]}>
           End-to-end encryption protects recruit data across web and mobile.
         </Text>
@@ -62,6 +121,10 @@ export default function ProfileScreen() {
                   : 'Issue detected'
             }
             tone={encryptionOk ? 'success' : encryptionOk === false ? 'error' : 'default'}
+          />
+          <HelpIconButton
+            onPress={showCompatibleHelp}
+            accessibilityLabel="Learn what Compatible means"
           />
         </View>
       </View>
@@ -79,7 +142,20 @@ const styles = StyleSheet.create({
     marginBottom: spacing.base,
     gap: 10,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
   title: { ...typography.headline },
+  titleRowTitle: { ...typography.headline, flex: 1 },
+  helpButton: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   body: { ...typography.body, lineHeight: 22 },
-  badgeRow: { marginTop: 4 },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: 4 },
 });

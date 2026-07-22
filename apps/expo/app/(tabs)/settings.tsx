@@ -40,7 +40,8 @@ export default function SettingsScreen() {
   }
 
   return (
-    <Screen scroll>
+    <Screen scroll contentContainerStyle={styles.scrollContent}>
+      <View style={styles.content}>
       <View style={[styles.accountCard, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
         <Text style={[styles.accountLabel, { color: theme.colors.textMuted }]}>Signed in as</Text>
         <Text style={[styles.accountEmail, { color: theme.colors.text }]}>{user?.email}</Text>
@@ -87,6 +88,7 @@ export default function SettingsScreen() {
         <ListRow title="Terms of service" onPress={() => router.push('/terms-of-service')} />
         <ListRow title="Share app" onPress={() => router.push('/share')} isLast />
       </View>
+      </View>
 
       <Text style={[styles.version, { color: theme.colors.textMuted }]}>CountCard · {APP_VERSION}</Text>
     </Screen>
@@ -94,6 +96,12 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
+  scrollContent: {
+    flexGrow: 1,
+  },
+  content: {
+    flex: 1,
+  },
   accountCard: {
     borderRadius: radius.lg,
     padding: 20,
@@ -108,5 +116,11 @@ const styles = StyleSheet.create({
   },
   signOut: { ...typography.callout, fontWeight: '600' },
   policyStatus: { ...typography.caption, fontWeight: '600' },
-  version: { ...typography.caption, textAlign: 'center', marginTop: 8 },
+  version: {
+    ...typography.caption,
+    textAlign: 'center',
+    marginTop: 8,
+    minHeight: 20,
+    paddingBottom: 8,
+  },
 });

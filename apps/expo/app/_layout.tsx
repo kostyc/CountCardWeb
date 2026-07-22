@@ -4,6 +4,7 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import 'react-native-reanimated';
 import { ThemeProvider } from '@react-navigation/native';
 
@@ -49,6 +50,14 @@ function RootNavigator() {
         headerTitleStyle: { fontWeight: '600', fontSize: 17 },
         headerShadowVisible: false,
         contentStyle: { backgroundColor: theme.colors.background },
+        headerBackVisible: true,
+        ...(Platform.OS === 'ios'
+          ? {
+              headerBackTitleVisible: false,
+              headerBackTitle: '',
+              headerBackButtonDisplayMode: 'minimal',
+            }
+          : {}),
       }}
     >
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
@@ -66,6 +75,9 @@ function RootNavigator() {
       <Stack.Screen name="recruits/[id]/edit" options={{ title: 'Modify Recruit' }} />
       <Stack.Screen name="recruits/[id]/transfer" options={{ title: 'Transfer Recruit' }} />
       <Stack.Screen name="count-cards/new" options={{ title: 'New Count Card' }} />
+      <Stack.Screen name="count-cards/grid/new" options={{ title: 'COUNT CARD' }} />
+      <Stack.Screen name="count-cards/grid/[id]" options={{ title: 'COUNT CARD' }} />
+      <Stack.Screen name="company" options={{ headerShown: false }} />
     </Stack>
   );
 }

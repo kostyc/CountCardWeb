@@ -107,6 +107,32 @@ This document provides comprehensive documentation of all Firestore collections 
 
 ---
 
+### 2a. `mcrdCountCards` - MCRD Grid Count Cards (Depot Order 1513.6)
+
+**Purpose**: Company-level yellow grid count cards (PLT, T/S, T/P, WPN, BR, LD, SB, DENT, GG, OTH, TOTAL).
+
+**Document ID Format**: `{countCardId}` (e.g. `MCC-{timestamp}-{random}`)
+
+**Key Fields**: `company`, `series`, `countDate`, `trainingDayCode`, `f1Friday`, `backgroundColor`, `rows[]`, `workflowState`, `status`, `submittedBy`, `workflowHistory`
+
+**Indexes**: `(company, countDate desc)`, `(regiment, battalion, company, countDate desc)`
+
+**Type Alignment**: `McrdCountCard`, `CountCardGridRow` in `types/models.ts`
+
+---
+
+### 2b. `companyTrainingDays` - Company Training Day (T-DAY)
+
+**Purpose**: Company-wide F-1 Friday anchor and current training day code (F/T/S/M).
+
+**Document ID Format**: `{regiment}_{battalion}_{company}` (spaces stripped)
+
+**Key Fields**: `f1Friday`, `currentTrainingDayCode`, `currentTrainingDayPhase`, `effectiveDate`, `setBy`, `manualOverride`
+
+**Type Alignment**: `CompanyTrainingDay` in `types/models.ts`
+
+---
+
 ### 3. `platoons` - Platoon/Squad Organization
 
 **Purpose**: Stores platoon organizational structure and hierarchy.

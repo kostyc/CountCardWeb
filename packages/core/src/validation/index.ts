@@ -98,6 +98,19 @@ export {
   type WorkflowHistoryEntry,
 } from './countCardSchemas';
 
+// MCRD grid count card schemas
+export {
+  countCardBackgroundColorSchema,
+  trainingDayPhaseSchema,
+  countCardGridRowSchema,
+  mcrdCountCardCreateSchema,
+  mcrdCountCardUpdateSchema,
+  companyTrainingDaySchema,
+  type McrdCountCardCreateInput,
+  type McrdCountCardUpdateInput,
+  type CompanyTrainingDayInputSchema,
+} from './mcrdCountCardSchemas';
+
 // Organizational structure schemas
 export {
   battalionSchema,

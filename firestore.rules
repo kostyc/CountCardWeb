@@ -63,6 +63,14 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
 
+    match /mcrdCountCards/{countCardId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /companyTrainingDays/{companyKey} {
+      allow read, write: if isAuthenticated();
+    }
+
     // Conversations: only participants can read/write
     match /conversations/{conversationId} {
       allow read, update, delete: if isAuthenticated()

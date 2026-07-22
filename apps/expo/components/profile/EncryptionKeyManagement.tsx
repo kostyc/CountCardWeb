@@ -211,8 +211,16 @@ export default function EncryptionKeyManagement({
         ) : null}
         {status.state === 'error' ? (
           <View style={styles.gap}>
-            <Text style={{ color: theme.colors.error }}>{status.message}</Text>
-            <Button title="Try again" variant="secondary" onPress={() => void refresh()} />
+            <Text style={{ color: isFull ? theme.colors.error : theme.colors.textMuted }}>
+              {isFull
+                ? status.message
+                : status.message.includes('Could not reach the CountCard API')
+                  ? 'Encryption backup uses the CountCard API (optional for count cards and T-DAY). Set EXPO_PUBLIC_API_BASE_URL in apps/expo/.env.local or use the deployed API.'
+                  : status.message}
+            </Text>
+            {isFull ? (
+              <Button title="Try again" variant="secondary" onPress={() => void refresh()} />
+            ) : null}
           </View>
         ) : null}
         {status.state === 'none' ? (

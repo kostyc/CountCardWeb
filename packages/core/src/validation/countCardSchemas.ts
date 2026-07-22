@@ -21,15 +21,15 @@ export const countCardStatusSchema = z.enum([
 
 /**
  * Workflow state validation
- * 
- * Workflow states for count card approval process:
- * - draft: Count card is being created/edited by Drill Instructor
- * - submitted: Submitted to Duty Senior Drill Instructor
- * - under_review: Being reviewed by Senior Drill Instructor
- * - approved: Approved by Senior Drill Instructor, forwarded to Company 1stSgt/Series Commander
- * - rejected: Rejected by Senior Drill Instructor, returned to Drill Instructor
- * - consolidated: Consolidated by Company 1stSgt/Series Commander, forwarded to Company XO/Commander/Battalion SgtMaj
- * - final_approval: Final approval by Company XO/Commander/Battalion SgtMaj
+ *
+ * MCRD count card chain (Depot Order 1513.6):
+ * - draft: DI/SDI editing
+ * - submitted: Platoon card submitted to Senior Drill Instructor
+ * - under_review: SDI consolidated; awaiting Chief Drill Instructor
+ * - approved: CDI validated; awaiting Company 1stSgt / Series Commander
+ * - rejected: Returned to originator
+ * - consolidated: 1stSgt or Series Commander forwarded; awaiting BSM / Company leadership
+ * - final_approval: Battalion SgtMaj / Company XO / Commander signed off
  */
 export const workflowStateSchema = z.enum([
   'draft',

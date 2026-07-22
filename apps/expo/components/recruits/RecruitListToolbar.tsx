@@ -1,4 +1,4 @@
-import { Pressable, Text, View, StyleSheet } from 'react-native';
+import { Pressable, Text, View, StyleSheet, Platform } from 'react-native';
 import { Input, Select } from '@/components/ui';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import type { RecruitSortField, RecruitSortOrder } from '@countcard/core/permissions/recruits';
@@ -26,6 +26,7 @@ interface RecruitListToolbarProps {
   viewStyle: RecruitListViewStyle;
   onViewStyleChange: (style: RecruitListViewStyle) => void;
   onCustomizeColumns?: () => void;
+  allowGridView?: boolean;
 }
 
 export function RecruitListToolbar({
@@ -39,6 +40,7 @@ export function RecruitListToolbar({
   viewStyle,
   onViewStyleChange,
   onCustomizeColumns,
+  allowGridView = Platform.OS === 'web',
 }: RecruitListToolbarProps) {
   const theme = useAppTheme();
 
@@ -60,43 +62,45 @@ export function RecruitListToolbar({
         returnKeyType="search"
         style={styles.searchInput}
       />
-      <View style={styles.viewRow}>
-        <Text style={[styles.viewLabel, { color: theme.colors.textMuted }]}>Layout</Text>
-        <View style={styles.viewToggle}>
-          {(['list', 'grid'] as const).map((style) => (
-            <Pressable
-              key={style}
-              accessibilityRole="button"
-              onPress={() => onViewStyleChange(style)}
-              style={[
-                styles.viewChip,
-                {
-                  backgroundColor: viewStyle === style ? theme.colors.primary : theme.colors.surface,
-                  borderColor: theme.colors.border,
-                },
-              ]}
-            >
-              <Text
+      {allowGridView ? (
+        <View style={styles.viewRow}>
+          <Text style={[styles.viewLabel, { color: theme.colors.textMuted }]}>Layout</Text>
+          <View style={styles.viewToggle}>
+            {(['list', 'grid'] as const).map((style) => (
+              <Pressable
+                key={style}
+                accessibilityRole="button"
+                onPress={() => onViewStyleChange(style)}
                 style={[
-                  styles.viewChipText,
-                  { color: viewStyle === style ? theme.colors.onPrimary : theme.colors.text },
+                  styles.viewChip,
+                  {
+                    backgroundColor: viewStyle === style ? theme.colors.primary : theme.colors.surface,
+                    borderColor: theme.colors.border,
+                  },
                 ]}
               >
-                {style === 'list' ? 'List' : 'Spreadsheet'}
-              </Text>
-            </Pressable>
-          ))}
-          {viewStyle === 'grid' && onCustomizeColumns ? (
-            <Pressable
-              accessibilityRole="button"
-              onPress={onCustomizeColumns}
-              style={[styles.viewChip, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
-            >
-              <Text style={[styles.viewChipText, { color: theme.colors.primary }]}>Columns</Text>
-            </Pressable>
-          ) : null}
+                <Text
+                  style={[
+                    styles.viewChipText,
+                    { color: viewStyle === style ? theme.colors.onPrimary : theme.colors.text },
+                  ]}
+                >
+                  {style === 'list' ? 'List' : 'Spreadsheet'}
+                </Text>
+              </Pressable>
+            ))}
+            {viewStyle === 'grid' && onCustomizeColumns ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={onCustomizeColumns}
+                style={[styles.viewChip, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+              >
+                <Text style={[styles.viewChipText, { color: theme.colors.primary }]}>Columns</Text>
+              </Pressable>
+            ) : null}
+          </View>
         </View>
-      </View>
+      ) : null}
       <View style={styles.row}>
         <View style={styles.sortField}>
           <Select

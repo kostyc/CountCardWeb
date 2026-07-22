@@ -32,17 +32,32 @@ export function getGoogleRedirectUri(): string {
   });
 }
 
+/** iOS Google OAuth client requires reversed-client-id redirect, not bundle-id. */
+export function getGoogleIosRedirectUri(iosClientId: string): string {
+  const clientIdCore = iosClientId.replace(/\.apps\.googleusercontent\.com$/, '');
+  return `com.googleusercontent.apps.${clientIdCore}:/oauthredirect`;
+}
+
 export function useGoogleAuthRequest() {
   const { webClientId, iosClientId, androidClientId } = getGoogleClientIds();
 
-  // Native: use platform OAuth client + bundle-id redirect (com.countcard.app:/oauthredirect).
-  // Passing a custom scheme (countcard://oauth) with the web client triggers Google's OAuth policy error.
+  // Native: platform OAuth client + correct redirect URI per OS.
+  // iOS must use REVERSED_CLIENT_ID (not com.countcard.app) or Google blocks with invalid_request.
+  // Do not use countcard://oauth with the web client — that triggers Google's OAuth policy error.
   if (Platform.OS !== 'web') {
-    return Google.useIdTokenAuthRequest({
-      clientId: webClientId,
-      iosClientId,
-      androidClientId,
-    });
+    const redirectUriOptions =
+      Platform.OS === 'ios' && iosClientId
+        ? { native: getGoogleIosRedirectUri(iosClientId) }
+        : {};
+
+    return Google.useIdTokenAuthRequest(
+      {
+        clientId: webClientId,
+        iosClientId,
+        androidClientId,
+      },
+      redirectUriOptions
+    );
   }
 
   return Google.useIdTokenAuthRequest({

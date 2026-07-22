@@ -47,6 +47,12 @@ export default function DashboardScreen() {
           onPress={() => router.push('/(tabs)/recruits')}
         />
         <QuickActionCard
+          title="COUNT CARD"
+          description="MCRD 1513/6 grid"
+          icon="tablecells.fill"
+          onPress={() => router.push('/count-cards/grid/new')}
+        />
+        <QuickActionCard
           title="Count Cards"
           description="Accountability workflow"
           icon="checklist"

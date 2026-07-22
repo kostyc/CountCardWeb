@@ -12,6 +12,10 @@ import { getBootstrapAdminEmailsFromEnv, isFullAdminUser } from './adminAccess';
 import { isBootstrapAdminEmail } from './bootstrapAdmin';
 import type { RecruitProfile } from '@countcard/core/types/models';
 import type { Battalion, Company, Series } from '@countcard/core/validation/organizationSchemas';
+import {
+  getEffectiveOrganizationalAssignment,
+  getEffectiveUserRole,
+} from '../utils/effectiveOrgAssignment';
 
 export type RecruitOrganizationalScope = {
   regiment?: string;
@@ -84,7 +88,7 @@ export function canViewRecruit(
     return { allowed: true };
   }
 
-  const role = user.customClaims?.role || user.profile?.role;
+  const role = getEffectiveUserRole(user);
   if (!role) {
     return {
       allowed: false,
@@ -118,7 +122,7 @@ export function canCreateRecruit(
     return { allowed: true };
   }
 
-  const role = user.customClaims?.role || user.profile?.role;
+  const role = getEffectiveUserRole(user);
   if (!role) {
     return {
       allowed: false,
@@ -150,7 +154,7 @@ export function canCreateRecruit(
   }
 
   // Check organizational scope
-  const userOrg = user.customClaims?.organizationalAssignment || user.profile?.organizationalAssignment;
+  const userOrg = getEffectiveOrganizationalAssignment(user);
   if (!userOrg) {
     return {
       allowed: false,
@@ -185,7 +189,7 @@ export function canEditRecruit(
     return { allowed: true };
   }
 
-  const role = user.customClaims?.role || user.profile?.role;
+  const role = getEffectiveUserRole(user);
   if (!role) {
     return {
       allowed: false,
@@ -214,7 +218,7 @@ export function canEditRecruit(
   }
 
   // Check organizational scope
-  const userOrg = user.customClaims?.organizationalAssignment || user.profile?.organizationalAssignment;
+  const userOrg = getEffectiveOrganizationalAssignment(user);
   if (!userOrg) {
     return {
       allowed: false,
@@ -251,7 +255,7 @@ export function canDeleteRecruit(
     return { allowed: true };
   }
 
-  const role = user.customClaims?.role || user.profile?.role;
+  const role = getEffectiveUserRole(user);
   if (!role) {
     return {
       allowed: false,
@@ -280,7 +284,7 @@ export function canDeleteRecruit(
   }
 
   // Check organizational scope
-  const userOrg = user.customClaims?.organizationalAssignment || user.profile?.organizationalAssignment;
+  const userOrg = getEffectiveOrganizationalAssignment(user);
   if (!userOrg) {
     return {
       allowed: false,
@@ -306,8 +310,8 @@ export function getRecruitOrganizationalScope(user: AppUser | null): RecruitOrga
     return {};
   }
 
-  const role = user.customClaims?.role || user.profile?.role;
-  const userOrg = user.customClaims?.organizationalAssignment || user.profile?.organizationalAssignment;
+  const role = getEffectiveUserRole(user);
+  const userOrg = getEffectiveOrganizationalAssignment(user);
 
   if (!role || !userOrg) {
     return {};
@@ -367,8 +371,8 @@ export function isRecruitInOrganizationalScope(
   if (!user) return false;
   if (hasUnscopedRecruitListAccess(user)) return true;
 
-  const role = user.customClaims?.role || user.profile?.role;
-  const userOrg = user.customClaims?.organizationalAssignment || user.profile?.organizationalAssignment;
+  const role = getEffectiveUserRole(user);
+  const userOrg = getEffectiveOrganizationalAssignment(user);
   if (!role || !userOrg) return false;
 
   const scope = getRecruitOrganizationalScope(user);
@@ -416,8 +420,8 @@ export function getRecruitListFilterLevel(role: UserRole | undefined): RecruitLi
 
 export function getRecruitListScopeLabel(user: AppUser | null): string | null {
   if (!user) return null;
-  const role = user.customClaims?.role || user.profile?.role;
-  const userOrg = user.customClaims?.organizationalAssignment || user.profile?.organizationalAssignment;
+  const role = getEffectiveUserRole(user);
+  const userOrg = getEffectiveOrganizationalAssignment(user);
   if (!role || !userOrg) return null;
 
   if (hasUnscopedRecruitListAccess(user)) return 'All recruits';
@@ -504,11 +508,11 @@ export function canSeeFullRecruitProfile(
   const visibility = recruit.privacy?.fullProfileVisibleTo;
   if (!visibility) return true;
 
-  const role = user.customClaims?.role || user.profile?.role;
+  const role = getEffectiveUserRole(user);
   if (role && isAdminRole(role)) return true;
   if (visibility === 'admins_only') return false;
 
-  const userOrg = user.customClaims?.organizationalAssignment || user.profile?.organizationalAssignment;
+  const userOrg = getEffectiveOrganizationalAssignment(user);
   if (!userOrg) return false;
 
   const recruitOrg = recruitToOrganizationalAssignment(recruit);
