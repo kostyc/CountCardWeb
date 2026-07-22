@@ -16,7 +16,6 @@ import {
   getDocumentById,
   createDocument,
   updateDocument,
-  deleteDocument,
   queryDocuments,
   handleFirestoreError,
   type PaginationOptions,
@@ -64,19 +63,6 @@ export async function updateCountCard(
     await updateDocument(COLLECTION_NAME, countCardId, data, updatedBy);
   } catch (error) {
     throw handleFirestoreError(error, `Failed to update count card ${countCardId}`);
-  }
-}
-
-/**
- * Delete count card (with GDPR compliance)
- * Note: This permanently deletes the count card. For GDPR compliance,
- * ensure all related data is also handled.
- */
-export async function deleteCountCard(countCardId: string): Promise<void> {
-  try {
-    await deleteDocument(COLLECTION_NAME, countCardId);
-  } catch (error) {
-    throw handleFirestoreError(error, `Failed to delete count card ${countCardId}`);
   }
 }
 
@@ -149,144 +135,6 @@ export async function listCountCards(
     );
   } catch (error) {
     throw handleFirestoreError(error, 'Failed to list count cards');
-  }
-}
-
-/**
- * Get count cards by recruit
- * Note: This requires a recruitId field or relationship in the count card.
- * If count cards reference recruits differently, adjust this function accordingly.
- */
-export async function getCountCardsByRecruit(
-  recruitId: string,
-  pagination?: PaginationOptions
-): Promise<PaginationResult<CountCard>> {
-  try {
-    // Note: This assumes count cards have a recruitId field or reference
-    // Adjust based on actual data model relationship
-    const constraints: Parameters<typeof queryDocuments>[1] = [];
-    
-    // If count cards reference recruits via recruitCounts or another field,
-    // adjust the where clause accordingly
-    // For now, this is a placeholder that may need adjustment
-    constraints.push(where('recruitId', '==', recruitId));
-    constraints.push(orderBy('timestamp', 'desc'));
-
-    return await queryDocuments<CountCard>(
-      COLLECTION_NAME,
-      constraints,
-      pagination
-    );
-  } catch (error) {
-    throw handleFirestoreError(error, `Failed to get count cards for recruit ${recruitId}`);
-  }
-}
-
-/**
- * Get count cards by status
- */
-export async function getCountCardsByStatus(
-  status: CountCardStatus,
-  pagination?: PaginationOptions
-): Promise<PaginationResult<CountCard>> {
-  try {
-    return await listCountCards({ status }, pagination);
-  } catch (error) {
-    throw handleFirestoreError(error, `Failed to get count cards by status: ${status}`);
-  }
-}
-
-/**
- * Get count cards by organization
- */
-export async function getCountCardsByOrganization(
-  organization: {
-    regiment?: Regiment;
-    battalion?: string;
-    company?: string;
-    series?: string;
-    platoon?: string;
-  },
-  pagination?: PaginationOptions
-): Promise<PaginationResult<CountCard>> {
-  try {
-    return await listCountCards(organization, pagination);
-  } catch (error) {
-    throw handleFirestoreError(error, 'Failed to get count cards by organization');
-  }
-}
-
-/**
- * Get count cards by date range
- */
-export async function getCountCardsByDateRange(
-  startDate: Date,
-  endDate: Date,
-  filters?: {
-    regiment?: Regiment;
-    battalion?: string;
-    company?: string;
-    series?: string;
-    platoon?: string;
-    status?: CountCardStatus;
-    workflowState?: WorkflowState;
-  },
-  pagination?: PaginationOptions
-): Promise<PaginationResult<CountCard>> {
-  try {
-    const constraints: Parameters<typeof queryDocuments>[1] = [];
-
-    // Add date range filters
-    constraints.push(where('timestamp', '>=', startDate));
-    constraints.push(where('timestamp', '<=', endDate));
-
-    // Add additional filters
-    if (filters?.regiment) {
-      constraints.push(where('regiment', '==', filters.regiment));
-    }
-    if (filters?.battalion) {
-      constraints.push(where('battalion', '==', filters.battalion));
-    }
-    if (filters?.company) {
-      constraints.push(where('company', '==', filters.company));
-    }
-    if (filters?.series) {
-      constraints.push(where('series', '==', filters.series));
-    }
-    if (filters?.platoon) {
-      constraints.push(where('platoon', '==', filters.platoon));
-    }
-    if (filters?.status) {
-      constraints.push(where('status', '==', filters.status));
-    }
-    if (filters?.workflowState) {
-      constraints.push(where('workflowState', '==', filters.workflowState));
-    }
-
-    // Add ordering
-    constraints.push(orderBy('timestamp', 'desc'));
-
-    return await queryDocuments<CountCard>(
-      COLLECTION_NAME,
-      constraints,
-      pagination
-    );
-  } catch (error) {
-    throw handleFirestoreError(error, 'Failed to get count cards by date range');
-  }
-}
-
-/**
- * Get count cards by workflow state
- */
-export async function getCountCardsByWorkflowState(
-  workflowState: WorkflowState,
-  pagination?: PaginationOptions
-): Promise<PaginationResult<CountCard>> {
-  try {
-    return await listCountCards({ workflowState }, pagination);
-  } catch (error) {
-    throw handleFirestoreError(error, `Failed to get count cards by workflow state: ${workflowState}`);
   }
 }
 

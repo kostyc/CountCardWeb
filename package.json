@@ -21,8 +21,5 @@
     "e2e:sprint27": "node scripts/sprint27-e2e.mjs",
     "e2e:sprint27-client": "node scripts/sprint27-client-e2e.mjs",
     "e2e:sprint27-gaps": "node scripts/sprint27-client-gaps.mjs"
-  },
-  "devDependencies": {
-    "turbo": "^2.5.4"
   }
 }

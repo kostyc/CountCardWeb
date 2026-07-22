@@ -5,7 +5,27 @@ All notable changes to CountCard Web are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.5.43...HEAD)
+## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.5.45...HEAD)
+
+## [2026.0.5.45] - 2026-07-22 — Trim unused public APIs
+
+### Removed
+
+- Dead core exports: `routePlaceholders` and web-oriented `types/components`.
+- Unused `@countcard/firebase` service methods (admin log queries, unused recruit/count-card/org helpers, unused conversation CRUD, unused user-profile helpers). Kept methods still used internally by workflow helpers.
+
+### Kept
+
+- `logos` / `emergencyContacts` services, schemas, indexes, and Storage logo rules (product backlog).
+- `expo-notifications` plugin and dependency (Sprint 19 scaffolding).
+
+## [2026.0.5.44] - 2026-07-22 — Remove dead code
+
+### Removed
+
+- Unused Expo template leftovers (`EditScreenInfo`, `ExternalLink`, `StyledText`, `useClientOnlyValue`), orphan UI (`UnderConstruction`, `CountCardGridRowEditor`), and unused libs (`biometrics`, `notifications`).
+- Stale `@countcard/core` compiled `.js`/`.js.map` artifacts, broken `clientAuth.ts`, unused encryption helpers, unused `@countcard/ui` Button, and superseded `hosting-public/`.
+- Unused deps: `nativewind`, `tailwindcss`, `react-native-quick-crypto`, `expo-local-authentication`, bare `libsodium`, and root `turbo`.
 
 ## [2026.0.5.43] - 2026-07-07 — USMC Drill Instructor brand icons
 

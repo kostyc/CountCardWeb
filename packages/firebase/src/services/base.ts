@@ -18,13 +18,9 @@ import {
   updateDoc,
   deleteDoc,
   query,
-  where,
-  orderBy,
   limit,
   startAfter,
   QueryConstraint,
-  WriteBatch,
-  writeBatch,
   Timestamp,
   DocumentData,
   QueryDocumentSnapshot,
@@ -83,16 +79,6 @@ export function timestampToDate(timestamp: Date | Timestamp | null | undefined):
     return (timestamp as Timestamp).toDate();
   }
   return new Date(timestamp as unknown as string | number);
-}
-
-/**
- * Convert Date to Firestore Timestamp
- */
-export function dateToTimestamp(date: Date | Timestamp): Timestamp {
-  if (date instanceof Timestamp) {
-    return date;
-  }
-  return Timestamp.fromDate(date instanceof Date ? date : new Date(date));
 }
 
 /**
@@ -325,22 +311,4 @@ export function handleFirestoreError(
     'unknown',
     error
   );
-}
-
-/**
- * Create a batch for batch writes
- */
-export function createBatch(): WriteBatch {
-  return writeBatch(getDb());
-}
-
-/**
- * Commit a batch
- */
-export async function commitBatch(batch: WriteBatch): Promise<void> {
-  try {
-    await batch.commit();
-  } catch (error) {
-    throw handleFirestoreError(error, 'Failed to commit batch');
-  }
 }

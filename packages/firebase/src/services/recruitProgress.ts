@@ -1,10 +1,9 @@
 /**
- * Recruit progress events and append-only comments
+ * Recruit progress events and receiving checklist updates
  */
 
 import {
   collection,
-  doc,
   addDoc,
   getDocs,
   query,
@@ -15,12 +14,10 @@ import { getDb } from '../instance';
 import { handleFirestoreError, stripUndefined } from './base';
 import type {
   RecruitProgressEvent,
-  RecruitComment,
   RecruitProfile,
 } from '@countcard/core/types/models';
 import type {
   ProgressEventType,
-  RecruitCommentCategory,
 } from '@countcard/core/validation/lifecycleSchemas';
 import { isReceivingChecklistComplete } from '@countcard/core/constants/receivingChecklist';
 import { updateRecruitProfile, getRecruitProfileById } from './recruits';
@@ -74,47 +71,6 @@ export async function listRecruitProgressEvents(
     return snap.docs.map((d) => ({ id: d.id, ...d.data() } as RecruitProgressEvent));
   } catch (error) {
     throw handleFirestoreError(error, `Failed to list progress events for ${recruitId}`);
-  }
-}
-
-export async function addRecruitComment(
-  recruitId: string,
-  input: {
-    authorId: string;
-    authorRole?: string;
-    body: string;
-    category: RecruitCommentCategory;
-  }
-): Promise<string> {
-  try {
-    const db = getDb();
-    const ref = collection(db, 'recruits', recruitId, 'comments');
-    const commentId = `cmt-${Date.now()}`;
-    const payload: RecruitComment = {
-      commentId,
-      recruitId,
-      authorId: input.authorId,
-      authorRole: input.authorRole,
-      body: input.body,
-      category: input.category,
-      createdAt: Timestamp.now(),
-    };
-    const docRef = await addDoc(ref, stripUndefined(payload));
-    return docRef.id;
-  } catch (error) {
-    throw handleFirestoreError(error, `Failed to add comment for ${recruitId}`);
-  }
-}
-
-export async function listRecruitComments(recruitId: string): Promise<RecruitComment[]> {
-  try {
-    const db = getDb();
-    const ref = collection(db, 'recruits', recruitId, 'comments');
-    const q = query(ref, orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
-    return snap.docs.map((d) => d.data() as RecruitComment);
-  } catch (error) {
-    throw handleFirestoreError(error, `Failed to list comments for ${recruitId}`);
   }
 }
 

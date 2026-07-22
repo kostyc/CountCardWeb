@@ -79,9 +79,6 @@ export const colors = {
   },
 } as const;
 
-/** @deprecated Use colors.palette */
-export const palette = colors.palette;
-
 /**
  * Font families — web CSS stacks and React Native fallbacks
  */

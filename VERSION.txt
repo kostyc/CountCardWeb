@@ -1,13 +1,17 @@
 CountCard Version Tracking
 ==================================
-Full Version: 2026.0.5.43
+Full Version: 2026.0.5.45
 Store Version: 2026.0.5
-Build Number: 43
-Last Updated: 2026-07-07
+Build Number: 45
+Last Updated: 2026-07-22
 Release Type: Development
 
 Version History:
 ---------------
+2026.0.5.45 (2026-07-22) - Trim unused firebase APIs
+
+2026.0.5.44 (2026-07-22) - Remove dead code
+
 2026.0.5.43 (2026-07-07) - USMC Drill Instructor brand icons
 
 2026.0.5.42 (2026-07-06) - Fix Training Day screen navigation crash

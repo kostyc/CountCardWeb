@@ -84,9 +84,6 @@ export async function parseRosterDocumentFile(
   return data;
 }
 
-/** @deprecated Use parseRosterDocumentFile */
-export const parseRosterDocumentViaApi = parseRosterDocumentFile;
-
 export async function parseRosterImageViaApi(
   image: PickedImage,
   orgDefaults: RecruitImportOrgDefaults,

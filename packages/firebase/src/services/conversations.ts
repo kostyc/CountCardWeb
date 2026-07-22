@@ -2,39 +2,24 @@
  * Conversation Service
  * 
  * Provides type-safe functions for conversation and message operations in Firestore.
- * Handles conversation creation, message sending, retrieval, and status updates.
+ * Handles conversation creation, message sending, and org channel creation.
  * Adapted from AIChatModel reference implementation.
  */
 
 import {
-  collection,
   doc,
-  getDoc,
-  getDocs,
   setDoc,
   updateDoc,
-  query,
-  where,
-  orderBy,
-  limit as firestoreLimit,
   Timestamp,
 } from 'firebase/firestore';
 import { getDb } from '../instance';
 import {
-  getDocumentById,
-  createDocument,
   updateDocument,
-  queryDocuments,
   handleFirestoreError,
-  timestampToDate,
   addBaseEntityFields,
   updateBaseEntityFields,
-  type PaginationOptions,
-  type PaginationResult,
 } from './base';
 import type {
-  Conversation,
-  Message,
   MessageStatus,
 } from '@countcard/core/types/models';
 
@@ -143,46 +128,6 @@ export async function updateConversation(
 }
 
 /**
- * Get conversation by ID
- */
-export async function getConversationById(
-  conversationId: string
-): Promise<Conversation | null> {
-  try {
-    return await getDocumentById<Conversation>(CONVERSATIONS_COLLECTION, conversationId);
-  } catch (error) {
-    throw handleFirestoreError(error, `Failed to get conversation ${conversationId}`);
-  }
-}
-
-/**
- * List conversations for user
- * Returns all conversations where the user is a participant
- */
-export async function listConversationsForUser(
-  userId: string,
-  pagination?: PaginationOptions
-): Promise<PaginationResult<Conversation>> {
-  try {
-    const constraints: Parameters<typeof queryDocuments>[1] = [];
-
-    // Filter by participant
-    constraints.push(where('participants', 'array-contains', userId));
-
-    // Order by last message timestamp (most recent first)
-    constraints.push(orderBy('lastMessageAt', 'desc'));
-
-    return await queryDocuments<Conversation>(
-      CONVERSATIONS_COLLECTION,
-      constraints,
-      pagination
-    );
-  } catch (error) {
-    throw handleFirestoreError(error, `Failed to list conversations for user ${userId}`);
-  }
-}
-
-/**
  * Send message
  * Creates a message in the conversation's messages subcollection
  */
@@ -228,162 +173,6 @@ export async function sendMessage(
     return messageId;
   } catch (error) {
     throw handleFirestoreError(error, `Failed to send message ${messageId} in conversation ${conversationId}`);
-  }
-}
-
-/**
- * Get messages for conversation
- * Retrieves messages from the conversation's messages subcollection
- */
-export async function getMessagesForConversation(
-  conversationId: string,
-  pagination?: PaginationOptions
-): Promise<PaginationResult<Message>> {
-  try {
-    const messagesRef = collection(
-      getDb(),
-      CONVERSATIONS_COLLECTION,
-      conversationId,
-      MESSAGES_SUBCOLLECTION
-    );
-
-    let q = query(messagesRef, orderBy('sentAt', 'desc'));
-
-    // Add pagination
-    if (pagination?.pageSize) {
-      q = query(q, firestoreLimit(pagination.pageSize + 1)); // Fetch one extra to check if there's more
-    }
-
-    const querySnapshot = await getDocs(q);
-    const items: Message[] = [];
-    let lastDoc: any;
-    let hasMore = false;
-
-    querySnapshot.docs.forEach((docSnap, index) => {
-      if (pagination?.pageSize && index === pagination.pageSize) {
-        // This is the extra document, indicating there are more
-        hasMore = true;
-        lastDoc = querySnapshot.docs[index - 1];
-        return;
-      }
-
-      const data = docSnap.data();
-      items.push({
-        messageId: docSnap.id,
-        conversationId,
-        senderId: data.senderId,
-        content: data.content,
-        status: data.status || 'sent',
-        sentAt: timestampToDate(data.sentAt),
-        deliveredAt: data.deliveredAt ? timestampToDate(data.deliveredAt) : undefined,
-        readAt: data.readAt ? timestampToDate(data.readAt) : undefined,
-        attachments: data.attachments,
-        reactions: data.reactions,
-        replyToMessageId: data.replyToMessageId,
-      } as Message);
-
-      if (index === querySnapshot.docs.length - 1) {
-        lastDoc = docSnap;
-      }
-    });
-
-    // If we fetched exactly pageSize items and there's no extra, check if there are more
-    if (pagination?.pageSize && items.length === pagination.pageSize) {
-      // We fetched one extra, so if we have pageSize items, there might be more
-      // The hasMore flag is already set above if we found the extra document
-    } else if (pagination?.pageSize && items.length < pagination.pageSize) {
-      hasMore = false;
-    }
-
-    return {
-      items,
-      lastDoc,
-      hasMore,
-    };
-  } catch (error) {
-    throw handleFirestoreError(error, `Failed to get messages for conversation ${conversationId}`);
-  }
-}
-
-/**
- * Update message status
- * Updates a message's status (sent, delivered, read) in the subcollection
- */
-export async function updateMessageStatus(
-  conversationId: string,
-  messageId: string,
-  status: MessageStatus,
-  updatedBy: string,
-  deliveredAt?: Date | Timestamp,
-  readAt?: Date | Timestamp
-): Promise<void> {
-  try {
-    const messageRef = doc(
-      getDb(),
-      CONVERSATIONS_COLLECTION,
-      conversationId,
-      MESSAGES_SUBCOLLECTION,
-      messageId
-    );
-
-    const updateData: any = {
-      status,
-      ...updateBaseEntityFields({}, updatedBy),
-    };
-
-    if (deliveredAt) {
-      updateData.deliveredAt = deliveredAt instanceof Date ? Timestamp.fromDate(deliveredAt) : deliveredAt;
-    }
-
-    if (readAt) {
-      updateData.readAt = readAt instanceof Date ? Timestamp.fromDate(readAt) : readAt;
-    }
-
-    await updateDoc(messageRef, updateData);
-  } catch (error) {
-    throw handleFirestoreError(error, `Failed to update message status for ${messageId} in conversation ${conversationId}`);
-  }
-}
-
-/**
- * Get message by ID
- * Retrieves a specific message from a conversation's messages subcollection
- */
-export async function getMessageById(
-  conversationId: string,
-  messageId: string
-): Promise<Message | null> {
-  try {
-    const messageRef = doc(
-      getDb(),
-      CONVERSATIONS_COLLECTION,
-      conversationId,
-      MESSAGES_SUBCOLLECTION,
-      messageId
-    );
-
-    const messageSnap = await getDoc(messageRef);
-
-    if (!messageSnap.exists()) {
-      return null;
-    }
-
-    const data = messageSnap.data();
-    return {
-      messageId: messageSnap.id,
-      conversationId,
-      senderId: data.senderId,
-      content: data.content,
-      status: data.status || 'sent',
-      sentAt: timestampToDate(data.sentAt),
-      deliveredAt: data.deliveredAt ? timestampToDate(data.deliveredAt) : undefined,
-      readAt: data.readAt ? timestampToDate(data.readAt) : undefined,
-      attachments: data.attachments,
-      reactions: data.reactions,
-      replyToMessageId: data.replyToMessageId,
-    } as Message;
-  } catch (error) {
-    throw handleFirestoreError(error, `Failed to get message ${messageId} from conversation ${conversationId}`);
   }
 }
 

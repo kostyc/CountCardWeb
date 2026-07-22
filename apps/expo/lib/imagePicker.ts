@@ -98,15 +98,3 @@ export async function pickDiCardImage(): Promise<PickImageResult> {
     ? launchCamera(DI_CARD_PICKER_OPTIONS)
     : launchLibrary(DI_CARD_PICKER_OPTIONS);
 }
-
-/** @deprecated Use pickValidatedImage */
-export async function pickRecruitPhoto(): Promise<string | null> {
-  const result = await pickValidatedImage();
-  return result.ok ? result.image.uri : null;
-}
-
-/** @deprecated Use pickValidatedImage */
-export async function captureRecruitPhoto(): Promise<string | null> {
-  const result = await launchCamera();
-  return result.ok ? result.image.uri : null;
-}

@@ -171,15 +171,6 @@ export async function consolidateMcrdCountCardBySdi(
   );
 }
 
-/** @deprecated Use consolidateMcrdCountCardBySdi — kept for callers expecting approveMcrdCountCard. */
-export async function approveMcrdCountCard(
-  countCardId: string,
-  approvedBy: string,
-  notes?: string
-): Promise<void> {
-  return consolidateMcrdCountCardBySdi(countCardId, approvedBy, notes);
-}
-
 /** CDI validates consolidated counts and forwards to 1stSgt / Series Commander. */
 export async function validateMcrdCountCardByCdi(
   countCardId: string,

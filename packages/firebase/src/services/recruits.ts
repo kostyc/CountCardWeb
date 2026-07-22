@@ -7,25 +7,19 @@
  */
 
 import {
-  collection,
-  query,
   where,
   orderBy,
-  limit as firestoreLimit,
-  getDocs,
 } from 'firebase/firestore';
 import {
   getDocumentById,
   createDocument,
   updateDocument,
-  deleteDocument,
   queryDocuments,
   handleFirestoreError,
   ServiceError,
   type PaginationOptions,
   type PaginationResult,
 } from './base';
-import { getDb } from '../instance';
 import type {
   RecruitProfile,
   RecruitProfileInput,
@@ -37,7 +31,6 @@ import type { RecruitRank } from '@countcard/core/constants/recruitRanks';
 import type { Regiment } from '@countcard/core/types/auth';
 import { Timestamp } from 'firebase/firestore';
 import { isStatusTransitionAllowed } from '@countcard/core/constants/recruitStatus';
-import { createAdminLogEntry } from './adminLogs';
 
 /**
  * Collection name for recruits
@@ -72,101 +65,6 @@ export async function updateRecruitProfile(
     await updateDocument(COLLECTION_NAME, recruitId, data, updatedBy);
   } catch (error) {
     throw handleFirestoreError(error, `Failed to update recruit profile for ${recruitId}`);
-  }
-}
-
-/**
- * Update recruit status with history tracking
- * 
- * This function updates a recruit's status and maintains a history of status changes.
- * It validates status transitions and logs the change in admin logs.
- * 
- * @param recruitId - Recruit ID
- * @param newStatus - New status value
- * @param updatedBy - User ID who is making the change
- * @param reason - Optional reason for the status change
- * @param logAction - Whether to log the action in admin logs (default: true)
- */
-export async function updateRecruitStatus(
-  recruitId: string,
-  newStatus: RecruitStatus,
-  updatedBy: string,
-  reason?: string,
-  logAction: boolean = true
-): Promise<void> {
-  try {
-    // Get current recruit profile
-    const currentRecruit = await getRecruitProfileById(recruitId);
-    
-    if (!currentRecruit) {
-      throw new Error(`Recruit profile not found: ${recruitId}`);
-    }
-
-    // Validate status transition
-    if (!isStatusTransitionAllowed(currentRecruit.status, newStatus)) {
-      throw new Error(
-        `Invalid status transition from ${currentRecruit.status} to ${newStatus}`
-      );
-    }
-
-    // If status hasn't changed, no-op
-    if (currentRecruit.status === newStatus) {
-      return;
-    }
-
-    // Create status history entry
-    const statusHistoryEntry = {
-      fromStatus: currentRecruit.status,
-      toStatus: newStatus,
-      timestamp: Timestamp.now(),
-      changedBy: updatedBy,
-      reason: reason || undefined,
-    };
-
-    // Get existing status history or create new array
-    const existingHistory = currentRecruit.statusHistory || [];
-    const updatedHistory = [...existingHistory, statusHistoryEntry];
-
-    // Update recruit profile with new status and history
-    const updateData: RecruitProfileUpdate = {
-      recruitId,
-      status: newStatus,
-      statusHistory: updatedHistory,
-      updatedBy,
-      updatedAt: Timestamp.now(),
-    };
-
-    await updateDocument(COLLECTION_NAME, recruitId, updateData, updatedBy);
-
-    // Log status change in admin logs (if enabled)
-    if (logAction) {
-      try {
-        const logId = `status-change-${recruitId}-${Date.now()}`;
-        await createAdminLogEntry(
-          logId,
-          {
-            logId,
-            userId: updatedBy,
-            action: 'update',
-            resourceType: 'recruit',
-            resourceId: recruitId,
-            description: `Status changed from ${currentRecruit.status} to ${newStatus}${reason ? `: ${reason}` : ''}`,
-            metadata: {
-              fromStatus: currentRecruit.status,
-              toStatus: newStatus,
-              reason: reason || null,
-            },
-            timestamp: Timestamp.now(),
-          },
-          updatedBy
-        );
-      } catch (logError) {
-        // Log error but don't fail the status update
-        console.error('Failed to log status change:', logError);
-      }
-    }
-  } catch (error) {
-    throw handleFirestoreError(error, `Failed to update recruit status for ${recruitId}`);
   }
 }
 
@@ -266,19 +164,6 @@ export async function transferRecruitProfile(
     await updateDocument(COLLECTION_NAME, recruitId, updateData, transferredBy);
   } catch (error) {
     throw handleFirestoreError(error, `Failed to transfer recruit ${recruitId}`);
-  }
-}
-
-/**
- * Delete recruit profile (with GDPR compliance)
- * Note: This permanently deletes the recruit profile. For GDPR compliance,
- * ensure all related data (count cards, emergency contacts) is also handled.
- */
-export async function deleteRecruitProfile(recruitId: string): Promise<void> {
-  try {
-    await deleteDocument(COLLECTION_NAME, recruitId);
-  } catch (error) {
-    throw handleFirestoreError(error, `Failed to delete recruit profile for ${recruitId}`);
   }
 }
 
@@ -386,115 +271,6 @@ export async function listRecruits(
 }
 
 /**
- * Search recruits by name
- * Performs a case-insensitive search on firstName and lastName fields.
- * Note: Firestore doesn't support full-text search natively, so this uses
- * prefix matching. For more advanced search, consider using Algolia or similar.
- */
-export async function searchRecruits(
-  searchTerm: string,
-  pagination?: PaginationOptions
-): Promise<PaginationResult<RecruitProfile>> {
-  try {
-    // Firestore doesn't support case-insensitive search or full-text search
-    // This implementation uses prefix matching on lastName
-    // For production, consider implementing a more sophisticated search solution
-    const searchLower = searchTerm.toLowerCase().trim();
-    
-    // Try to find by last name prefix first
-    const collectionRef = collection(getDb(), COLLECTION_NAME);
-    const q = query(
-      collectionRef,
-      orderBy('lastName', 'asc'),
-      orderBy('firstName', 'asc'),
-      firestoreLimit(pagination?.pageSize || 50)
-    );
-
-    const querySnapshot = await getDocs(q);
-    const items: RecruitProfile[] = [];
-
-    querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data() as Omit<RecruitProfile, 'id'>;
-      const lastName = (data.lastName || '').toLowerCase();
-      const edipiDigits = (data.edipi || '').replace(/\D/g, '');
-      const docEdipiDigits = docSnap.id.startsWith('edipi-') ? docSnap.id.slice(5) : '';
-      const searchDigits = searchTerm.replace(/\D/g, '');
-
-      const matchesLastName = lastName.startsWith(searchLower);
-      const matchesEdipi =
-        searchDigits.length > 0 &&
-        (edipiDigits.startsWith(searchDigits) || docEdipiDigits.startsWith(searchDigits));
-
-      if (matchesLastName || matchesEdipi) {
-        items.push({
-          id: docSnap.id,
-          ...data,
-          createdAt: data.createdAt instanceof Date ? data.createdAt : data.createdAt.toDate(),
-          updatedAt: data.updatedAt instanceof Date ? data.updatedAt : data.updatedAt.toDate(),
-        } as RecruitProfile);
-      }
-    });
-
-    // Note: This simple implementation doesn't support proper pagination for search
-    // For production, consider using a dedicated search service
-    return {
-      items,
-      hasMore: false, // Simplified - would need proper pagination for production
-    };
-  } catch (error) {
-    throw handleFirestoreError(error, `Failed to search recruits with term: ${searchTerm}`);
-  }
-}
-
-/**
- * Get recruits by organization
- */
-export async function getRecruitsByOrganization(
-  organization: {
-    regiment?: Regiment;
-    battalion?: string;
-    company?: string;
-    series?: string;
-    platoon?: string;
-  },
-  pagination?: PaginationOptions
-): Promise<PaginationResult<RecruitProfile>> {
-  try {
-    return await listRecruits(organization, pagination);
-  } catch (error) {
-    throw handleFirestoreError(error, 'Failed to get recruits by organization');
-  }
-}
-
-/**
- * Get recruits by status
- */
-export async function getRecruitsByStatus(
-  status: RecruitStatus,
-  pagination?: PaginationOptions
-): Promise<PaginationResult<RecruitProfile>> {
-  try {
-    return await listRecruits({ status }, pagination);
-  } catch (error) {
-    throw handleFirestoreError(error, `Failed to get recruits by status: ${status}`);
-  }
-}
-
-/**
- * Get recruits by rank
- */
-export async function getRecruitsByRank(
-  rank: RecruitRank,
-  pagination?: PaginationOptions
-): Promise<PaginationResult<RecruitProfile>> {
-  try {
-    return await listRecruits({ rank }, pagination);
-  } catch (error) {
-    throw handleFirestoreError(error, `Failed to get recruits by rank: ${rank}`);
-  }
-}
-
-/**
  * Get recruits by platoon
  */
 export async function getRecruitsByPlatoon(
@@ -507,6 +283,3 @@ export async function getRecruitsByPlatoon(
     throw handleFirestoreError(error, `Failed to get recruits by platoon: ${platoon}`);
   }
 }
-
-/** @deprecated Use getRecruitProfileById — kept for existing Expo imports */
-export { getRecruitProfileById as getRecruitById };
