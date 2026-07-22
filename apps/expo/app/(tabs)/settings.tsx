@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { getUserProfileById } from '@countcard/firebase/services/userProfiles';
 import { Screen, SectionHeader, ListRow } from '@/components/ui';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { APP_VERSION } from '@/constants/appVersion';
 import { cardShadow, radius, typography } from '@/constants/theme';
 
 export default function SettingsScreen() {
@@ -60,7 +61,7 @@ export default function SettingsScreen() {
         <ListRow title="Share app" onPress={() => router.push('/share')} isLast />
       </View>
 
-      <Text style={[styles.version, { color: theme.colors.textMuted }]}>CountCard · 2026.0.2</Text>
+      <Text style={[styles.version, { color: theme.colors.textMuted }]}>CountCard · {APP_VERSION}</Text>
     </Screen>
   );
 }
