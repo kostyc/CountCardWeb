@@ -7,6 +7,20 @@ Version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased](https://github.com/your-org/CountCardWeb/compare/v2026.0.5.45...HEAD)
 
+### Added
+
+- **Emergency button + medical SOP alert (Sprint 28)**: dashboard Emergency CTA, `/emergency` list/create/detail, claimable placeholder SOP checklist (911 / CPR / guide ambulance), and live `ActiveIncidentBanner`. Official medical SOP still pending command input (`sprints/Sprint-28-Emergency-SOP-Alert/SOP-SWAP.md`).
+
+### Changed
+
+- **Emergency notify = company chain of command** for all incident types (platoon staff, both CDIs, series commander, XO / CO / 1stSgt). Only the Company Commander can **Notify battalion command** (Bn CO / XO / SgtMaj). Banner and list show only alerts where you are on `notifiedUserIds`.
+
+### Fixed
+
+- Receiving / Intake (and receiving-mode roster import) no longer appear for battalion or company leadership outside **Support / Receiving**. Full-admin bypass is limited to bootstrap admin emails or `admin: true` claim; org gate uses profile-first assignment.
+- Dashboard **Admin** tile only shows for users with `assign_roles` permission.
+- Settings no longer lists both **Profile & security** and **Edit profile** — edit/create is only under Profile & security (with a clearer subtitle).
+
 ## [2026.0.5.45] - 2026-07-22 — Trim unused public APIs
 
 ### Removed

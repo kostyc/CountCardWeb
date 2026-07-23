@@ -13,6 +13,7 @@ export * from './constants/custodyPhase';
 export * from './constants/receivingChecklist';
 export * from './constants/progressEvents';
 export * from './constants/mcrdTrainingMatrix';
+export * from './constants/incidentSopTemplates';
 export * from './utils/countCardGrid';
 export * from './utils/recruitDisplay';
 export * from './utils/effectiveOrgAssignment';

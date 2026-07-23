@@ -12,3 +12,4 @@ export * from './adminAccess';
 export * from './lifecycle';
 export * from './companyTrainingDay';
 export * from './mcrdCountCardWorkflow';
+export * from './incidentAlerts';

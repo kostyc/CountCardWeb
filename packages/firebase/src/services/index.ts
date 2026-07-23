@@ -19,3 +19,4 @@ export * from './recruitWeight';
 export * from './diLeadershipCards';
 export * from './companyTrainingDays';
 export * from './mcrdCountCards';
+export * from './incidentAlerts';

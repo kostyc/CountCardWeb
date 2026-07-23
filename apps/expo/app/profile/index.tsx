@@ -101,6 +101,18 @@ export default function ProfileScreen() {
       ) : null}
 
       <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
+        <Text style={[styles.title, { color: theme.colors.text }]}>Sign-in methods</Text>
+        <Text style={[styles.body, { color: theme.colors.textMuted }]}>
+          Link Google or Apple to the same email so you can sign in either way.
+        </Text>
+        <Button
+          title="Manage linked sign-in"
+          variant="secondary"
+          onPress={() => router.push('/profile/account-linking')}
+        />
+      </View>
+
+      <View style={[styles.card, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
         <View style={styles.titleRow}>
           <Text style={[styles.titleRowTitle, { color: theme.colors.text }]}>Encryption</Text>
           <HelpIconButton

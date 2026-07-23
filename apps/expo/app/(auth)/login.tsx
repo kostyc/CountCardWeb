@@ -17,6 +17,7 @@ import {
   isGoogleSignInConfigured,
   isGoogleNativeAuthFlow,
 } from '@/lib/googleAuth';
+import { formatAuthError } from '@/lib/authErrors';
 import { spacing, typography } from '@/constants/theme';
 
 export default function LoginScreen() {
@@ -37,7 +38,7 @@ export default function LoginScreen() {
     setLoading(true);
     setError(null);
     signInWithGoogleIdToken(idToken)
-      .catch((e) => setError(e instanceof Error ? e.message : 'Google Sign-In failed'))
+      .catch((e) => setError(formatAuthError(e, 'Google Sign-In failed')))
       .finally(() => setLoading(false));
   }, [googleResponse]);
 
@@ -47,7 +48,7 @@ export default function LoginScreen() {
     try {
       await signInWithEmail(email.trim(), password);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Sign in failed');
+      setError(formatAuthError(e, 'Sign in failed'));
     } finally {
       setLoading(false);
     }
@@ -59,7 +60,7 @@ export default function LoginScreen() {
     try {
       await signInWithApple();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Apple Sign-In failed');
+      setError(formatAuthError(e, 'Apple Sign-In failed'));
     } finally {
       setLoading(false);
     }
@@ -75,7 +76,7 @@ export default function LoginScreen() {
         await signInWithGoogle();
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Google Sign-In failed');
+      setError(formatAuthError(e, 'Google Sign-In failed'));
     } finally {
       setLoading(false);
     }

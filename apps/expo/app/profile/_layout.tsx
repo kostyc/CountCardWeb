@@ -27,6 +27,7 @@ export default function ProfileLayout() {
     >
       <Stack.Screen name="index" options={{ title: 'Profile & Security' }} />
       <Stack.Screen name="create" options={{ title: 'Profile' }} />
+      <Stack.Screen name="account-linking" options={{ title: 'Linked sign-in methods' }} />
       <Stack.Screen name="encryption" options={{ title: 'Encryption & backup' }} />
     </Stack>
   );

@@ -1028,32 +1028,52 @@ export interface AdminLogEntry {
 
 /**
  * ============================================================================
- * INCIDENT ALERT TYPES (For Sprint 18)
+ * INCIDENT ALERT TYPES (Sprint 28 — Emergency SOP)
  * ============================================================================
  */
 
+/** Incident type for Emergency button */
+export type IncidentType =
+  | 'medical_injury'
+  | 'heat_casualty'
+  | 'missing_recruit'
+  | 'security'
+  | 'other';
+
+/** Who is primarily affected */
+export type IncidentSubjectType = 'recruit' | 'di' | 'civilian' | 'unknown';
+
+/** How far the alert has been fanned out */
+export type IncidentEscalationLevel = 'platoon' | 'company' | 'battalion';
+
 /**
- * Alert workflow state
+ * Alert workflow state (emergency-appropriate)
  */
-export type AlertWorkflowState =
-  | 'draft'
-  | 'submitted'
-  | 'under_review'
-  | 'approved'
-  | 'rejected'
-  | 'active'
-  | 'resolved'
-  | 'cancelled';
+export type AlertWorkflowState = 'active' | 'escalated' | 'resolved' | 'cancelled';
+
+/** SOP task status */
+export type IncidentTaskStatus = 'open' | 'claimed' | 'done' | 'skipped';
+
+/** Where the task text came from */
+export type IncidentSopSource = 'placeholder' | 'official';
 
 /**
  * Alert notification type
  */
-export type AlertNotificationType = 'push' | 'email' | 'sms';
+export type AlertNotificationType = 'push' | 'email' | 'sms' | 'in_app';
 
 /**
  * Alert notification status
  */
 export type AlertNotificationStatus = 'pending' | 'sent' | 'delivered' | 'failed' | 'read';
+
+/**
+ * Acknowledgement on an incident alert
+ */
+export interface IncidentAcknowledgement {
+  userId: string;
+  at: Date | Timestamp;
+}
 
 /**
  * Alert notification
@@ -1109,8 +1129,40 @@ export interface AlertMessage {
 }
 
 /**
+ * Incident SOP task (subcollection incidentAlerts/{id}/tasks)
+ */
+export interface IncidentTask extends BaseEntity {
+  /** Task document id (often same as taskKey) */
+  taskId: string;
+  /** Parent alert id */
+  alertId: string;
+  /** Stable key from SOP template */
+  taskKey: string;
+  /** Short command label */
+  label: string;
+  /** Longer instructions */
+  instructions: string;
+  /** Display order */
+  sortOrder: number;
+  /** Task status */
+  status: IncidentTaskStatus;
+  /** Claimed by user id */
+  claimedBy?: string;
+  /** Claimed at */
+  claimedAt?: Date | Timestamp;
+  /** Completed by user id */
+  completedBy?: string;
+  /** Completed at */
+  completedAt?: Date | Timestamp;
+  /** placeholder until official SOP arrives */
+  sopSource: IncidentSopSource;
+  /** SOP version string */
+  sopVersion: string;
+}
+
+/**
  * Incident Alert
- * Represents a mass incident alert
+ * Represents a mass / emergency incident alert
  */
 export interface IncidentAlert extends BaseEntity {
   /** Unique alert identifier */
@@ -1119,26 +1171,40 @@ export interface IncidentAlert extends BaseEntity {
   title: string;
   /** Alert description */
   description: string;
+  /** Incident type */
+  incidentType: IncidentType;
+  /** Severity 1–5 (5 highest) */
+  severity: number;
+  /** Location note (building, street, field, etc.) */
+  location?: string;
+  /** Who is primarily affected */
+  subjectType: IncidentSubjectType;
+  /** Related recruit document ids */
+  relatedRecruitIds?: string[];
+  /** Fan-out level */
+  escalationLevel: IncidentEscalationLevel;
   /** Alert workflow state */
   workflowState: AlertWorkflowState;
-  /** Organizational scope */
+  /** Organizational scope (initiator assignment) */
   organizationalScope: OrganizationalAssignment;
-  /** Priority level (1-5, 5 being highest) */
+  /** Priority level (1-5, 5 being highest) — mirrors severity for legacy field */
   priority: number;
+  /** Users who acknowledged the banner */
+  acknowledgedBy: IncidentAcknowledgement[];
+  /** Recipient user ids notified at create / escalate */
+  notifiedUserIds: string[];
+  /** SOP source for spawned tasks */
+  sopSource: IncidentSopSource;
+  /** SOP version applied at create */
+  sopVersion: string;
   /** Created by user ID */
   createdBy: string;
-  /** Submitted by user ID */
-  submittedBy?: string;
-  /** Approved by user ID */
-  approvedBy?: string;
-  /** Rejected by user ID */
-  rejectedBy?: string;
-  /** Rejection reason */
-  rejectionReason?: string;
   /** Active timestamp */
   activeAt?: Date | Timestamp;
   /** Resolved timestamp */
   resolvedAt?: Date | Timestamp;
+  /** Resolved by user id */
+  resolvedBy?: string;
   /** Cancelled timestamp */
   cancelledAt?: Date | Timestamp;
   /** Encrypted sensitive data */

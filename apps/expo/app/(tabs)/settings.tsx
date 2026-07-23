@@ -50,10 +50,16 @@ export default function SettingsScreen() {
       <SectionHeader title="Account" />
 
       <View style={[styles.group, { backgroundColor: theme.colors.surface }, cardShadow(theme.scheme)]}>
-        <ListRow title="Profile & security" onPress={() => router.push('/profile')} isFirst />
         <ListRow
-          title={hasProfile ? 'Edit profile' : 'Create profile'}
-          onPress={() => router.push('/profile/create')}
+          title="Profile & security"
+          subtitle={hasProfile ? 'Edit profile, encryption, sign-in' : 'Create profile, encryption, sign-in'}
+          onPress={() => router.push('/profile')}
+          isFirst
+        />
+        <ListRow
+          title="Linked sign-in methods"
+          subtitle="Google, Apple, email"
+          onPress={() => router.push('/profile/account-linking')}
         />
         <ListRow title="Reset password" onPress={handleResetPassword} />
         <ListRow

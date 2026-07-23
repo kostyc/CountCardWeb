@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -19,11 +19,19 @@ import {
 } from '@/components/ui';
 import { LEGAL_DOCUMENT_VERSION } from '@/constants/legalDocuments';
 import { requireAuth } from '@/lib/firebase';
+import { formatAuthError } from '@/lib/authErrors';
+import {
+  useGoogleAuthRequest,
+  signInWithGoogleIdToken,
+  signInWithGoogle,
+  isGoogleSignInConfigured,
+  isGoogleNativeAuthFlow,
+} from '@/lib/googleAuth';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { spacing, typography } from '@/constants/theme';
 
 export default function SignUpScreen() {
-  const { signUpWithEmail } = useAuth();
+  const { signUpWithEmail, signInWithApple } = useAuth();
   const theme = useAppTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,15 +39,54 @@ export default function SignUpScreen() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pendingOauthPolicies, setPendingOauthPolicies] = useState(false);
+  const [, googleResponse, promptGoogleSignIn] = useGoogleAuthRequest();
 
+  const policiesOk = privacyAccepted && termsAccepted;
   const canSubmit =
-    privacyAccepted && termsAccepted && email.trim().length > 0 && password.length >= 6;
+    policiesOk && email.trim().length > 0 && password.length >= 6;
+
+  async function recordPoliciesForCurrentUser() {
+    const uid = requireAuth().currentUser?.uid;
+    if (!uid) {
+      throw new Error('Account created but session is missing. Sign in and accept policies again.');
+    }
+    await recordPolicyAcceptance(uid, {
+      privacyPolicyAccepted: true,
+      termsOfServiceAccepted: true,
+      privacyPolicyVersion: LEGAL_DOCUMENT_VERSION,
+      termsOfServiceVersion: LEGAL_DOCUMENT_VERSION,
+    });
+  }
+
+  useEffect(() => {
+    if (!isGoogleNativeAuthFlow()) return;
+    if (!pendingOauthPolicies) return;
+    if (googleResponse?.type !== 'success') return;
+    const idToken = googleResponse.params.id_token;
+    if (!idToken) return;
+
+    setLoading(true);
+    setError(null);
+    signInWithGoogleIdToken(idToken)
+      .then(() => recordPoliciesForCurrentUser())
+      .catch((e) => setError(formatAuthError(e, 'Google Sign-Up failed')))
+      .finally(() => {
+        setPendingOauthPolicies(false);
+        setLoading(false);
+      });
+  }, [googleResponse, pendingOauthPolicies]);
+
+  function requirePolicies(): boolean {
+    if (!policiesOk) {
+      setError('Accept the Privacy Policy and Terms of Service to continue');
+      return false;
+    }
+    return true;
+  }
 
   async function handleSignUp() {
-    if (!privacyAccepted || !termsAccepted) {
-      setError('Accept the Privacy Policy and Terms of Service to continue');
-      return;
-    }
+    if (!requirePolicies()) return;
     if (password.length < 6) {
       setError('Password must be at least 6 characters');
       return;
@@ -49,18 +96,50 @@ export default function SignUpScreen() {
     setError(null);
     try {
       await signUpWithEmail(email.trim(), password);
-      const uid = requireAuth().currentUser?.uid;
-      if (!uid) {
-        throw new Error('Account created but session is missing. Sign in and accept policies again.');
-      }
-      await recordPolicyAcceptance(uid, {
-        privacyPolicyAccepted: true,
-        termsOfServiceAccepted: true,
-        privacyPolicyVersion: LEGAL_DOCUMENT_VERSION,
-        termsOfServiceVersion: LEGAL_DOCUMENT_VERSION,
-      });
+      await recordPoliciesForCurrentUser();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Sign up failed');
+      setError(formatAuthError(e, 'Sign up failed'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleGoogle() {
+    if (!requirePolicies()) return;
+    setLoading(true);
+    setError(null);
+    try {
+      if (isGoogleNativeAuthFlow()) {
+        setPendingOauthPolicies(true);
+        const result = await promptGoogleSignIn();
+        if (result?.type !== 'success') {
+          setPendingOauthPolicies(false);
+          setLoading(false);
+        }
+        // Success: loading cleared in useEffect after token exchange + policies
+        return;
+      }
+      await signInWithGoogle();
+      await recordPoliciesForCurrentUser();
+    } catch (e) {
+      setPendingOauthPolicies(false);
+      setError(formatAuthError(e, 'Google Sign-Up failed'));
+    } finally {
+      if (!isGoogleNativeAuthFlow()) {
+        setLoading(false);
+      }
+    }
+  }
+
+  async function handleApple() {
+    if (!requirePolicies()) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await signInWithApple();
+      await recordPoliciesForCurrentUser();
+    } catch (e) {
+      setError(formatAuthError(e, 'Apple Sign-Up failed'));
     } finally {
       setLoading(false);
     }
@@ -154,6 +233,38 @@ export default function SignUpScreen() {
             disabled={!canSubmit || loading}
           />
 
+          <View style={styles.dividerRow}>
+            <View style={[styles.dividerLine, { backgroundColor: theme.colors.borderSubtle }]} />
+            <Text style={[styles.dividerText, { color: theme.colors.textMuted }]}>
+              or continue with
+            </Text>
+            <View style={[styles.dividerLine, { backgroundColor: theme.colors.borderSubtle }]} />
+          </View>
+
+          {isGoogleSignInConfigured() ? (
+            <View style={styles.oauthWrap}>
+              <Button
+                title="Continue with Google"
+                onPress={() => void handleGoogle()}
+                variant="secondary"
+                loading={loading}
+                disabled={loading}
+              />
+            </View>
+          ) : null}
+
+          {Platform.OS === 'ios' ? (
+            <View style={styles.oauthWrap}>
+              <Button
+                title="Continue with Apple"
+                onPress={() => void handleApple()}
+                variant="secondary"
+                loading={loading}
+                disabled={loading}
+              />
+            </View>
+          ) : null}
+
           <TextLink href="/(auth)/login" style={{ ...styles.link, color: theme.colors.primary }}>
             Already have an account? Sign in
           </TextLink>
@@ -191,6 +302,16 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   errorText: { ...typography.caption, marginBottom: spacing.md, marginTop: -8 },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: spacing.xl,
+    marginBottom: spacing.sm,
+  },
+  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth },
+  dividerText: { ...typography.caption, fontWeight: '600' },
+  oauthWrap: { marginTop: 12 },
   link: {
     ...typography.callout,
     fontWeight: '600',

@@ -1,16 +1,18 @@
 /**
  * Full admin access — bypasses org scope and grants all role workflows
  * (Receiving intake, transfer batches, company custody, DI cards, etc.)
+ *
+ * Full admin = bootstrap admin email OR `admin: true` custom claim only.
+ * Leadership roles (company/battalion CoC) use role permissions + org scope —
+ * they are not unrestricted full admins.
  */
 
 import type { AppUser, UserRole } from '@countcard/core/types/auth';
-import { isAdminRole } from './roles';
+import {
+  getEffectiveOrganizationalAssignment,
+  getEffectiveUserRole,
+} from '../utils/effectiveOrgAssignment';
 import { isBootstrapAdminEmail, parseBootstrapAdminEmails } from './bootstrapAdmin';
-
-function getUserOrgAssignment(user: AppUser | null) {
-  if (!user) return null;
-  return user.customClaims?.organizationalAssignment ?? user.profile?.organizationalAssignment ?? null;
-}
 
 function readBootstrapAdminEmailsRaw(): string | undefined {
   if (typeof process === 'undefined') return undefined;
@@ -28,12 +30,14 @@ export function getBootstrapAdminEmailsFromEnv(): string[] {
 
 export interface AdminClaimsInput {
   email?: string | null;
+  /** @deprecated Ignored — leadership roles are not full admins. Kept for call-site compat. */
   role?: UserRole;
   admin?: boolean;
 }
 
 /**
  * Full admin from token/profile claims (server + client).
+ * Bootstrap email or `admin === true` only — not leadership roles.
  */
 export function isFullAdminFromClaims(input: AdminClaimsInput): boolean {
   if (isBootstrapAdminEmail(input.email, readBootstrapAdminEmailsRaw())) {
@@ -41,10 +45,6 @@ export function isFullAdminFromClaims(input: AdminClaimsInput): boolean {
   }
 
   if (input.admin === true) {
-    return true;
-  }
-
-  if (input.role && isAdminRole(input.role)) {
     return true;
   }
 
@@ -59,19 +59,19 @@ export function isFullAdminUser(user: AppUser | null): boolean {
 
   return isFullAdminFromClaims({
     email: user.email ?? user.profile?.email,
-    role: user.customClaims?.role ?? user.profile?.role,
+    role: getEffectiveUserRole(user),
     admin: user.customClaims?.admin,
   });
 }
 
 /**
  * Support Battalion / Receiving Company workflows (intake, checklist, transfer batches).
- * Full admins always have access; others need Receiving org assignment.
+ * Full admins always have access; others need Receiving org assignment (profile-first).
  */
 export function canPerformReceivingWorkflow(user: AppUser | null): boolean {
   if (isFullAdminUser(user)) return true;
 
-  const org = getUserOrgAssignment(user);
+  const org = getEffectiveOrganizationalAssignment(user);
   return org?.battalion === 'Support' && org?.company === 'Receiving';
 }
 
@@ -81,7 +81,7 @@ export function canPerformReceivingWorkflow(user: AppUser | null): boolean {
 export function canPerformIncomingCustodyWorkflow(user: AppUser | null): boolean {
   if (isFullAdminUser(user)) return true;
 
-  const role = user?.customClaims?.role ?? user?.profile?.role;
+  const role = getEffectiveUserRole(user);
   if (!role) return false;
 
   const companyRoles = [

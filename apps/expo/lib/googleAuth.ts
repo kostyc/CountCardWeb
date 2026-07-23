@@ -3,8 +3,15 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { makeRedirectUri } from 'expo-auth-session';
 import Constants from 'expo-constants';
-import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
+import {
+  GoogleAuthProvider,
+  linkWithCredential,
+  linkWithPopup,
+  signInWithCredential,
+  signInWithPopup,
+} from 'firebase/auth';
 import { requireAuth } from '@/lib/firebase';
+import { formatAuthError } from '@/lib/authErrors';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -82,6 +89,51 @@ export async function signInWithGoogle(): Promise<void> {
   }
 
   throw new Error('Use signInWithGoogleNativePrompt on native platforms');
+}
+
+/** Native: link Google via ID token. Must use linkWithCredential (not signIn). */
+export async function linkWithGoogleIdToken(idToken: string): Promise<void> {
+  const user = requireAuth().currentUser;
+  if (!user) {
+    throw new Error('You must be signed in to link Google');
+  }
+  const credential = GoogleAuthProvider.credential(idToken);
+  try {
+    await linkWithCredential(user, credential);
+  } catch (e) {
+    if (getAuthCode(e) === 'auth/provider-already-linked') {
+      return;
+    }
+    throw new Error(formatAuthError(e, 'Failed to link Google'));
+  }
+}
+
+/** Web: link Google via popup. Native: use linkWithGoogleIdToken after prompt. */
+export async function linkWithGoogle(): Promise<void> {
+  if (Platform.OS !== 'web') {
+    throw new Error('Use linkWithGoogleIdToken on native platforms');
+  }
+  const user = requireAuth().currentUser;
+  if (!user) {
+    throw new Error('You must be signed in to link Google');
+  }
+  const provider = new GoogleAuthProvider();
+  try {
+    await linkWithPopup(user, provider);
+  } catch (e) {
+    if (getAuthCode(e) === 'auth/provider-already-linked') {
+      return;
+    }
+    throw new Error(formatAuthError(e, 'Failed to link Google'));
+  }
+}
+
+function getAuthCode(error: unknown): string | undefined {
+  if (error && typeof error === 'object' && 'code' in error) {
+    const code = (error as { code?: unknown }).code;
+    return typeof code === 'string' ? code : undefined;
+  }
+  return undefined;
 }
 
 export function isGoogleSignInConfigured(): boolean {

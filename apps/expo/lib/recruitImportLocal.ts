@@ -186,7 +186,7 @@ export async function commitRecruitImportLocal(
     appUser?.profile?.organizationalAssignment?.regiment ??
     'West';
 
-  if (receivingMode && !canPerformReceivingWorkflow(appUser) && !userIsAdmin) {
+  if (receivingMode && !canPerformReceivingWorkflow(appUser)) {
     throw new Error('Receiving workflow access required for receiving-mode import');
   }
 

@@ -288,3 +288,16 @@ export {
   type RecruitCommentCategory,
   type ConversationType,
 } from './lifecycleSchemas';
+
+// Incident / emergency alert schemas (Sprint 28)
+export {
+  incidentTypeSchema,
+  incidentSubjectTypeSchema,
+  incidentEscalationLevelSchema,
+  alertWorkflowStateSchema,
+  incidentTaskStatusSchema,
+  incidentAlertCreateSchema,
+  incidentTaskReassignSchema,
+  type IncidentAlertCreateInput,
+  type IncidentTaskReassignInput,
+} from './incidentAlertSchemas';

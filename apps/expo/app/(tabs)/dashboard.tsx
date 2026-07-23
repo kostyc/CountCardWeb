@@ -1,7 +1,8 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useRouter, type Href } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { canPerformReceivingWorkflow, canPerformIncomingCustodyWorkflow } from '@countcard/core/permissions/adminAccess';
+import { checkPermission } from '@countcard/core/permissions/utils';
 import { useAppUser } from '@/hooks/useAppUser';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Screen, QuickActionCard, SectionHeader } from '@/components/ui';
@@ -20,6 +21,7 @@ export default function DashboardScreen() {
   const router = useRouter();
   const showReceiving = canPerformReceivingWorkflow(appUser);
   const showIncoming = canPerformIncomingCustodyWorkflow(appUser);
+  const showAdmin = checkPermission(appUser, 'assign_roles').allowed;
 
   return (
     <Screen scroll>
@@ -35,11 +37,29 @@ export default function DashboardScreen() {
             </Text>
           </View>
         </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Start emergency alert"
+          onPress={() => router.push('/emergency/new' as Href)}
+          style={({ pressed }) => [
+            styles.emergencyBtn,
+            { opacity: pressed ? 0.9 : 1 },
+          ]}
+        >
+          <Text style={styles.emergencyBtnTitle}>EMERGENCY</Text>
+          <Text style={styles.emergencyBtnSub}>Injury / medical — notify chain of command</Text>
+        </Pressable>
       </View>
 
       <SectionHeader title="Quick actions" subtitle="Jump to your most-used tools" />
 
       <View style={styles.grid}>
+        <QuickActionCard
+          title="Emergencies"
+          description="Active alerts & SOP board"
+          icon="exclamationmark.triangle.fill"
+          onPress={() => router.push('/emergency' as Href)}
+        />
         <QuickActionCard
           title="Recruits"
           description="Profiles, ranks & assignments"
@@ -76,12 +96,14 @@ export default function DashboardScreen() {
           icon="lock.shield.fill"
           onPress={() => router.push('/profile')}
         />
-        <QuickActionCard
-          title="Admin"
-          description="Users & permissions"
-          icon="person.badge.shield.checkmark.fill"
-          onPress={() => router.push('/admin')}
-        />
+        {showAdmin ? (
+          <QuickActionCard
+            title="Admin"
+            description="Users & permissions"
+            icon="person.badge.shield.checkmark.fill"
+            onPress={() => router.push('/admin')}
+          />
+        ) : null}
         {showReceiving ? (
           <>
             <QuickActionCard
@@ -136,6 +158,26 @@ const styles = StyleSheet.create({
   heroText: { flex: 1 },
   heroGreeting: { ...typography.caption, color: 'rgba(255,255,255,0.7)', marginBottom: 2 },
   heroEmail: { ...typography.headline, color: palette.onPrimary },
+  emergencyBtn: {
+    marginTop: spacing.lg,
+    backgroundColor: palette.marineRed,
+    borderRadius: radius.md,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    minHeight: 64,
+    justifyContent: 'center',
+  },
+  emergencyBtnTitle: {
+    ...typography.headline,
+    color: '#FFFFFF',
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  emergencyBtnSub: {
+    ...typography.caption,
+    color: 'rgba(255,255,255,0.9)',
+    marginTop: 2,
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

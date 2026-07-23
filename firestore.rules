@@ -71,6 +71,19 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
 
+    // Emergency / mass incident alerts (Sprint 28) — app-layer org scope until Sprint 14
+    // Deployed for CountCard project countcard-94c5b
+    match /incidentAlerts/{alertId} {
+      allow read, write: if isAuthenticated();
+
+      match /tasks/{taskId} {
+        allow read, write: if isAuthenticated();
+      }
+      match /messages/{messageId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+
     // Conversations: only participants can read/write
     match /conversations/{conversationId} {
       allow read, update, delete: if isAuthenticated()

@@ -12,7 +12,8 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { getNavigationTheme } from '@/constants/navigationTheme';
 import { useAppTheme } from '@/hooks/useAppTheme';
-
+import { ActiveIncidentBanner } from '@/components/emergency/ActiveIncidentBanner';
+import { View } from 'react-native';
 export { ErrorBoundary } from 'expo-router';
 
 SplashScreen.preventAutoHideAsync();
@@ -41,44 +42,51 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
 function RootNavigator() {
   const theme = useAppTheme();
+  const { user } = useAuth();
 
   return (
-    <Stack
-      screenOptions={{
-        headerStyle: { backgroundColor: theme.colors.header },
-        headerTintColor: theme.colors.headerText,
-        headerTitleStyle: { fontWeight: '600', fontSize: 17 },
-        headerShadowVisible: false,
-        contentStyle: { backgroundColor: theme.colors.background },
-        headerBackVisible: true,
-        ...(Platform.OS === 'ios'
-          ? {
-              headerBackTitleVisible: false,
-              headerBackTitle: '',
-              headerBackButtonDisplayMode: 'minimal',
-            }
-          : {}),
-      }}
-    >
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="recruits/[id]" options={{ title: 'Recruit Profile', headerShown: true }} />
-      <Stack.Screen name="count-cards/[id]" options={{ title: 'Count Card', headerShown: true }} />
-      <Stack.Screen name="conversations/[id]" options={{ title: 'Conversation', headerShown: true }} />
-      <Stack.Screen name="admin" options={{ title: 'Administration', headerShown: true }} />
-      <Stack.Screen name="profile" options={{ headerShown: false }} />
-      <Stack.Screen name="privacy-policy" options={{ title: 'Privacy Policy' }} />
-      <Stack.Screen name="terms-of-service" options={{ title: 'Terms of Service' }} />
-      <Stack.Screen name="share" options={{ title: 'Share App' }} />
-      <Stack.Screen name="recruits/create" options={{ title: 'Add Recruit' }} />
-      <Stack.Screen name="recruits/import" options={{ title: 'Import Roster' }} />
-      <Stack.Screen name="recruits/[id]/edit" options={{ title: 'Modify Recruit' }} />
-      <Stack.Screen name="recruits/[id]/transfer" options={{ title: 'Transfer Recruit' }} />
-      <Stack.Screen name="count-cards/new" options={{ title: 'New Count Card' }} />
-      <Stack.Screen name="count-cards/grid/new" options={{ title: 'COUNT CARD' }} />
-      <Stack.Screen name="count-cards/grid/[id]" options={{ title: 'COUNT CARD' }} />
-      <Stack.Screen name="company" options={{ headerShown: false }} />
-    </Stack>
+    <View style={{ flex: 1 }}>
+      {user ? <ActiveIncidentBanner /> : null}
+      <Stack
+        screenOptions={{
+          headerStyle: { backgroundColor: theme.colors.header },
+          headerTintColor: theme.colors.headerText,
+          headerTitleStyle: { fontWeight: '600', fontSize: 17 },
+          headerShadowVisible: false,
+          contentStyle: { backgroundColor: theme.colors.background },
+          headerBackVisible: true,
+          ...(Platform.OS === 'ios'
+            ? {
+                headerBackTitleVisible: false,
+                headerBackTitle: '',
+                headerBackButtonDisplayMode: 'minimal',
+              }
+            : {}),
+        }}
+      >
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="recruits/[id]" options={{ title: 'Recruit Profile', headerShown: true }} />
+        <Stack.Screen name="count-cards/[id]" options={{ title: 'Count Card', headerShown: true }} />
+        <Stack.Screen name="conversations/[id]" options={{ title: 'Conversation', headerShown: true }} />
+        <Stack.Screen name="admin" options={{ title: 'Administration', headerShown: true }} />
+        <Stack.Screen name="profile" options={{ headerShown: false }} />
+        <Stack.Screen name="privacy-policy" options={{ title: 'Privacy Policy' }} />
+        <Stack.Screen name="terms-of-service" options={{ title: 'Terms of Service' }} />
+        <Stack.Screen name="share" options={{ title: 'Share App' }} />
+        <Stack.Screen name="recruits/create" options={{ title: 'Add Recruit' }} />
+        <Stack.Screen name="recruits/import" options={{ title: 'Import Roster' }} />
+        <Stack.Screen name="recruits/[id]/edit" options={{ title: 'Modify Recruit' }} />
+        <Stack.Screen name="recruits/[id]/transfer" options={{ title: 'Transfer Recruit' }} />
+        <Stack.Screen name="count-cards/new" options={{ title: 'New Count Card' }} />
+        <Stack.Screen name="count-cards/grid/new" options={{ title: 'COUNT CARD' }} />
+        <Stack.Screen name="count-cards/grid/[id]" options={{ title: 'COUNT CARD' }} />
+        <Stack.Screen name="company" options={{ headerShown: false }} />
+        <Stack.Screen name="emergency/index" options={{ title: 'Emergencies' }} />
+        <Stack.Screen name="emergency/new" options={{ title: 'Emergency Alert' }} />
+        <Stack.Screen name="emergency/[id]" options={{ title: 'Emergency SOP' }} />
+      </Stack>
+    </View>
   );
 }
 
